@@ -1,1 +1,1 @@
-char * serial_buffer[900];
+char serial_buffer[900];
