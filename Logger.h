@@ -1,3 +1,4 @@
+#pragma once
 #include "RingBuffer.h"
 
 class Logger
@@ -5,12 +6,12 @@ class Logger
     public:
         Logger();
         Logger(bool timed);
-        Logger(char * logger_name);
+        Logger(const char * logger_name);
         void log(int value);
         void timed_log(int value);
         void setup(bool timed);
         bool available();
-        void json(char *jsonbuf);
+        // aJsonObject * json();
         RingBuffer l1, l2, l3;
         char name[9];
         char* dirname_l1(char *dirname);

@@ -1,13 +1,11 @@
-#include "GrowduinoFirmware.h"
 #include <DHT22.h>
-
-#include <time.h>
 
 #include <Wire.h>
 #include "RTClib.h"
 #include <stdio.h>
 
 #include "Logger.h"
+#include <aJSON.h>
 #include "daytime.h"
 
 #include <SD.h>
@@ -53,23 +51,26 @@ void setup(void)
 }
 
 void worker(){
+    aJsonStream serial_stream(&Serial);
+
     pinMode(13, OUTPUT);
     myDHT22.readData();
     dht22_temp.timed_log(myDHT22.getTemperatureCInt());
     dht22_humidity.timed_log(myDHT22.getHumidityInt());
     light_sensor.timed_log(analogRead(LIGHT_SENSOR_PIN));
-    strcpy(serial_buffer, "");
-    dht22_temp.l1.json(serial_buffer);
+    Serial.println(day_seconds() / 60.0);
     Serial.print("dht22_temp=");
-    Serial.println(serial_buffer);
-    strcpy(serial_buffer, "");
-    dht22_humidity.l1.json(serial_buffer);
+    Serial.println(dht22_temp.l1.avg());
+    //Serial.println(aJson.print(dht22_temp.l1.json()));
+    aJson.print(dht22_temp.l1.json(), &serial_stream);
+    Serial.println();
     Serial.print("dht22_humidity=");
-    Serial.println(serial_buffer);
-    strcpy(serial_buffer, "");
-    light_sensor.l1.json(serial_buffer);
+    //Serial.println(aJson.print(dht22_humidity.l1.json()));
+    aJson.print(dht22_humidity.l1.json(), &serial_stream);
+    Serial.println();
     Serial.print("light_sensor=");
-    Serial.println(serial_buffer);
+    //Serial.println(aJson.print(light_sensor.l1.json()));
+    aJson.print(light_sensor.l1.json(), &serial_stream);
     Serial.println();
 }
 

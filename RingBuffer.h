@@ -1,5 +1,9 @@
+#pragma once
 
-#define MINVALUE -32768
+#include <aJSON.h>
+
+//#define MINVALUE -32768
+#define MINVALUE -3
 
 class RingBuffer
 {
@@ -10,14 +14,15 @@ class RingBuffer
         void cleanup();
         int avg();
         int get_last_avg();
-        void json(char *jsonbuf);
+        aJsonObject * json();
+        aJsonObject * json(aJsonObject *msg);
         bool store(int value, int slot);
 
     private:
         int * buffer;
         int i;
         int buf_len;
-        int index;  
+        int index;
         char name_[4];
         char jsontmp[10];
         int last_average;

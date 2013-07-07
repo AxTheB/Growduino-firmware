@@ -1,5 +1,7 @@
 #include "RingBuffer.h"
 
+// #include <aJSON.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -61,25 +63,17 @@ int RingBuffer::get_last_avg(){
     return toret;
 }
 
-void RingBuffer::json(char *jsonbuf){
-    // Appends json to jsonbuf
-    strcat(jsonbuf, "\"");
-    strcat(jsonbuf, name_);
-    strcat(jsonbuf, "\": [");
+aJsonObject* RingBuffer::json(){
+    aJsonObject *msg = aJson.createObject();
+    msg = json(msg);
+    return msg;
+}
 
-    for (int i=0; i <= index; i++) {
-        if (buffer[i] == MINVALUE) { //This will prolly have to go out for real usage? 
-            sprintf(jsontmp, ",");
-        } else {
-        if (i==0) {
-            sprintf(jsontmp, "%d", buffer[i]);
-        } else {
-            sprintf(jsontmp, ",%d", buffer[i]);
-        }
-        }
-        strcat(jsonbuf, jsontmp);
-    }
-    strcat(jsonbuf, "]");
+aJsonObject* RingBuffer::json(aJsonObject *msg) {
+    aJsonObject *json = aJson.createIntArray(buffer, index + 1);
+    aJson.addItemToObject(msg, name_, json);
+
+    return msg;
 }
 
 bool RingBuffer::store(int value, int slot){

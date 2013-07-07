@@ -19,7 +19,7 @@ Logger::Logger(){
     setup(true);
 }
 
-Logger::Logger(char * logger_name){
+Logger::Logger(const char * logger_name){
     setup(true);
     strncpy(name, logger_name, 8);
     name[8]='\0';
@@ -44,24 +44,15 @@ void Logger::setup(bool timed){
 void Logger::load() {
     char dirname[64];
     char filename[13];
-    char jsonbuf[300];
     dirname_l1(dirname);
     sprintf(filename, "%d.jso", daytime_hour());
-    strcpy(jsonbuf, "");
-    l1.json(jsonbuf);
-    file_write(dirname, filename, jsonbuf);
+
 
     dirname_l2(dirname);
     sprintf(filename, "%d.jso", daytime_day());
-    strcpy(jsonbuf, "");
-    l2.json(jsonbuf);
-    file_write(dirname, filename, jsonbuf);
 
     dirname_l3(dirname);
     sprintf(filename, "%d.jso", daytime_month());
-    strcpy(jsonbuf, "");
-    l2.json(jsonbuf);
-    file_write(dirname, filename, jsonbuf);
 
 }
 
@@ -100,44 +91,36 @@ void Logger::timed_log(int value) {
     //write to card
     char dirname[64];
     char filename[13];
-    char jsonbuf[300];
     if (l1_idx % 5 == 0) {
         // l1 - write every 5 min
         dirname_l1(dirname);
         sprintf(filename, "%d.jso", daytime_hour());
-        strcpy(jsonbuf, "");
-        l1.json(jsonbuf);
-        file_write(dirname, filename, jsonbuf);
+        file_write(dirname, filename, l1.json());
     }
 
     if (l1_idx == 59) {
         // l2 - write at end of hour
         dirname_l2(dirname);
         sprintf(filename, "%d.jso", daytime_day());
-        strcpy(jsonbuf, "");
-        l2.json(jsonbuf);
-        file_write(dirname, filename, jsonbuf);
+        file_write(dirname, filename, l2.json());
         if (l2_idx == 23) { 
             // at end of the day, write l3 buffer.
         dirname_l3(dirname);
             sprintf(filename, "%d.jso", daytime_month());
-            strcpy(jsonbuf, "");
-            l2.json(jsonbuf);
-            file_write(dirname, filename, jsonbuf);
+            file_write(dirname, filename, l3.json());
         }
     }
 
 }
-
-void Logger::json(char * jsonbuf){
-    strcat(jsonbuf, "{");
-    l1.json(jsonbuf);
-    strcat(jsonbuf, ", ");
-    l2.json(jsonbuf);
-    strcat(jsonbuf, ", ");
-    l3.json(jsonbuf);
-    strcat(jsonbuf, "}");
+/*
+aJsonObject * Logger::json(){
+    aJsonObject *msg = aJson.createObject();
+    msg = l1.json(msg);
+    msg = l2.json(msg);
+    msg = l3.json(msg);
+    return msg;
 }
+*/
 
 void Logger::log(int value) {
     //zapise do l1 bufferu, pripadne buffery otoci.

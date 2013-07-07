@@ -1,3 +1,4 @@
+#pragma once
 long day_seconds();
 
 void daytime_init();

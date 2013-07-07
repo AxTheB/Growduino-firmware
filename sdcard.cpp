@@ -4,8 +4,6 @@
 #include "WProgram.h"
 #endif
 
-#include "RingBuffer.h"
-
 #include <SD.h>
 
 #include "sdcard.h"
@@ -17,7 +15,7 @@ void sdcard_init(){
     SD.begin(chipSelect);
 }
 
-void file_write(char * dirname, char * filename, char * data) {
+void file_write(char * dirname, char * filename, aJsonObject * data) {
     if (!SD.exists(dirname)) {
         Serial.print("Creating directory: ");
         SD.mkdir(dirname);
@@ -33,11 +31,10 @@ void file_write(char * dirname, char * filename, char * data) {
 
     File dataFile = SD.open(filepath, (O_WRITE | O_CREAT | O_TRUNC));
     if (dataFile) {
-        dataFile.println(data);
+        dataFile.println(aJson.print(data));
         dataFile.close();
         Serial.print("Written file: ");
         Serial.println(filepath);
-        Serial.println(data);
     } else {
         Serial.print("Failed to open file: ");
         Serial.println(filepath);
