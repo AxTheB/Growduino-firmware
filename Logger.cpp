@@ -1,19 +1,8 @@
-#if defined(ARDUINO) && ARDUINO >= 100
-#include "Arduino.h"
-#else
-#include "WProgram.h"
-#endif
-
-#include "Logger.h"
+#include "GrowduinoFirmware.h"
 
 #include <string.h>
 
-#include "daytime.h"
-
-#include "sdcard.h"
-
-#define MINVALUE -32768
-
+int log_every_time = true;
 
 Logger::Logger(){
     setup(true);
@@ -39,21 +28,46 @@ void Logger::setup(bool timed){
         l2_idx = -1;
         l3_idx = -1;
     }
+    //load();
 }
 
 void Logger::load() {
+    Serial.println("Recovering state");
+    analogWrite(13, 64);
     char dirname[64];
     char filename[13];
+    aJsonObject * data;
+
     dirname_l1(dirname);
     sprintf(filename, "%d.jso", daytime_hour());
+    data = file_read(dirname, filename);
+    if (data) {
+        l1.load(data);
+        aJson.deleteItem(data);
+    } else {
+        Serial.println("fail");
+    }
 
 
     dirname_l2(dirname);
     sprintf(filename, "%d.jso", daytime_day());
+    data = file_read(dirname, filename);
+    if (data) {
+        l2.load(data);
+        aJson.deleteItem(data);
+    } else {
+        Serial.println("fail");
+    }
 
     dirname_l3(dirname);
     sprintf(filename, "%d.jso", daytime_month());
-
+    data = file_read(dirname, filename);
+    if (data) {
+        l3.load(data);
+        aJson.deleteItem(data);
+    } else {
+        Serial.println("fail");
+    }
 }
 
 bool Logger::available() {
@@ -71,48 +85,55 @@ char * Logger::dirname_l1(char * dirname){
 }
 
 char * Logger::dirname_l2(char * dirname){
-        sprintf(dirname, "/data/%s/%d/%d/", name, daytime_year(), daytime_month());
+        sprintf(dirname, "/data/%s/%d/%d", name, daytime_year(), daytime_month());
         return dirname;
 
 }
 char * Logger::dirname_l3(char * dirname){
-            sprintf(dirname, "/data/%s/%d/", name, daytime_year());
+            sprintf(dirname, "/data/%s/%d", name, daytime_year());
         return dirname;
 
 }
 void Logger::timed_log(int value) {
     //Write value to l1, recalculate l2 and l3 buffer
+    aJsonObject *msg;
+
     l1_idx = daytime_min();
     l2_idx = daytime_hour();
     l3_idx = daytime_day() - 1;
     l1.store(value, l1_idx);
     l2.store(l1.avg(), l2_idx);
     l3.store(l2.avg(), l3_idx);
+
     //write to card
-    char dirname[64];
+    char dirname[40];
     char filename[13];
-    if (l1_idx % 5 == 0) {
+    if (l1_idx % 5 == 0 || log_every_time) {
         // l1 - write every 5 min
         dirname_l1(dirname);
         sprintf(filename, "%d.jso", daytime_hour());
-        file_write(dirname, filename, l1.json());
+        msg = l1.json();
+        file_write(dirname, filename, msg);
+        aJson.deleteItem(msg);
     }
-
-    if (l1_idx == 59) {
+    if (l1_idx == 59 || log_every_time) {
         // l2 - write at end of hour
         dirname_l2(dirname);
         sprintf(filename, "%d.jso", daytime_day());
-        file_write(dirname, filename, l2.json());
-        if (l2_idx == 23) { 
+        msg = l2.json();
+        file_write(dirname, filename, msg);
+        aJson.deleteItem(msg);
+        if (l2_idx == 23 || log_every_time) { 
             // at end of the day, write l3 buffer.
-        dirname_l3(dirname);
+            dirname_l3(dirname);
             sprintf(filename, "%d.jso", daytime_month());
-            file_write(dirname, filename, l3.json());
+            msg = l3.json();
+            file_write(dirname, filename, msg);
+            aJson.deleteItem(msg);
         }
     }
-
 }
-/*
+
 aJsonObject * Logger::json(){
     aJsonObject *msg = aJson.createObject();
     msg = l1.json(msg);
@@ -120,7 +141,6 @@ aJsonObject * Logger::json(){
     msg = l3.json(msg);
     return msg;
 }
-*/
 
 void Logger::log(int value) {
     //zapise do l1 bufferu, pripadne buffery otoci.

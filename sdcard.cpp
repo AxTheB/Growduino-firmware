@@ -1,12 +1,6 @@
-#if defined(ARDUINO) && ARDUINO >= 100
-#include "Arduino.h"
-#else
-#include "WProgram.h"
-#endif
+#include "GrowduinoFirmware.h"
 
 #include <SD.h>
-
-#include "sdcard.h"
 
 const int chipSelect = 4;
 
@@ -16,28 +10,58 @@ void sdcard_init(){
 }
 
 void file_write(char * dirname, char * filename, aJsonObject * data) {
+    char filepath[60];
+
     if (!SD.exists(dirname)) {
         Serial.print("Creating directory: ");
         SD.mkdir(dirname);
-    } else {
-        Serial.print("Directory exists: ");
     }
-    Serial.println(dirname);
 
-    char filepath[60];
     strcpy(filepath, dirname);
     strcat(filepath, "/");
     strcat(filepath, filename);
 
-    File dataFile = SD.open(filepath, (O_WRITE | O_CREAT | O_TRUNC));
+    Serial.print("Writing file ");
+    Serial.println(filepath);
+
+    if (SD.exists(filepath)) {
+        SD.remove(filepath);
+    }
+
+    File dataFile = SD.open(filepath, FILE_WRITE);
     if (dataFile) {
-        dataFile.println(aJson.print(data));
+        aJsonStream sd_stream(&dataFile);
+        aJson.print(data, &sd_stream);
         dataFile.close();
-        Serial.print("Written file: ");
-        Serial.println(filepath);
     } else {
-        Serial.print("Failed to open file: ");
+        Serial.print("Failed to open ");
         Serial.println(filepath);
+    }
+}
+
+aJsonObject * file_read(char * dirname, char * filename){
+    char filepath[60];
+
+    strcpy(filepath, dirname);
+    strcat(filepath, "/");
+    strcat(filepath, filename);
+
+    Serial.print("opening file ");
+    Serial.println(filepath);
+
+    if (!SD.exists(filepath)) {
+        Serial.println("File does not exist");
+        return NULL;
+    }
+    File dataFile = SD.open(filepath, FILE_READ);
+    if (dataFile) {
+        aJsonStream sd_stream(&dataFile);
+        aJsonObject * data = aJson.parse(&sd_stream);
+        dataFile.close();
+        return data;
+    } else {
+        Serial.println("File read failure");
+        return NULL;
     }
 
 }

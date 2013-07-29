@@ -1,3 +1,5 @@
+#include "GrowduinoFirmware.h"
+
 #include <DHT22.h>
 
 #include <Wire.h>
@@ -20,6 +22,7 @@ Logger dht22_humidity = Logger("Humidity");
 #define LIGHT_SENSOR_PIN 15
 Logger light_sensor = Logger("Light");
 
+aJsonStream serial_stream(&Serial);
 
 void setup(void)
 {
@@ -32,11 +35,18 @@ void setup(void)
     // serial_buffer = (char*) malloc (1024 * sizeof(int));
     Serial.println("SDcard init");
     sdcard_init();
-    if (SD.exists("/INDEX.HTM")) {
+    char index[] = "/INDEX.HTM";
+    if (SD.exists(index)) {
         Serial.println("Card ok");
     } else {
         Serial.println("INDEX.HTM not found");
     }
+
+    //load data from sd card
+    dht22_temp.load();
+    dht22_humidity.load();
+    light_sensor.load();
+
     Serial.println("Wasting time (3s)");
     delay(3000);
     // init temp/humidity logger 
@@ -47,35 +57,41 @@ void setup(void)
     Serial.println(myDHT22.getHumidity());
     Serial.print("Light sensor: ");
     Serial.println(analogRead(LIGHT_SENSOR_PIN));
-
 }
 
 void worker(){
-    aJsonStream serial_stream(&Serial);
 
+    //cteni ze sensoru
     pinMode(13, OUTPUT);
     myDHT22.readData();
     dht22_temp.timed_log(myDHT22.getTemperatureCInt());
     dht22_humidity.timed_log(myDHT22.getHumidityInt());
     light_sensor.timed_log(analogRead(LIGHT_SENSOR_PIN));
+
+    //vypis na seriak
     Serial.println(day_seconds() / 60.0);
+
     Serial.print("dht22_temp=");
-    Serial.println(dht22_temp.l1.avg());
+    aJsonObject *msg = dht22_temp.json();
     //Serial.println(aJson.print(dht22_temp.l1.json()));
-    aJson.print(dht22_temp.l1.json(), &serial_stream);
+    aJson.print(msg, &serial_stream);
+    aJson.deleteItem(msg);
     Serial.println();
     Serial.print("dht22_humidity=");
+    msg = dht22_humidity.json();
     //Serial.println(aJson.print(dht22_humidity.l1.json()));
-    aJson.print(dht22_humidity.l1.json(), &serial_stream);
+    aJson.print(msg, &serial_stream);
+    aJson.deleteItem(msg);
     Serial.println();
     Serial.print("light_sensor=");
+    msg = light_sensor.json();
     //Serial.println(aJson.print(light_sensor.l1.json()));
-    aJson.print(light_sensor.l1.json(), &serial_stream);
+    aJson.print(msg, &serial_stream);
+    aJson.deleteItem(msg);
     Serial.println();
 }
 
-void loop(void)
-{
+void loop(void){
     if (dht22_temp.available()) {
         worker();
     }

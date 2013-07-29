@@ -2,8 +2,6 @@
 
 #include <aJSON.h>
 
-//#define MINVALUE -32768
-#define MINVALUE -3
 
 class RingBuffer
 {
@@ -17,13 +15,13 @@ class RingBuffer
         aJsonObject * json();
         aJsonObject * json(aJsonObject *msg);
         bool store(int value, int slot);
+        char buf_name[4];
+        void load(aJsonObject * data);
 
     private:
         int * buffer;
         int i;
         int buf_len;
         int index;
-        char name_[4];
-        char jsontmp[10];
         int last_average;
 };

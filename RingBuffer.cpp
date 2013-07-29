@@ -1,3 +1,4 @@
+#include "GrowduinoFirmware.h"
 #include "RingBuffer.h"
 
 // #include <aJSON.h>
@@ -9,7 +10,7 @@
 RingBuffer::RingBuffer(int size, const char * name) {
     //Prepare RR buffer and clean it so we can start graphing immediatelly
     buf_len = size;
-    strcpy(name_, name);
+    strcpy(buf_name, name);
     buffer = (int*) malloc(sizeof(int) * (size));
     index = -1;
     last_average = MINVALUE;
@@ -24,7 +25,17 @@ RingBuffer::RingBuffer(){
 void RingBuffer::cleanup(int start=0, int end=-1) {
     //fills parts of buffer with minvalue so we can put gaps in graph.
 
-    if (end > buf_len) {
+    if (start !=0 || end != -1) {  //Do not write to Serial on initial cleanup, as its not initialised yet
+        Serial.print("Cleanup ");
+        Serial.print(buf_name);
+        Serial.print(" ");
+        Serial.print(start);
+        Serial.print(" ");
+        Serial.print(end);
+        Serial.println(";");
+    }
+
+    if (end > buf_len || start == end) {
         return;
     }
 
@@ -42,6 +53,41 @@ void RingBuffer::cleanup(int start=0, int end=-1) {
 
 void RingBuffer::cleanup(){
     RingBuffer::cleanup(0, -1);
+}
+
+void RingBuffer::load(aJsonObject * data){
+    aJsonObject * buff;
+    aJsonObject * data_item;
+    int i,i_end;
+    int item;
+    char * dValue;
+
+    Serial.print("Loading buffer ");
+    Serial.println(buf_name);
+    buff = aJson.getObjectItem(data, buf_name);
+    if (!buff) {
+        Serial.println("json contains no related data");
+    } else {
+        i_end = aJson.getArraySize(buff);
+        Serial.print("Array size: ");
+        Serial.println(i_end);
+        for(i=0; i<i_end; i++){
+            data_item = aJson.getArrayItem(buff, i);
+            dValue = aJson.print(data_item);
+            item = atoi(dValue);
+
+            buffer[i] = item;
+            index = i;
+            free(dValue);
+        }
+    }
+    Serial.print("Loaded buffer ");
+    Serial.print(buf_name);
+    Serial.print(". Stored ");
+    Serial.print(i_end);
+    Serial.print(" values, index is now ");
+    Serial.print(index);
+    Serial.println(".");
 }
 
 int RingBuffer::avg(){
@@ -71,15 +117,20 @@ aJsonObject* RingBuffer::json(){
 
 aJsonObject* RingBuffer::json(aJsonObject *msg) {
     aJsonObject *json = aJson.createIntArray(buffer, index + 1);
-    aJson.addItemToObject(msg, name_, json);
+    aJson.addItemToObject(msg, buf_name, json);
 
     return msg;
 }
 
 bool RingBuffer::store(int value, int slot){
-    if (slot == index) {
-        return false;
-    }
+    Serial.print("Storing ");
+    Serial.print(value);
+    Serial.print(" into ");
+    Serial.print(buf_name);
+    Serial.print(", slot ");
+    Serial.print(slot);
+    Serial.print(" with index ");
+    Serial.println(index);
     //stay inside buffer
     //this allows us to log sequence longer than buffer, for example using
     //ordinary timestamp or day-seconds
@@ -87,8 +138,10 @@ bool RingBuffer::store(int value, int slot){
         slot = slot - buf_len;
     }
 
-    //purge skipped values
-    if (index != slot - 1){
+    //purge skipped values. Do not purge if we advanced by one or if we write
+    //to the same place again
+    //(needed for recalculating average for last day and month value)
+    if (index != slot - 1 && index != slot){
         cleanup(index + 1, slot);
     }
 

@@ -11,7 +11,7 @@ class Logger
         void timed_log(int value);
         void setup(bool timed);
         bool available();
-        // aJsonObject * json();
+        aJsonObject * json();
         RingBuffer l1, l2, l3;
         char name[9];
         char* dirname_l1(char *dirname);
