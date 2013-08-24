@@ -13,6 +13,12 @@
 #include <SD.h>
 #include "sdcard.h"
 
+#include <SPI.h>
+#include <Ethernet.h>
+#include <string.h>
+#include <stdio.h>
+
+
 // DHT22 temp and humidity sensor. Treated as main temp and humidity source
 #define DHT22_PIN 23
 DHT22 myDHT22(DHT22_PIN);
@@ -23,6 +29,8 @@ Logger dht22_humidity = Logger("Humidity");
 Logger light_sensor = Logger("Light");
 
 aJsonStream serial_stream(&Serial);
+
+EthernetServer server(80);
 
 void setup(void)
 {
@@ -41,6 +49,12 @@ void setup(void)
     } else {
         Serial.println("INDEX.HTM not found");
     }
+    Serial.println("Initialising eth");
+    byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0x55, 0x44};
+    Ethernet.begin(mac);  // use dhcp
+    server.begin();
+    Serial.print("server is at ");
+    Serial.println(Ethernet.localIP());
 
     //load data from sd card
     dht22_temp.load();
@@ -91,10 +105,91 @@ void worker(){
     Serial.println();
 }
 
+const char * get_filename_ext(const char *filename){
+    const char *dot = strrchr(filename, '.');
+    if (!dot || dot == filename) {
+        return "";
+    }
+    return dot + 1;
+};
+
+
+const char * getContentType(char * filename) {
+    //odhadne mimetype
+    char ext[4];
+
+    strncpy(ext, get_filename_ext(filename), 3);
+
+    //preved priponu na mala
+    for (char *p = ext ; *p; ++p) *p = tolower(*p);
+
+    if (strcmp(ext, "htm") == 0)
+        return "Content-Type: text/html";
+    if (strcmp(ext, "jso") == 0)
+        return "Content-Type: application/json";
+    if (strcmp(ext, "js") == 0)
+        return "Content-Type: text/javascript";
+    if (strcmp(ext, "css") == 0)
+        return "Content-Type: text/css";
+    if (strcmp(ext, "png") == 0)
+        return "Content-Type: image/png";
+    if (strcmp(ext, "jpg") == 0)
+        return "Content-Type: image/jpeg";
+    return "Content-Type: text/plain";
+}
+
+void pageServe(EthernetClient client){
+    char filename[13];
+
+    //based on WebServer example
+    boolean currentLineIsBlank = true;
+    while (client.connected()) {
+        if (client.available()) {
+            char c = client.read();
+            Serial.write(c);
+            // if you've gotten to the end of the line (received a newline
+            // character) and the line is blank, the http request has ended,
+            // so you can send a reply
+            if (c == '\n' && currentLineIsBlank) {
+                // send a standard http response header
+                client.println("HTTP/1.1 200 OK");
+
+                client.println(getContentType(filename));
+                } else {
+                client.println("Content-Type: text/html");
+                client.println("Connection: close");  // the connection will be closed after completion of the response
+                client.println();
+                client.println("<!DOCTYPE HTML>");
+                client.println("<html>");
+                client.println("</html>");
+                break;
+            }
+            if (c == '\n') {
+                // you're starting a new line
+                currentLineIsBlank = true;
+            }
+            else if (c != '\r') {
+                // you've gotten a character on the current line
+                currentLineIsBlank = false;
+                // here will be logic that determines what to send
+
+            }
+        }
+    }
+    // give the web browser time to receive the data
+    delay(1);
+    // close the connection:
+    client.stop();
+    Serial.println("client disonnected");
+}
+
 void loop(void){
     if (dht22_temp.available()) {
         worker();
     }
-    delay(1000);
+    EthernetClient client = server.available();
+    if (client) {
+        pageServe(client);
+    }
     digitalWrite(13, 1 - digitalRead(13));
 }

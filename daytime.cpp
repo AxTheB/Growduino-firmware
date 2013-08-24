@@ -1,5 +1,4 @@
 #include "GrowduinoFirmware.h"
-#include <time.h>
 
 #include <Wire.h>
 #include "RTClib.h"
@@ -20,6 +19,10 @@ void daytime_init(){
     if (! RTC.isrunning()) {
         Serial.println("RTC not running");
         // following line sets the RTC to the date & time this sketch was compiled
+        Serial.print("Adjustong datetime to ");
+        Serial.print(__DATE__);
+        Serial.print(" ");
+        Serial.println(__TIME__);
         RTC.adjust(DateTime(__DATE__, __TIME__));
     }
     now = RTC.now();
