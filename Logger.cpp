@@ -39,7 +39,7 @@ void Logger::load() {
     aJsonObject * data;
 
     dirname_l1(dirname);
-    sprintf(filename, "%d.jso", daytime_hour());
+    sprintf(filename, "%d.jso", hour());
     data = file_read(dirname, filename);
     if (data) {
         l1.load(data);
@@ -50,7 +50,7 @@ void Logger::load() {
 
 
     dirname_l2(dirname);
-    sprintf(filename, "%d.jso", daytime_day());
+    sprintf(filename, "%d.jso", day());
     data = file_read(dirname, filename);
     if (data) {
         l2.load(data);
@@ -60,7 +60,7 @@ void Logger::load() {
     }
 
     dirname_l3(dirname);
-    sprintf(filename, "%d.jso", daytime_month());
+    sprintf(filename, "%d.jso", month());
     data = file_read(dirname, filename);
     if (data) {
         l3.load(data);
@@ -72,25 +72,46 @@ void Logger::load() {
 
 bool Logger::available() {
     // for timed logging, return false if we already logged this minute
-    if ( l1_idx == daytime_min() && l2_idx == daytime_hour() && l3_idx == daytime_day()-1) {
+    if ( l1_idx == minute() && l2_idx == hour() && l3_idx == day()-1) {
         return false;
     }
     return true;
 }
 
+bool Logger::match(const char * request){
+    // return true if we want this logger
+    char * filename;
+    char filebuf[13];
+
+    filename = strrchr(request, '/');
+
+    if (filename == NULL) {
+    // something weird happened, we should have / in request
+    // as we are sensors/sensor.jso
+        return false;
+    }
+
+    // we can get weird things in filename
+    // otoh name is safe, so make filename from name and compare that
+    filename = filename + 1;
+    sprintf(filebuf, "%s.jso", name);
+
+    return (strcasecmp(filename, filebuf) == 0);
+}
+
 char * Logger::dirname_l1(char * dirname){
-        sprintf(dirname, "/data/%s/%d/%d/%d", name, daytime_year(), daytime_month(), daytime_day());
+        sprintf(dirname, "/data/%s/%d/%d/%d", name, year(), month(), day());
         return dirname;
 
 }
 
 char * Logger::dirname_l2(char * dirname){
-        sprintf(dirname, "/data/%s/%d/%d", name, daytime_year(), daytime_month());
+        sprintf(dirname, "/data/%s/%d/%d", name, year(), month());
         return dirname;
 
 }
 char * Logger::dirname_l3(char * dirname){
-            sprintf(dirname, "/data/%s/%d", name, daytime_year());
+            sprintf(dirname, "/data/%s/%d", name, year());
         return dirname;
 
 }
@@ -98,9 +119,9 @@ void Logger::timed_log(int value) {
     //Write value to l1, recalculate l2 and l3 buffer
     aJsonObject *msg;
 
-    l1_idx = daytime_min();
-    l2_idx = daytime_hour();
-    l3_idx = daytime_day() - 1;
+    l1_idx = minute();
+    l2_idx = hour();
+    l3_idx = day() - 1;
     l1.store(value, l1_idx);
     l2.store(l1.avg(), l2_idx);
     l3.store(l2.avg(), l3_idx);
@@ -111,7 +132,7 @@ void Logger::timed_log(int value) {
     if (l1_idx % 5 == 0 || log_every_time) {
         // l1 - write every 5 min
         dirname_l1(dirname);
-        sprintf(filename, "%d.jso", daytime_hour());
+        sprintf(filename, "%d.jso", hour());
         msg = l1.json();
         file_write(dirname, filename, msg);
         aJson.deleteItem(msg);
@@ -119,14 +140,14 @@ void Logger::timed_log(int value) {
     if (l1_idx == 59 || log_every_time) {
         // l2 - write at end of hour
         dirname_l2(dirname);
-        sprintf(filename, "%d.jso", daytime_day());
+        sprintf(filename, "%d.jso", day());
         msg = l2.json();
         file_write(dirname, filename, msg);
         aJson.deleteItem(msg);
         if (l2_idx == 23 || log_every_time) { 
             // at end of the day, write l3 buffer.
             dirname_l3(dirname);
-            sprintf(filename, "%d.jso", daytime_month());
+            sprintf(filename, "%d.jso", month());
             msg = l3.json();
             file_write(dirname, filename, msg);
             aJson.deleteItem(msg);

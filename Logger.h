@@ -18,6 +18,7 @@ class Logger
         char* dirname_l2(char *dirname);
         char* dirname_l3(char *dirname);
         void load();
+        bool match(const char * request);
     private:
         bool timed;
         int l1_idx, l2_idx, l3_idx;

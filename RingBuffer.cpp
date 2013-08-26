@@ -67,6 +67,7 @@ void RingBuffer::load(aJsonObject * data){
     buff = aJson.getObjectItem(data, buf_name);
     if (!buff) {
         Serial.println("json contains no related data");
+        i_end = -1;
     } else {
         i_end = aJson.getArraySize(buff);
         Serial.print("Array size: ");

@@ -3,26 +3,32 @@
 #include <DHT22.h>
 
 #include <Wire.h>
-#include "RTClib.h"
+#include <Time.h>
 #include <stdio.h>
 
-#include "Logger.h"
+// #include "Logger.h"
 #include <aJSON.h>
-#include "daytime.h"
+// #include "daytime.h"
 
 #include <SD.h>
-#include "sdcard.h"
+// #include "sdcard.h"
 
 #include <SPI.h>
 #include <Ethernet.h>
 #include <string.h>
 #include <stdio.h>
+#include <DS1307RTC.h>
+
+int ether;
 
 
 // DHT22 temp and humidity sensor. Treated as main temp and humidity source
 #define DHT22_PIN 23
 DHT22 myDHT22(DHT22_PIN);
+
+
 Logger dht22_temp = Logger("Temp1");
+
 Logger dht22_humidity = Logger("Humidity");
 // light sensor on analog A15
 #define LIGHT_SENSOR_PIN 15
@@ -32,14 +38,16 @@ aJsonStream serial_stream(&Serial);
 
 EthernetServer server(80);
 
+Logger * loggers[] = {&dht22_temp, &dht22_humidity, &light_sensor};
+
+int loggers_no = 3;
+
 void setup(void)
 {
     // start serial port
     Serial.begin(115200);
     Serial.println("Grow!");
     Serial.println("Initialising clock");
-    // start real time clock
-    daytime_init();
     // serial_buffer = (char*) malloc (1024 * sizeof(int));
     Serial.println("SDcard init");
     sdcard_init();
@@ -47,14 +55,21 @@ void setup(void)
     if (SD.exists(index)) {
         Serial.println("Card ok");
     } else {
-        Serial.println("INDEX.HTM not found");
+        Serial.println("INDEX.HTM not found. Not going on");
+        while (true) {
+            digitalWrite(13, 1 - digitalRead(13));
+            delay(10);
+            }
     }
     Serial.println("Initialising eth");
     byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0x55, 0x44};
-    Ethernet.begin(mac);  // use dhcp
+    ether = Ethernet.begin(mac);  // use dhcp
     server.begin();
     Serial.print("server is at ");
     Serial.println(Ethernet.localIP());
+
+    // start real time clock
+    daytime_init();
 
     //load data from sd card
     dht22_temp.load();
@@ -83,7 +98,7 @@ void worker(){
     light_sensor.timed_log(analogRead(LIGHT_SENSOR_PIN));
 
     //vypis na seriak
-    Serial.println(day_seconds() / 60.0);
+    //Serial.println(day_seconds() / 60.0);
 
     Serial.print("dht22_temp=");
     aJsonObject *msg = dht22_temp.json();
@@ -118,7 +133,11 @@ const char * getContentType(char * filename) {
     //odhadne mimetype
     char ext[4];
 
-    strncpy(ext, get_filename_ext(filename), 3);
+    strncpy(ext, get_filename_ext(filename), 4);
+    ext[3] = '\0';
+
+    Serial.print("Extension: ");
+    Serial.println(ext);
 
     //preved priponu na mala
     for (char *p = ext ; *p; ++p) *p = tolower(*p);
@@ -138,41 +157,129 @@ const char * getContentType(char * filename) {
     return "Content-Type: text/plain";
 }
 
-void pageServe(EthernetClient client){
-    char filename[13];
+void responseNum(EthernetClient client, int code){
+    switch (code){
+        case 200:
+            client.println("HTTP/1.1 200 OK");
+            break;
+        case 404:
+            client.println("HTTP/1.1 404 Not Found");
+            client.println("Content-Type: text/html");
+            client.println();
+            client.println("<h2>File Not Found!</h2>");
+            break;
+    }
 
-    //based on WebServer example
+}
+
+const char * extract_filename(char * line){
+    // http://www.ladyada.net/learn/arduino/ethfiles.html ripoff
+    if (strstr(line, "GET / ") != 0) {
+        return "index.htm";
+    }
+    if (strstr(line, "GET /") != 0) {
+        char *filename;
+        filename = line + 5; // 'GET /' is 5 chars
+        // convert space before HTTP to null, trimming the string
+        (strstr(line, " HTTP"))[0] = 0;
+        return filename;
+    }
+    return NULL;
+}
+
+
+
+void pageServe(EthernetClient client){
+    char request[32];
+    char clientline[BUFSIZ];
+    int index;
+
+    index = 0;
+    request[0] = 0;
+
     boolean currentLineIsBlank = true;
     while (client.connected()) {
         if (client.available()) {
             char c = client.read();
-            Serial.write(c);
+
             // if you've gotten to the end of the line (received a newline
             // character) and the line is blank, the http request has ended,
             // so you can send a reply
             if (c == '\n' && currentLineIsBlank) {
-                // send a standard http response header
-                client.println("HTTP/1.1 200 OK");
+                // Send response
+                bool found = false;
+                if (strstr(request, "sensors") != 0) {
+                    //todo: aktualni data
+                    for (int i = 0; i < loggers_no; i++) {
+                        if (loggers[i]->match(request)){
+                            Serial.println("Match!");
+                            found = true;
+                            responseNum(client, 200);
+                            client.println(getContentType(request));
+                            client.println("cache-control: max-age=10");
+                            client.println("Connection: close");
+                            client.println();
+                            aJsonStream eth_stream(&client);
+                            Serial.println(loggers[i]->name);
+                            aJsonObject *msg = loggers[i]->json();
+                            aJson.print(msg, &eth_stream);
+                            aJson.print(msg, &serial_stream);
+                            aJson.deleteItem(msg);
+                            break;
+                        }
+                    }
+                    if (!found)
+                        responseNum(client, 404);
+                    break;
+                }
+                // Find the file
+                if (!SD.exists(request)) {
+                    responseNum(client, 404);
+                    break;
+                }
 
-                client.println(getContentType(filename));
-                } else {
-                client.println("Content-Type: text/html");
+                // Now we know file exists, so serve it
+
+                responseNum(client, 200);
+
+                client.println(getContentType(request));
+                client.println("cache-control: max-age=86400");
                 client.println("Connection: close");  // the connection will be closed after completion of the response
                 client.println();
-                client.println("<!DOCTYPE HTML>");
-                client.println("<html>");
-                client.println("</html>");
+                File dataFile = SD.open(request, FILE_READ);
+                // abuse clientline as sd buffer
+                int remain = 0;
+                while ((remain = dataFile.available())) {
+                    remain = min(remain, BUFSIZ -1);
+                    dataFile.read(clientline, remain);
+                    clientline[remain] = 0;
+                    // Serial.println(clientline);
+                    client.write(clientline);
+                    // client.write(dataFile.read());
+                };
+                dataFile.close();
                 break;
             }
             if (c == '\n') {
+                clientline[index] = '\0';
+                index = 0;
+                Serial.println(clientline);
+                if (strstr(clientline, "GET /") != 0) {
+                    strcpy(request, extract_filename(clientline));
+                    Serial.print("extracted path: ");
+                    Serial.println(request);
+                }
+
                 // you're starting a new line
                 currentLineIsBlank = true;
             }
             else if (c != '\r') {
                 // you've gotten a character on the current line
                 currentLineIsBlank = false;
-                // here will be logic that determines what to send
-
+                clientline[index] = c;
+                index++;
+                if (index >= BUFSIZ)
+                    index = BUFSIZ -1;
             }
         }
     }

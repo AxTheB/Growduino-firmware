@@ -8,9 +8,13 @@
 
 #define MINVALUE -999
 
+#define BUFSIZ 129
+
 
 #include "config.h"
 #include "Logger.h"
 #include "RingBuffer.h"
 #include "daytime.h"
 #include "sdcard.h"
+
+extern int ether;

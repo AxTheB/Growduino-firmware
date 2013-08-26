@@ -1,10 +1,10 @@
 #pragma once
-long day_seconds();
+
+#include <Time.h>
 
 void daytime_init();
 
-int daytime_min();
-int daytime_hour();
-int daytime_day();
-int daytime_month();
-int daytime_year();
+void digitalClockDisplay();
+
+time_t getNtpTime();
+void sendNTPpacket(IPAddress &address);
