@@ -12,10 +12,10 @@ RingBuffer::RingBuffer(int size, const char * name) {
     buf_len = size;
     strcpy(buf_name, name);
     buffer = (int*) malloc(sizeof(int) * (size));
-    index = -1;
+    index = -1;  // points to last logged value
     last_average = MINVALUE;
 
-    cleanup();
+    cleanup();  // fill log with MINVALuEs
 }
 
 RingBuffer::RingBuffer(){
@@ -121,6 +121,30 @@ aJsonObject* RingBuffer::json(aJsonObject *msg) {
     aJson.addItemToObject(msg, buf_name, json);
 
     return msg;
+}
+
+aJsonObject* RingBuffer::json_dynamic(aJsonObject *msg) {
+    // show buffer in non-ring fashion, last logged value in last positon
+    // ie last 60 minutes of logging for "min" buffer
+    int * dynamic_buffer = (int*) malloc(sizeof(int) * (buf_len));
+    if (dynamic_buffer != NULL) {
+        // fill-in values
+        for (int j = 0; j < buf_len; j++) {
+            if ((j + index + 1) < buf_len) {  // put oldest sample at dynamic_buffer[0]
+                dynamic_buffer[j] = buffer[j + index + 1];
+            } else {
+                dynamic_buffer[j] = buffer[j + index + 1 - buf_len];
+            }
+        }
+        aJsonObject *json = aJson.createIntArray(dynamic_buffer, buf_len);
+        aJson.addItemToObject(msg, buf_name, json);
+
+        free(dynamic_buffer);
+            return msg;
+
+    } else {  // if we are low on memry, try to return short json at last
+        return json(msg);
+    }
 }
 
 bool RingBuffer::store(int value, int slot){

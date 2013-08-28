@@ -6,12 +6,17 @@
 #include "WProgram.h"
 #endif
 
+#include <Time.h>
+
 #define MINVALUE -999
+
+#define GET 1
+#define POST 2
 
 #define BUFSIZ 129
 
 
-#include "config.h"
+// #include "config.h"
 #include "Logger.h"
 #include "RingBuffer.h"
 #include "daytime.h"

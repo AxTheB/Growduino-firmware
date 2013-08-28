@@ -6,12 +6,9 @@
 #include <Time.h>
 #include <stdio.h>
 
-// #include "Logger.h"
 #include <aJSON.h>
-// #include "daytime.h"
 
 #include <SD.h>
-// #include "sdcard.h"
 
 #include <SPI.h>
 #include <Ethernet.h>
@@ -19,7 +16,7 @@
 #include <stdio.h>
 #include <DS1307RTC.h>
 
-int ether;
+int ether = 1;
 
 
 // DHT22 temp and humidity sensor. Treated as main temp and humidity source
@@ -38,7 +35,7 @@ aJsonStream serial_stream(&Serial);
 
 EthernetServer server(80);
 
-Logger * loggers[] = {&dht22_temp, &dht22_humidity, &light_sensor};
+Logger * loggers[] = {&dht22_humidity, &dht22_temp, &light_sensor};
 
 int loggers_no = 3;
 
@@ -63,7 +60,10 @@ void setup(void)
     }
     Serial.println("Initialising eth");
     byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0x55, 0x44};
-    ether = Ethernet.begin(mac);  // use dhcp
+    IPAddress myaddr(195, 113, 57, 67);
+    IPAddress gateway(195, 113, 57, 254);
+    IPAddress subnet(255, 255, 255, 0);
+    Ethernet.begin(mac, myaddr, gateway, subnet);
     server.begin();
     Serial.print("server is at ");
     Serial.println(Ethernet.localIP());
@@ -158,11 +158,14 @@ const char * getContentType(char * filename) {
 }
 
 void responseNum(EthernetClient client, int code){
+    Serial.print("Returning ");
     switch (code){
         case 200:
             client.println("HTTP/1.1 200 OK");
+            Serial.println(200);
             break;
         case 404:
+            Serial.println(404);
             client.println("HTTP/1.1 404 Not Found");
             client.println("Content-Type: text/html");
             client.println();
@@ -187,14 +190,74 @@ const char * extract_filename(char * line){
     return NULL;
 }
 
+int senddata(EthernetClient client, char * request, char * clientline){
+    // Send response
+    bool found = false;
+    if (strncasecmp(request, "sensors", 7) == 0) {
+        Serial.println("Sensor area");
+        for (int i = 0; i < loggers_no; i++) {
+            if (loggers[i]->match(request)){
+                Serial.println("Match!");
+                found = true;
+                responseNum(client, 200);
+                client.println(getContentType(request));
+                client.println("Access-Control-Allow-Origin: *");
+                client.println("cache-control: max-age=10");
+                client.println("Connection: close");
+                client.println();
+                aJsonStream eth_stream(&client);
+                Serial.println(loggers[i]->name);
+                aJsonObject *msg = loggers[i]->json_dynamic();
+                aJson.print(msg, &eth_stream);
+                aJson.print(msg, &serial_stream);
+                aJson.deleteItem(msg);
+                return 1;
+            }
+        }
+        if (!found)
+            responseNum(client, 404);
+        return 0;
+    }
+    Serial.println("File area");
+    // Find the file
+    if (!SD.exists(request)) {
+        responseNum(client, 404);
+        return 0;
+    }
 
+    // Now we know file exists, so serve it
+
+    responseNum(client, 200);
+
+    client.println(getContentType(request));
+    client.println("Access-Control-Allow-Origin: *");
+    // client.println("cache-control: max-age=86400");
+    client.println("cache-control: max-age=10");
+    client.println("Connection: close");  // the connection will be closed after completion of the response
+    client.println();
+    File dataFile = SD.open(request, FILE_READ);
+    // abuse clientline as sd buffer
+    int remain = 0;
+    while ((remain = dataFile.available())) {
+        remain = min(remain, BUFSIZ -1);
+        dataFile.read(clientline, remain);
+        clientline[remain] = 0;
+        // Serial.println(clientline);
+        client.write(clientline);
+        // client.write(dataFile.read());
+    };
+    dataFile.close();
+    return 1;
+}
 
 void pageServe(EthernetClient client){
     char request[32];
     char clientline[BUFSIZ];
     int index;
+    int action;
 
     index = 0;
+    action = 0;
     request[0] = 0;
 
     boolean currentLineIsBlank = true;
@@ -206,58 +269,7 @@ void pageServe(EthernetClient client){
             // character) and the line is blank, the http request has ended,
             // so you can send a reply
             if (c == '\n' && currentLineIsBlank) {
-                // Send response
-                bool found = false;
-                if (strstr(request, "sensors") != 0) {
-                    //todo: aktualni data
-                    for (int i = 0; i < loggers_no; i++) {
-                        if (loggers[i]->match(request)){
-                            Serial.println("Match!");
-                            found = true;
-                            responseNum(client, 200);
-                            client.println(getContentType(request));
-                            client.println("cache-control: max-age=10");
-                            client.println("Connection: close");
-                            client.println();
-                            aJsonStream eth_stream(&client);
-                            Serial.println(loggers[i]->name);
-                            aJsonObject *msg = loggers[i]->json();
-                            aJson.print(msg, &eth_stream);
-                            aJson.print(msg, &serial_stream);
-                            aJson.deleteItem(msg);
-                            break;
-                        }
-                    }
-                    if (!found)
-                        responseNum(client, 404);
-                    break;
-                }
-                // Find the file
-                if (!SD.exists(request)) {
-                    responseNum(client, 404);
-                    break;
-                }
-
-                // Now we know file exists, so serve it
-
-                responseNum(client, 200);
-
-                client.println(getContentType(request));
-                client.println("cache-control: max-age=86400");
-                client.println("Connection: close");  // the connection will be closed after completion of the response
-                client.println();
-                File dataFile = SD.open(request, FILE_READ);
-                // abuse clientline as sd buffer
-                int remain = 0;
-                while ((remain = dataFile.available())) {
-                    remain = min(remain, BUFSIZ -1);
-                    dataFile.read(clientline, remain);
-                    clientline[remain] = 0;
-                    // Serial.println(clientline);
-                    client.write(clientline);
-                    // client.write(dataFile.read());
-                };
-                dataFile.close();
+                senddata(client, request, clientline);
                 break;
             }
             if (c == '\n') {

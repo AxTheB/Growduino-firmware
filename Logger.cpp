@@ -39,7 +39,7 @@ void Logger::load() {
     aJsonObject * data;
 
     dirname_l1(dirname);
-    sprintf(filename, "%d.jso", hour());
+    sprintf(filename, "%2d.jso", hour());
     data = file_read(dirname, filename);
     if (data) {
         l1.load(data);
@@ -50,7 +50,7 @@ void Logger::load() {
 
 
     dirname_l2(dirname);
-    sprintf(filename, "%d.jso", day());
+    sprintf(filename, "%2d.jso", day());
     data = file_read(dirname, filename);
     if (data) {
         l2.load(data);
@@ -60,7 +60,7 @@ void Logger::load() {
     }
 
     dirname_l3(dirname);
-    sprintf(filename, "%d.jso", month());
+    sprintf(filename, "%2d.jso", month());
     data = file_read(dirname, filename);
     if (data) {
         l3.load(data);
@@ -119,6 +119,8 @@ void Logger::timed_log(int value) {
     //Write value to l1, recalculate l2 and l3 buffer
     aJsonObject *msg;
 
+    time = now();
+
     l1_idx = minute();
     l2_idx = hour();
     l3_idx = day() - 1;
@@ -156,6 +158,7 @@ void Logger::timed_log(int value) {
 }
 
 aJsonObject * Logger::json(){
+    // create json with this roation only
     aJsonObject *msg = aJson.createObject();
     msg = l1.json(msg);
     msg = l2.json(msg);
@@ -163,8 +166,20 @@ aJsonObject * Logger::json(){
     return msg;
 }
 
+aJsonObject * Logger::json_dynamic(){
+    // create json with unwinded buffers (all values, most recent last)
+    aJsonObject *msg = aJson.createObject();
+    aJson.addNumberToObject(msg, "time", (double) time);
+    aJson.addStringToObject(msg, "name", name);
+    msg = l1.json_dynamic(msg);
+    msg = l2.json_dynamic(msg);
+    msg = l3.json_dynamic(msg);
+    return msg;
+}
+
 void Logger::log(int value) {
     //zapise do l1 bufferu, pripadne buffery otoci.
+    time = now();
 
     l1.store(value, ++l1_idx);
     int tmpavg = l1.get_last_avg();
