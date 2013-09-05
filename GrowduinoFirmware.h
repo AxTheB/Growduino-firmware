@@ -13,7 +13,7 @@
 #define GET 1
 #define POST 2
 
-#define BUFSIZ 129
+#define BUFSIZ 513
 
 
 // #include "config.h"

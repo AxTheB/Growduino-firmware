@@ -14,7 +14,7 @@
 time_t time_now;
 EthernetUDP Udp;
 const int timeZone = 1;     // Central European Time
-IPAddress timeServer(132, 163, 4, 101);
+IPAddress timeServer(195, 113, 56, 8);
 
 void printDigits(int number) {
     if (number >= 0 && number < 10) {
@@ -41,12 +41,14 @@ void daytime_init(){
             Serial.println();
         }
     }
+    /*
     if (ether) {
         // get time from internets
         unsigned int localPort = 8888;  // local port to listen for UDP packets
         Udp.begin(localPort);
         setSyncProvider(getNtpTime);
     }
+    */
     digitalClockDisplay();
 }
 

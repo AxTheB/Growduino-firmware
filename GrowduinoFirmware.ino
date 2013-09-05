@@ -44,7 +44,7 @@ void setup(void)
     // start serial port
     Serial.begin(115200);
     Serial.println("Grow!");
-    Serial.println("Initialising clock");
+    delay(1000);
     // serial_buffer = (char*) malloc (1024 * sizeof(int));
     Serial.println("SDcard init");
     sdcard_init();
@@ -55,7 +55,7 @@ void setup(void)
         Serial.println("INDEX.HTM not found. Not going on");
         while (true) {
             digitalWrite(13, 1 - digitalRead(13));
-            delay(10);
+            delay(100);
             }
     }
     Serial.println("Initialising eth");
@@ -69,6 +69,7 @@ void setup(void)
     Serial.println(Ethernet.localIP());
 
     // start real time clock
+    Serial.println("Initialising clock");
     daytime_init();
 
     //load data from sd card
@@ -76,8 +77,8 @@ void setup(void)
     dht22_humidity.load();
     light_sensor.load();
 
-    Serial.println("Wasting time (3s)");
-    delay(3000);
+    Serial.println("Wasting time (2s)");
+    delay(2000);
     // init temp/humidity logger 
     myDHT22.readData();
     Serial.print("DHT22 Sensor - temp: ");
@@ -202,7 +203,7 @@ int senddata(EthernetClient client, char * request, char * clientline){
                 responseNum(client, 200);
                 client.println(getContentType(request));
                 client.println("Access-Control-Allow-Origin: *");
-                client.println("cache-control: max-age=10");
+                client.println("cache-control: max-age=30");
                 client.println("Connection: close");
                 client.println();
                 aJsonStream eth_stream(&client);
@@ -232,7 +233,7 @@ int senddata(EthernetClient client, char * request, char * clientline){
     client.println(getContentType(request));
     client.println("Access-Control-Allow-Origin: *");
     // client.println("cache-control: max-age=86400");
-    client.println("cache-control: max-age=10");
+    client.println("cache-control: max-age=600");
     client.println("Connection: close");  // the connection will be closed after completion of the response
     client.println();
     File dataFile = SD.open(request, FILE_READ);

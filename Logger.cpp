@@ -39,7 +39,7 @@ void Logger::load() {
     aJsonObject * data;
 
     dirname_l1(dirname);
-    sprintf(filename, "%2d.jso", hour());
+    sprintf(filename, "%02d.jso", hour());
     data = file_read(dirname, filename);
     if (data) {
         l1.load(data);
@@ -50,7 +50,7 @@ void Logger::load() {
 
 
     dirname_l2(dirname);
-    sprintf(filename, "%2d.jso", day());
+    sprintf(filename, "%02d.jso", day());
     data = file_read(dirname, filename);
     if (data) {
         l2.load(data);
@@ -60,7 +60,7 @@ void Logger::load() {
     }
 
     dirname_l3(dirname);
-    sprintf(filename, "%2d.jso", month());
+    sprintf(filename, "%02d.jso", month());
     data = file_read(dirname, filename);
     if (data) {
         l3.load(data);
@@ -100,13 +100,13 @@ bool Logger::match(const char * request){
 }
 
 char * Logger::dirname_l1(char * dirname){
-        sprintf(dirname, "/data/%s/%d/%d/%d", name, year(), month(), day());
+        sprintf(dirname, "/data/%s/%d/%02d/%02d", name, year(), month(), day());
         return dirname;
 
 }
 
 char * Logger::dirname_l2(char * dirname){
-        sprintf(dirname, "/data/%s/%d/%d", name, year(), month());
+        sprintf(dirname, "/data/%s/%d/%02d", name, year(), month());
         return dirname;
 
 }
@@ -134,7 +134,7 @@ void Logger::timed_log(int value) {
     if (l1_idx % 5 == 0 || log_every_time) {
         // l1 - write every 5 min
         dirname_l1(dirname);
-        sprintf(filename, "%d.jso", hour());
+        sprintf(filename, "%02d.jso", hour());
         msg = l1.json();
         file_write(dirname, filename, msg);
         aJson.deleteItem(msg);
@@ -142,14 +142,14 @@ void Logger::timed_log(int value) {
     if (l1_idx == 59 || log_every_time) {
         // l2 - write at end of hour
         dirname_l2(dirname);
-        sprintf(filename, "%d.jso", day());
+        sprintf(filename, "%02d.jso", day());
         msg = l2.json();
         file_write(dirname, filename, msg);
         aJson.deleteItem(msg);
         if (l2_idx == 23 || log_every_time) { 
             // at end of the day, write l3 buffer.
             dirname_l3(dirname);
-            sprintf(filename, "%d.jso", month());
+            sprintf(filename, "%02d.jso", month());
             msg = l3.json();
             file_write(dirname, filename, msg);
             aJson.deleteItem(msg);
