@@ -9,15 +9,15 @@ void sdcard_init(){
     SD.begin(chipSelect);
 }
 
-void file_write(char * dirname, char * filename, aJsonObject * data) {
+void file_write(const char * dirname, const char * filename, aJsonObject * data) {
     char filepath[60];
 
-    if (!SD.exists(dirname)) {
+    strcpy(filepath, dirname);
+    if (!SD.exists(filepath)) {
         Serial.print("Creating directory: ");
-        SD.mkdir(dirname);
+        SD.mkdir(filepath);
     }
 
-    strcpy(filepath, dirname);
     strcat(filepath, "/");
     strcat(filepath, filename);
 
@@ -28,6 +28,8 @@ void file_write(char * dirname, char * filename, aJsonObject * data) {
         SD.remove(filepath);
     }
 
+    digitalWrite(13, 1);
+
     File dataFile = SD.open(filepath, FILE_WRITE);
     if (dataFile) {
         aJsonStream sd_stream(&dataFile);
@@ -37,9 +39,10 @@ void file_write(char * dirname, char * filename, aJsonObject * data) {
         Serial.print("Failed to open ");
         Serial.println(filepath);
     }
+    digitalWrite(13, 0);
 }
 
-aJsonObject * file_read(char * dirname, char * filename){
+aJsonObject * file_read(const char * dirname, const char * filename){
     char filepath[60];
 
     strcpy(filepath, dirname);

@@ -4,6 +4,7 @@
 
 void sdcard_init();
 
-void file_write(char * dirname, char * filename, aJsonObject * data);
+void file_write(const char * dirname, const char * filename, aJsonObject * data);
 
-aJsonObject * file_read(char * dirname, char * filename);
+aJsonObject * file_read(const char * dirname, const char * filename);
+

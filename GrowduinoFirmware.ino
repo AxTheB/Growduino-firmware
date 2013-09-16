@@ -31,6 +31,8 @@ Logger dht22_humidity = Logger("Humidity");
 #define LIGHT_SENSOR_PIN 15
 Logger light_sensor = Logger("Light");
 
+Config config;
+
 aJsonStream serial_stream(&Serial);
 
 EthernetServer server(80);
@@ -39,8 +41,7 @@ Logger * loggers[] = {&dht22_humidity, &dht22_temp, &light_sensor};
 
 int loggers_no = 3;
 
-void setup(void)
-{
+void setup(void) {
     // start serial port
     Serial.begin(115200);
     Serial.println("Grow!");
@@ -55,15 +56,28 @@ void setup(void)
         Serial.println("INDEX.HTM not found. Not going on");
         while (true) {
             digitalWrite(13, 1 - digitalRead(13));
-            delay(100);
+            delay(300);
             }
     }
     Serial.println("Initialising eth");
+
+    // load config from sdcard
+    aJsonObject * cfile = file_read("", "config.jso");
+    if (cfile != NULL) {
+        Serial.println("Loading config");
+        config = Config(cfile);
+        aJson.deleteItem(cfile);
+    } else {
+        Serial.println("Default config");
+        config = Config();
+        config.save();
+    }
     byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0x55, 0x44};
-    IPAddress myaddr(195, 113, 57, 67);
-    IPAddress gateway(195, 113, 57, 254);
-    IPAddress subnet(255, 255, 255, 0);
-    Ethernet.begin(mac, myaddr, gateway, subnet);
+    if (config.use_dhcp == 1) {
+        Ethernet.begin(mac);
+    } else {
+        Ethernet.begin(mac, config.ip, config.gateway, config.netmask);
+    }
     server.begin();
     Serial.print("server is at ");
     Serial.println(Ethernet.localIP());
@@ -176,7 +190,7 @@ void responseNum(EthernetClient client, int code){
 
 }
 
-const char * extract_filename(char * line){
+const char * extract_filename(char * line, int action = 1){
     // http://www.ladyada.net/learn/arduino/ethfiles.html ripoff
     if (strstr(line, "GET / ") != 0) {
         return "index.htm";
@@ -210,7 +224,7 @@ int senddata(EthernetClient client, char * request, char * clientline){
                 Serial.println(loggers[i]->name);
                 aJsonObject *msg = loggers[i]->json_dynamic();
                 aJson.print(msg, &eth_stream);
-                aJson.print(msg, &serial_stream);
+                //aJson.print(msg, &serial_stream);
                 aJson.deleteItem(msg);
                 return 1;
             }
@@ -227,7 +241,6 @@ int senddata(EthernetClient client, char * request, char * clientline){
     }
 
     // Now we know file exists, so serve it
-
     responseNum(client, 200);
 
     client.println(getContentType(request));
@@ -256,6 +269,7 @@ void pageServe(EthernetClient client){
     char clientline[BUFSIZ];
     int index;
     int action;
+    bool is_url;
 
     index = 0;
     action = 0;
@@ -277,12 +291,19 @@ void pageServe(EthernetClient client){
                 clientline[index] = '\0';
                 index = 0;
                 Serial.println(clientline);
+                is_url = false;
                 if (strstr(clientline, "GET /") != 0) {
+                    action = GET;
+                    is_url = true;
+                } else if (strstr(clientline, "POST /") != 0) {
+                    action = POST;
+                    is_url = true;
+                };
+                if (is_url) {
                     strcpy(request, extract_filename(clientline));
                     Serial.print("extracted path: ");
                     Serial.println(request);
                 }
-
                 // you're starting a new line
                 currentLineIsBlank = true;
             }
@@ -311,5 +332,4 @@ void loop(void){
     if (client) {
         pageServe(client);
     }
-    digitalWrite(13, 1 - digitalRead(13));
 }

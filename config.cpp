@@ -2,13 +2,22 @@
 
 #include "config.h"
 
+/*
+ * Config object
+ * Stores network data
+ * TODO:
+ * store triggers
+ * store I/O names
+ */
+
+
 Config::Config(){
+    // Simplest possible defaults
     use_dhcp = 1;
-    ntp = IPAddress(195, 113, 56, 8);
 }
 
 Config::Config(aJsonObject * json){
-    
+
     aJsonObject* cnfobj = aJson.getObjectItem(json, "use_dhcp");
     if (!cnfobj) {
         use_dhcp = 1;
@@ -18,33 +27,44 @@ Config::Config(aJsonObject * json){
 
     if (use_dhcp == 0) {  // Static IP config
         aJsonObject* cnfobj = aJson.getObjectItem(json, "ip");
-        if (!cnfobj || cnfobj->type != aJson_String) {
-            ip = IPAddress(10, 0, 0, 55);
-        } else {
-            inet_aton(cnfobj->valuestring, ip);
+        if (!cnfobj || cnfobj->type != aJson_String || inet_aton(cnfobj->valuestring, ip) == 0) {
+            ip = IPAddress(195, 113, 57, 67);
         }
 
         cnfobj = aJson.getObjectItem(json, "netmask");
-        if (!cnfobj || cnfobj->type != aJson_String) {
-            netmask = IPAddress(255, 255, 0, 0);
-        } else {
-            inet_aton(cnfobj->valuestring, netmask);
+        if (!cnfobj || cnfobj->type != aJson_String || inet_aton(cnfobj->valuestring, netmask) == 0) {
+            netmask = IPAddress(255, 255, 255, 0);
         }
 
         cnfobj = aJson.getObjectItem(json, "gateway");
-        if (!cnfobj || cnfobj->type != aJson_String) {
-            gateway = IPAddress(10, 0, 0, 1);
-        } else {
-            inet_aton(cnfobj->valuestring, gateway);
+        if (!cnfobj || cnfobj->type != aJson_String || inet_aton(cnfobj->valuestring, gateway) == 0) {
+            gateway = IPAddress(195, 113, 57, 254);
         }
 
         cnfobj = aJson.getObjectItem(json, "ntp");
-        if (!cnfobj || cnfobj->type != aJson_String) {
+        if (!cnfobj || cnfobj->type != aJson_String || inet_aton(cnfobj->valuestring, ntp) == 0) {
             ntp = IPAddress(195, 113, 56, 8);
-        } else {
-            inet_aton(cnfobj->valuestring, ntp);
         }
     }
+}
+
+int Config::save(){
+    char addr[16];
+    aJsonObject * root = aJson.createObject();
+    aJson.addNumberToObject(root, "use_dhcp", use_dhcp);
+    if (use_dhcp == 0) {
+    inet_ntoa(ip, addr);
+    aJson.addStringToObject(root, "ip", addr);
+    inet_ntoa(netmask, addr);
+    aJson.addStringToObject(root, "netmask", addr);
+    inet_ntoa(gateway, addr);
+    aJson.addStringToObject(root, "gateway", addr);
+    inet_ntoa(ntp, addr);
+    }
+    aJson.addItemToObject(root, "ntp", aJson.createItem(addr));
+    file_write("", "config.jso", root);
+    aJson.deleteItem(root);
+    return 1;
 }
 
 int Config::inet_aton(const char* aIPAddrString, IPAddress& aResult) {
@@ -107,9 +127,8 @@ int Config::inet_aton(const char* aIPAddrString, IPAddress& aResult) {
     }
 }
 
-char * Config::iptos(IPAddress addr, char * dest) {
+char * Config::inet_ntoa(IPAddress addr, char * dest) {
     //sprintf(dest, "%d.%d.%d.%d", IPAddress[0], IPAddress[1], IPAddress[2], IPAddress[3]);
-    sprintf(dest, "%d.%d.%d.%d", 1, 1, 2, 3);
+    sprintf(dest, "%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]);
     return dest;
 }
-

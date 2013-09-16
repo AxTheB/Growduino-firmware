@@ -33,7 +33,6 @@ void Logger::setup(bool timed){
 
 void Logger::load() {
     Serial.println("Recovering state");
-    analogWrite(13, 64);
     char dirname[64];
     char filename[13];
     aJsonObject * data;
@@ -102,19 +101,18 @@ bool Logger::match(const char * request){
 char * Logger::dirname_l1(char * dirname){
         sprintf(dirname, "/data/%s/%d/%02d/%02d", name, year(), month(), day());
         return dirname;
-
 }
 
 char * Logger::dirname_l2(char * dirname){
         sprintf(dirname, "/data/%s/%d/%02d", name, year(), month());
         return dirname;
-
 }
+
 char * Logger::dirname_l3(char * dirname){
             sprintf(dirname, "/data/%s/%d", name, year());
         return dirname;
-
 }
+
 void Logger::timed_log(int value) {
     //Write value to l1, recalculate l2 and l3 buffer
     aJsonObject *msg;

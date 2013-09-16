@@ -9,12 +9,14 @@ class Config
     public:
         Config();
         Config(aJsonObject * json);
+        int save();
+        int inet_aton(const char* aIPAddrString, IPAddress& aResult);
+        char * inet_ntoa(IPAddress addr, char * dest);
+
         int use_dhcp;
         IPAddress ip;
         IPAddress netmask;
         IPAddress gateway;
         IPAddress ntp;
-        int inet_aton(const char* aIPAddrString, IPAddress& aResult);
-        char * iptos(IPAddress addr, char * dest);
 };
 

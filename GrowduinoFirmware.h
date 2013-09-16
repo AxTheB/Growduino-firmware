@@ -13,6 +13,9 @@
 #define GET 1
 #define POST 2
 
+//first relay is actually at RELAY_START+1 !!
+#define RELAY_START 24
+
 #define BUFSIZ 513
 
 
@@ -21,5 +24,7 @@
 #include "RingBuffer.h"
 #include "daytime.h"
 #include "sdcard.h"
+#include "config.h"
+#include "outputs.h"
 
 extern int ether;
