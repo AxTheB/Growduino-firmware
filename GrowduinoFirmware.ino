@@ -23,6 +23,11 @@ int ether = 1;
 #define DHT22_PIN 23
 DHT22 myDHT22(DHT22_PIN);
 
+//profiling
+unsigned long t_loop_start;
+unsigned long t_1;
+unsigned long t_2;
+unsigned long t_3;
 
 Logger dht22_temp = Logger("Temp1");
 
@@ -112,24 +117,18 @@ void worker(){
     dht22_humidity.timed_log(myDHT22.getHumidityInt());
     light_sensor.timed_log(analogRead(LIGHT_SENSOR_PIN));
 
-    //vypis na seriak
-    //Serial.println(day_seconds() / 60.0);
-
     Serial.print("dht22_temp=");
     aJsonObject *msg = dht22_temp.json();
-    //Serial.println(aJson.print(dht22_temp.l1.json()));
     aJson.print(msg, &serial_stream);
     aJson.deleteItem(msg);
     Serial.println();
     Serial.print("dht22_humidity=");
     msg = dht22_humidity.json();
-    //Serial.println(aJson.print(dht22_humidity.l1.json()));
     aJson.print(msg, &serial_stream);
     aJson.deleteItem(msg);
     Serial.println();
     Serial.print("light_sensor=");
     msg = light_sensor.json();
-    //Serial.println(aJson.print(light_sensor.l1.json()));
     aJson.print(msg, &serial_stream);
     aJson.deleteItem(msg);
     Serial.println();
@@ -150,9 +149,6 @@ const char * getContentType(char * filename) {
 
     strncpy(ext, get_filename_ext(filename), 4);
     ext[3] = '\0';
-
-    Serial.print("Extension: ");
-    Serial.println(ext);
 
     //preved priponu na mala
     for (char *p = ext ; *p; ++p) *p = tolower(*p);
@@ -208,11 +204,12 @@ const char * extract_filename(char * line, int action = 1){
 int senddata(EthernetClient client, char * request, char * clientline){
     // Send response
     bool found = false;
+    Serial.print("Request: ");
+    Serial.println(request);
     if (strncasecmp(request, "sensors", 7) == 0) {
         Serial.println("Sensor area");
         for (int i = 0; i < loggers_no; i++) {
             if (loggers[i]->match(request)){
-                Serial.println("Match!");
                 found = true;
                 responseNum(client, 200);
                 client.println(getContentType(request));
@@ -221,10 +218,8 @@ int senddata(EthernetClient client, char * request, char * clientline){
                 client.println("Connection: close");
                 client.println();
                 aJsonStream eth_stream(&client);
-                Serial.println(loggers[i]->name);
                 aJsonObject *msg = loggers[i]->json_dynamic();
                 aJson.print(msg, &eth_stream);
-                //aJson.print(msg, &serial_stream);
                 aJson.deleteItem(msg);
                 return 1;
             }
@@ -256,9 +251,7 @@ int senddata(EthernetClient client, char * request, char * clientline){
         remain = min(remain, BUFSIZ -1);
         dataFile.read(clientline, remain);
         clientline[remain] = 0;
-        // Serial.println(clientline);
         client.write(clientline);
-        // client.write(dataFile.read());
     };
     dataFile.close();
     return 1;
@@ -269,51 +262,38 @@ void pageServe(EthernetClient client){
     char clientline[BUFSIZ];
     int index;
     int action;
+    int linesize;
     bool is_url;
 
     index = 0;
     action = 0;
     request[0] = 0;
 
-    boolean currentLineIsBlank = true;
+    t_1 = millis();
     while (client.connected()) {
         if (client.available()) {
-            char c = client.read();
+            linesize = client.readBytesUntil('\n', clientline, BUFSIZ-1);
+            clientline[linesize] = '\0';
 
-            // if you've gotten to the end of the line (received a newline
-            // character) and the line is blank, the http request has ended,
+            // the line is blank, the http request has ended,
             // so you can send a reply
-            if (c == '\n' && currentLineIsBlank) {
+            if (linesize <= 1) {
+                t_2 = millis();
                 senddata(client, request, clientline);
+                t_3 = millis();
+
                 break;
             }
-            if (c == '\n') {
-                clientline[index] = '\0';
-                index = 0;
-                Serial.println(clientline);
-                is_url = false;
-                if (strstr(clientline, "GET /") != 0) {
-                    action = GET;
-                    is_url = true;
-                } else if (strstr(clientline, "POST /") != 0) {
-                    action = POST;
-                    is_url = true;
-                };
-                if (is_url) {
-                    strcpy(request, extract_filename(clientline));
-                    Serial.print("extracted path: ");
-                    Serial.println(request);
-                }
-                // you're starting a new line
-                currentLineIsBlank = true;
-            }
-            else if (c != '\r') {
-                // you've gotten a character on the current line
-                currentLineIsBlank = false;
-                clientline[index] = c;
-                index++;
-                if (index >= BUFSIZ)
-                    index = BUFSIZ -1;
+            is_url = false;
+            if (strstr(clientline, "GET /") != 0) {
+                action = GET;
+                is_url = true;
+            } else if (strstr(clientline, "POST /") != 0) {
+                action = POST;
+                is_url = true;
+            };
+            if (is_url) {
+                strcpy(request, extract_filename(clientline));
             }
         }
     }
@@ -321,15 +301,23 @@ void pageServe(EthernetClient client){
     delay(1);
     // close the connection:
     client.stop();
-    Serial.println("client disonnected");
 }
 
+
 void loop(void){
+    t_loop_start = millis();
     if (dht22_temp.available()) {
         worker();
     }
     EthernetClient client = server.available();
     if (client) {
         pageServe(client);
+        Serial.println("times:");
+        Serial.println(t_1 - t_loop_start);
+        Serial.println(t_2 - t_loop_start);
+        Serial.println(t_3 - t_loop_start);
+        Serial.println(millis() - t_loop_start);
+
     }
+    delay(5);
 }
