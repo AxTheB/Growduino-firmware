@@ -13,7 +13,7 @@ void file_write(const char * dirname, const char * filename, aJsonObject * data)
     char filepath[60];
 
     strcpy(filepath, dirname);
-    if (!SD.exists(filepath)) {
+    if (!SD.exists(filepath) && filepath[0] == '/') {
         Serial.print("Creating directory: ");
         SD.mkdir(filepath);
     }

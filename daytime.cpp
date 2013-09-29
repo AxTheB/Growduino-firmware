@@ -11,10 +11,11 @@
 #include <Time.h>
 #include <DS1307RTC.h>
 
+extern Config config;
+
 time_t time_now;
 EthernetUDP Udp;
 const int timeZone = 1;     // Central European Time
-IPAddress timeServer(195, 113, 56, 8);
 
 void printDigits(int number) {
     if (number >= 0 && number < 10) {
@@ -41,14 +42,16 @@ void daytime_init(){
             Serial.println();
         }
     }
-    /*
-    if (ether) {
+    Serial.println("trying NTP sync");
+    unsigned int localPort = 8888;  // local port to listen for UDP packets
+    Udp.begin(localPort);
+    if (getNtpTime() > 0) {
         // get time from internets
-        unsigned int localPort = 8888;  // local port to listen for UDP packets
-        Udp.begin(localPort);
+        Serial.println("NTP has set the system time");
         setSyncProvider(getNtpTime);
+    } else {
+        Serial.println("Unable to reach NTP server");
     }
-    */
     digitalClockDisplay();
 }
 
@@ -75,7 +78,7 @@ time_t getNtpTime()
 {
     while (Udp.parsePacket() > 0) ; // discard any previously received packets
     Serial.println("Transmit NTP Request");
-    sendNTPpacket(timeServer);
+    sendNTPpacket(config.ntp);
     uint32_t beginWait = millis();
     while (millis() - beginWait < 1500) {
         int size = Udp.parsePacket();
