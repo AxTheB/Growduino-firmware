@@ -11,15 +11,17 @@ void sdcard_init(){
 
 void file_write(const char * dirname, const char * filename, aJsonObject * data) {
     char filepath[60];
-
+    if (strlen(dirname) > 50) {
+        //we dont do that deep dirs
+        return;
+    }
     strcpy(filepath, dirname);
     if (!SD.exists(filepath)) {
         Serial.print("Creating directory: ");
         SD.mkdir(filepath);
     }
-
-    strcat(filepath, "/");
-    strcat(filepath, filename);
+    strlcat(filepath, "/", 60);
+    strlcat(filepath, filename, 60);
 
     Serial.print("Writing file ");
     Serial.println(filepath);
@@ -45,9 +47,16 @@ void file_write(const char * dirname, const char * filename, aJsonObject * data)
 aJsonObject * file_read(const char * dirname, const char * filename){
     char filepath[60];
 
+    if (strlen(dirname) > 50 || strstr(dirname, "..") != NULL) {
+        //we dont do that deep dirs, we dont support taversal up
+        return NULL;
+    }
+
     strcpy(filepath, dirname);
-    strcat(filepath, "/");
-    strcat(filepath, filename);
+    strncat(filepath, "/", sizeof(filepath) - 2);
+    strncat(filepath, filename, sizeof(filepath) - strlen(filename) - 1);
+    //strcat(filepath, "/");
+    //strcat(filepath, filename);
 
     Serial.print("opening file ");
     Serial.println(filepath);

@@ -8,12 +8,15 @@ class Config
 {
     public:
         Config();
-        Config(aJsonObject * json);
+        void load(aJsonObject * json);
         int save();
         int inet_aton(const char* aIPAddrString, IPAddress& aResult);
         char * inet_ntoa(IPAddress addr, char * dest);
+        int mac_aton(const char * MacAddr, byte (&macResult)[6]);
+        char * mac_ntoa(byte addr[], char * dest);
 
         int use_dhcp;
+        byte mac[6];
         IPAddress ip;
         IPAddress netmask;
         IPAddress gateway;

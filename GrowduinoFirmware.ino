@@ -46,10 +46,19 @@ Logger * loggers[] = {&dht22_humidity, &dht22_temp, &light_sensor};
 
 int loggers_no = 3;
 
+int freeRam () {
+  extern int __heap_start, *__brkval; 
+  int v; 
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
+}
+
 void setup(void) {
     // start serial port
     Serial.begin(115200);
     Serial.println("Grow!");
+    Serial.print("Free ram: ");
+    Serial.println(freeRam());
+
     delay(1000);
     // serial_buffer = (char*) malloc (1024 * sizeof(int));
     Serial.println("SDcard init");
@@ -70,18 +79,16 @@ void setup(void) {
     aJsonObject * cfile = file_read("", "config.jso");
     if (cfile != NULL) {
         Serial.println("Loading config");
-        config = Config(cfile);
+        config.load(cfile);
         aJson.deleteItem(cfile);
     } else {
-        Serial.println("Default config");
-        config = Config();
+        Serial.println("Using default config");
         config.save();
     }
-    byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0x55, 0x44};
     if (config.use_dhcp == 1) {
-        Ethernet.begin(mac);
+        Ethernet.begin(config.mac);
     } else {
-        Ethernet.begin(mac, config.ip, config.gateway, config.netmask);
+        Ethernet.begin(config.mac, config.ip, config.gateway, config.netmask);
     }
     server.begin();
     Serial.print("server is at ");
@@ -186,7 +193,7 @@ void responseNum(EthernetClient client, int code){
 
 }
 
-const char * extract_filename(char * line, int action = 1){
+const char * extract_filename(char * line){
     // http://www.ladyada.net/learn/arduino/ethfiles.html ripoff
     if (strstr(line, "GET / ") != 0) {
         return "index.htm";
@@ -194,6 +201,13 @@ const char * extract_filename(char * line, int action = 1){
     if (strstr(line, "GET /") != 0) {
         char *filename;
         filename = line + 5; // 'GET /' is 5 chars
+        // convert space before HTTP to null, trimming the string
+        (strstr(line, " HTTP"))[0] = 0;
+        return filename;
+    }
+    if (strstr(line, "POST /") != 0) {
+        char *filename;
+        filename = line + 6;
         // convert space before HTTP to null, trimming the string
         (strstr(line, " HTTP"))[0] = 0;
         return filename;
@@ -261,35 +275,40 @@ void pageServe(EthernetClient client){
     char request[32];
     char clientline[BUFSIZ];
     int index;
-    int action;
     int linesize;
     bool is_url;
 
     index = 0;
-    action = 0;
     request[0] = 0;
+    int post;
+    post = 0;
 
     t_1 = millis();
     while (client.connected()) {
         if (client.available()) {
             linesize = client.readBytesUntil('\n', clientline, BUFSIZ-1);
             clientline[linesize] = '\0';
+            Serial.println(clientline);
 
             // the line is blank, the http request has ended,
             // so you can send a reply
             if (linesize <= 1) {
                 t_2 = millis();
-                senddata(client, request, clientline);
+                if (post) {
+                    responseNum(client, 200);
+                } else {
+                    senddata(client, request, clientline);
+                }
                 t_3 = millis();
 
                 break;
             }
             is_url = false;
             if (strstr(clientline, "GET /") != 0) {
-                action = GET;
                 is_url = true;
             } else if (strstr(clientline, "POST /") != 0) {
-                action = POST;
+                post = 1;
+                Serial.println("Processing post request");
                 is_url = true;
             };
             if (is_url) {
@@ -304,10 +323,13 @@ void pageServe(EthernetClient client){
 }
 
 
+
 void loop(void){
     t_loop_start = millis();
     if (dht22_temp.available()) {
         worker();
+        Serial.print("Free ram: ");
+        Serial.println(freeRam());
     }
     EthernetClient client = server.available();
     if (client) {
@@ -317,6 +339,8 @@ void loop(void){
         Serial.println(t_2 - t_loop_start);
         Serial.println(t_3 - t_loop_start);
         Serial.println(millis() - t_loop_start);
+        Serial.print("Free ram: ");
+        Serial.println(freeRam());
 
     }
     delay(5);
