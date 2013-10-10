@@ -46,10 +46,19 @@ Logger * loggers[] = {&dht22_humidity, &dht22_temp, &light_sensor};
 
 int loggers_no = 3;
 
+int freeRam () {
+  extern int __heap_start, *__brkval; 
+  int v; 
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
+}
+
 void setup(void) {
     // start serial port
     Serial.begin(115200);
     Serial.println("Grow!");
+    Serial.print("Free ram: ");
+    Serial.println(freeRam());
+
     delay(1000);
     // serial_buffer = (char*) malloc (1024 * sizeof(int));
     Serial.println("SDcard init");
@@ -185,7 +194,8 @@ void responseNum(EthernetClient client, int code){
 }
 
 const char * extract_filename(char * line){
-    // http://www.ladyada.net/learn/arduino/ethfiles.html ripoff
+    // returns pointer to filename in request
+    // dont forget to copy it before overwriting line
     if (strstr(line, "GET / ") != 0) {
         return "index.htm";
     }
@@ -299,10 +309,14 @@ void pageServe(EthernetClient client){
                 is_url = true;
             } else if (strstr(clientline, "POST /") != 0) {
                 post = 1;
+                Serial.println("Processing post request");
                 is_url = true;
             };
             if (is_url) {
-                strcpy(request, extract_filename(clientline));
+                if (strlcpy(request, extract_filename(clientline), 32) >= 32){
+                    Serial.print("Filename too long: ");
+                    Serial.println(clientline);
+                }
             }
         }
     }
@@ -333,11 +347,12 @@ void pageServe(EthernetClient client){
     client.stop();
 }
 
-
 void loop(void){
     t_loop_start = millis();
     if (dht22_temp.available()) {
         worker();
+        Serial.print("Free ram: ");
+        Serial.println(freeRam());
     }
     EthernetClient client = server.available();
     if (client) {
@@ -347,6 +362,8 @@ void loop(void){
         Serial.println(t_2 - t_loop_start);
         Serial.println(t_3 - t_loop_start);
         Serial.println(millis() - t_loop_start);
+        Serial.print("Free ram: ");
+        Serial.println(freeRam());
 
     }
     delay(5);

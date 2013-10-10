@@ -10,7 +10,7 @@
 RingBuffer::RingBuffer(int size, const char * name) {
     //Prepare RR buffer and clean it so we can start graphing immediatelly
     buf_len = size;
-    strcpy(buf_name, name);
+    strlcpy(buf_name, name, 4);
     buffer = (int*) malloc(sizeof(int) * (size));
     index = -1;  // points to last logged value
     last_average = MINVALUE;
@@ -160,7 +160,7 @@ bool RingBuffer::store(int value, int slot){
     //this allows us to log sequence longer than buffer, for example using
     //ordinary timestamp or day-seconds
     while (slot >= buf_len){
-        slot = slot - buf_len;
+        slot = slot % buf_len;
     }
 
     //purge skipped values. Do not purge if we advanced by one or if we write

@@ -74,8 +74,7 @@ void digitalClockDisplay(){
 const int NTP_PACKET_SIZE = 48; // NTP time is in the first 48 bytes of message
 byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
 
-time_t getNtpTime()
-{
+time_t getNtpTime(){
     while (Udp.parsePacket() > 0) ; // discard any previously received packets
     Serial.println("Transmit NTP Request");
     sendNTPpacket(config.ntp);
@@ -99,8 +98,7 @@ time_t getNtpTime()
 }
 
 // send an NTP request to the time server at the given address
-void sendNTPpacket(IPAddress &address)
-{
+void sendNTPpacket(IPAddress &address){
     // set all bytes in the buffer to 0
     memset(packetBuffer, 0, NTP_PACKET_SIZE);
     // Initialize values needed to form NTP request

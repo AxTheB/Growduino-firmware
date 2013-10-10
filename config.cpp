@@ -94,7 +94,7 @@ int Config::inet_aton(const char* aIPAddrString, IPAddress& aResult) {
                 return 0;
             }
         }
-        // now we have full mac address
+        // now we have full address
         return 1;
     } else {
         // scanf fail
