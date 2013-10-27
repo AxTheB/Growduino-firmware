@@ -383,16 +383,15 @@ void loop(void){
         Serial.println(millis() - t_loop_start);
         Serial.print("Free ram: ");
         Serial.println(freeRam());
-        if (analogRead(LIGHT_SENSOR_PIN) > 250) {
-            outputs.set(0, 1);
-            outputs.set(1, 1);
-            outputs.set(2, 1);
-        } else {
-            outputs.set(0, 0);
-            outputs.set(1, 0);
-            outputs.set(2, 0);
-        }
-
     }
     delay(5);
+    if (analogRead(LIGHT_SENSOR_PIN) > 250) {
+        outputs.set(0, 1);
+        outputs.set(1, 1);
+        outputs.set(2, 1);
+    } else {
+        outputs.set(0, 0);
+        outputs.set(1, 0);
+        outputs.set(2, 0);
+    }    
 }
