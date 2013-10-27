@@ -37,6 +37,7 @@ Logger dht22_humidity = Logger("Humidity");
 Logger light_sensor = Logger("Light");
 
 Config config;
+Output outputs;
 
 aJsonStream serial_stream(&Serial);
 
@@ -71,7 +72,7 @@ void setup(void) {
         while (true) {
             digitalWrite(13, 1 - digitalRead(13));
             delay(300);
-            }
+        }
     }
     Serial.println("Initialising eth");
 
@@ -103,6 +104,12 @@ void setup(void) {
     dht22_humidity.load();
     light_sensor.load();
 
+    //initialise outputs
+    for(int i=1; i <=8; i++) {
+        pinMode(RELAY_START + i, OUTPUT);
+        outputs.set(i, 0);
+    }
+
     Serial.println("Wasting time (2s)");
     delay(2000);
     // init temp/humidity logger 
@@ -116,8 +123,7 @@ void setup(void) {
 }
 
 void worker(){
-
-    //cteni ze sensoru
+    //read sensors and store data
     pinMode(13, OUTPUT);
     myDHT22.readData();
     dht22_temp.timed_log(myDHT22.getTemperatureCInt());
@@ -139,6 +145,8 @@ void worker(){
     aJson.print(msg, &serial_stream);
     aJson.deleteItem(msg);
     Serial.println();
+
+    outputs.log();
 }
 
 const char * get_filename_ext(const char *filename){
@@ -216,6 +224,18 @@ const char * extract_filename(char * line){
     return NULL;
 }
 
+
+int send_headers(EthernetClient client, char * request, int age) {
+    responseNum(client, 200);
+    client.println(getContentType(request));
+    client.println("Access-Control-Allow-Origin: *");
+    client.print("cache-control: max-age=");
+    client.println(age, DEC);
+    client.println("Connection: close");
+    client.println();
+}
+
+
 int senddata(EthernetClient client, char * request, char * clientline){
     // Send response
     bool found = false;
@@ -223,15 +243,19 @@ int senddata(EthernetClient client, char * request, char * clientline){
     Serial.println(request);
     if (strncasecmp(request, "sensors", 7) == 0) {
         Serial.println("Sensor area");
+        if (outputs.match(request)) {  // outputs
+            found = true;
+            send_headers(client, request, 30);
+            aJsonStream eth_stream(&client);
+            aJsonObject *msg = outputs.json_dynamic();
+            aJson.print(msg, &eth_stream);
+            aJson.deleteItem(msg);
+            return 1;
+        }
         for (int i = 0; i < loggers_no; i++) {
-            if (loggers[i]->match(request)){
+            if (loggers[i]->match(request)){  // sensors
                 found = true;
-                responseNum(client, 200);
-                client.println(getContentType(request));
-                client.println("Access-Control-Allow-Origin: *");
-                client.println("cache-control: max-age=30");
-                client.println("Connection: close");
-                client.println();
+                send_headers(client, request, 30);
                 aJsonStream eth_stream(&client);
                 aJsonObject *msg = loggers[i]->json_dynamic();
                 aJson.print(msg, &eth_stream);
@@ -251,14 +275,9 @@ int senddata(EthernetClient client, char * request, char * clientline){
     }
 
     // Now we know file exists, so serve it
-    responseNum(client, 200);
+    send_headers(client, request, 600);
 
-    client.println(getContentType(request));
-    client.println("Access-Control-Allow-Origin: *");
-    // client.println("cache-control: max-age=86400");
-    client.println("cache-control: max-age=600");
-    client.println("Connection: close");  // the connection will be closed after completion of the response
-    client.println();
+    // client.println(getContentType(request));
     File dataFile = SD.open(request, FILE_READ);
     // abuse clientline as sd buffer
     int remain = 0;
@@ -364,6 +383,15 @@ void loop(void){
         Serial.println(millis() - t_loop_start);
         Serial.print("Free ram: ");
         Serial.println(freeRam());
+        if (analogRead(LIGHT_SENSOR_PIN) > 250) {
+            outputs.set(0, 1);
+            outputs.set(1, 1);
+            outputs.set(2, 1);
+        } else {
+            outputs.set(0, 0);
+            outputs.set(1, 0);
+            outputs.set(2, 0);
+        }
 
     }
     delay(5);

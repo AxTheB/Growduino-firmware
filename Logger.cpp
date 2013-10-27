@@ -167,7 +167,7 @@ aJsonObject * Logger::json(){
 aJsonObject * Logger::json_dynamic(){
     // create json with unwinded buffers (all values, most recent last)
     aJsonObject *msg = aJson.createObject();
-    aJson.addNumberToObject(msg, "time", (double) time);
+    // aJson.addNumberToObject(msg, "time", (double) time);
     aJson.addStringToObject(msg, "name", name);
     msg = l1.json_dynamic(msg);
     msg = l2.json_dynamic(msg);
