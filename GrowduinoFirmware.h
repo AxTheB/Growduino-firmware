@@ -13,8 +13,7 @@
 #define GET 1
 #define POST 2
 
-//first relay is actually at RELAY_START+1 !!
-#define RELAY_START 24
+#define RELAY_START 25
 
 #define BUFSIZ 513
 
