@@ -21,38 +21,59 @@ Config::Config(){
 void Config::load(aJsonObject * json){
     //loads values from json. Values not in json are not touched
     byte tmpmac[6];
+    char debug_out[32];
     IPAddress tmpip;
 
     aJsonObject* cnfobj = aJson.getObjectItem(json, "use_dhcp");
     if (cnfobj) {
-        use_dhcp = cnfobj->valueint;
+        if (strcmp(cnfobj->valuestring, "0") == 0 || cnfobj->valueint == 0) {
+            use_dhcp = 0;
+        } else {
+            use_dhcp = 1;
+        }
     }
 
     cnfobj = aJson.getObjectItem(json, "mac");
     if (cnfobj && cnfobj->type == aJson_String && mac_aton(cnfobj->valuestring, tmpmac) == 1) {
         mac_aton(cnfobj->valuestring, mac);
+        Serial.print("mac ");
+        mac_ntoa(mac, debug_out);
+        Serial.println(debug_out);
+
     }
 
     if (use_dhcp == 0) {  // Static IP config
         cnfobj = aJson.getObjectItem(json, "ip");
         if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
             inet_aton(cnfobj->valuestring, ip);
+            Serial.print("ip ");
+            inet_ntoa(ip, debug_out);
+            Serial.println(debug_out);
         }
 
         cnfobj = aJson.getObjectItem(json, "netmask");
         if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
             inet_aton(cnfobj->valuestring, netmask);
+            Serial.print("netmask ");
+            inet_ntoa(ip, debug_out);
+            Serial.println(debug_out);
         }
 
         cnfobj = aJson.getObjectItem(json, "gateway");
         if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
             inet_aton(cnfobj->valuestring, gateway);
+            Serial.print("gateway ");
+            inet_ntoa(gateway, debug_out);
+            Serial.println(debug_out);
         }
     }
 
     cnfobj = aJson.getObjectItem(json, "ntp");
     if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
         inet_aton(cnfobj->valuestring, ntp);
+        Serial.print("ntp ");
+        inet_ntoa(ntp, debug_out);
+        Serial.println(debug_out);
     }
 }
 
