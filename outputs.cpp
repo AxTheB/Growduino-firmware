@@ -42,6 +42,16 @@ int Output::set(int slot, int state){
     return hw_update(slot);
 }
 
+int Output::set_delayed(int slot, int state){
+    if (state) {
+        //set
+        sensor_state |= 1 << slot;
+    } else {
+        //clear
+        sensor_state &= ~(1 << slot);
+    }
+}
+
 int Output::flip(int slot){
     sensor_state ^= 1 << slot;
     return hw_update(slot);
