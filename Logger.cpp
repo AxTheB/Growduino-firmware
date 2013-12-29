@@ -115,6 +115,7 @@ char * Logger::dirname_l3(char * dirname){
 
 void Logger::timed_log(int value) {
     //Write value to l1, recalculate l2 and l3 buffer
+    peekval = value;
     aJsonObject *msg;
 
     time = now();
@@ -177,6 +178,7 @@ aJsonObject * Logger::json_dynamic(){
 
 void Logger::log(int value) {
     //zapise do l1 bufferu, pripadne buffery otoci.
+    peekval = value;
     time = now();
 
     l1.store(value, ++l1_idx);
@@ -189,4 +191,8 @@ void Logger::log(int value) {
             //int tmpavg = l2.get_last_avg();
         }
     }
+}
+
+int Logger::peek() {
+    return peekval;
 }

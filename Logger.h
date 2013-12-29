@@ -21,9 +21,11 @@ class Logger
         void load();
         bool match(const char * request);
         time_t time;  // from Time.h, included by GrowduinoFirmware.h
+        int peek();
 
     private:
         bool timed;
         int l1_idx, l2_idx, l3_idx;
+        int peekval;
 
 };
