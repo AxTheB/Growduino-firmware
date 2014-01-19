@@ -6,13 +6,15 @@ All URLs that correspond to files are in 8.3 form. Use only lowercase in urls.
 
 When there is any data missing, its filled by -999 (MINVALUE from GrowduinoFirmware.h) TODO: Replace -999 with json NULL
 
-Client config
--------------
+Web client configuration
+------------------------
 /client.jso
  - Configuration data for web client, not used in firmware
  - supports GET, POST
  - FIXME: atm the json is parsed on file write
 
+Firmware configuration
+----------------------
 /config.jso
  - Configuration data for firmware
  - supports GET, POST
@@ -31,6 +33,8 @@ Client config
     }
 ```
 
+Outputs (relay) state
+---------------------
 /sensors/outputs.jso
  - Stores last 60 minutes of sensor state
  - each value displays state after triggers run, one per minute
@@ -59,14 +63,16 @@ Client config
     {
         "name":"outputs",
         "state":{
-            "123456":160,
-            "123472":161
+            "1390173000":160,
+            "1390173060":161,
             ...
-            "1234431234":255
+            "1390173300":255
         }
     }
 ```
 
+Sensor state
+------------
 /sensors/{tempX,humidity,light}.jso
  - shows last 60 minutes of sensor data in "min" array, with hourly averages for last day in "h" array and daily averages since boot in "day"
  - Values are to be divided by 10 before using
@@ -75,12 +81,33 @@ Client config
      {
         "name":"Light",
         "min":[13,...,23],
-        "h":[48,..,20],
-        "day":[21,..,101]
+        "h":[48,...,20],
+        "day":[21,...,101]
     }
 ```
 
+Trigger configuration
+---------------------
 /triggers/X.jso
  - X is 0 to TRIGGERS (GrowduinoFirmware.h, line 22)
  - supports GET, POST
- - changes take effect immediatelly
+ - changes take effect immediately
+ - t_since and t_until are in minutes since midnight
+ - on_value and off_value are raw sensor readings
+ - sensors are (indexed from zero):
+    - humidity
+    - temperature
+    - light
+ - outputs are indexed from zero too
+
+```json
+    {
+        "t_since":0,
+        "t_until":0,
+        "on_value":"<255",
+        "off_value":">512",
+        "sensor":-1,
+        "output":7,
+    }
+```
+
