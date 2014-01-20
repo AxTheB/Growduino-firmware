@@ -93,7 +93,7 @@ Trigger configuration
  - supports GET, POST
  - changes take effect immediately
  - t_since and t_until are in minutes since midnight, and define when the conditions are checked. For all-day trigger use t_since = -1. When t_since > t_until the trigger is checked over midnight.
- - on_value and off_value are in format parameter+value+importance, see examples.
+ - on_value and off_value are in format operator+parameter+importance, see examples.
  - off_value condition has precedence over on_value
  - Possible operators for on/off_value are:
     - "<": Lesser than. "on_value":"<10" on temp readings will resolve as true. Parameter is raw sensor reading
