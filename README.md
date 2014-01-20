@@ -92,22 +92,57 @@ Trigger configuration
  - X is 0 to TRIGGERS (GrowduinoFirmware.h, line 22)
  - supports GET, POST
  - changes take effect immediately
- - t_since and t_until are in minutes since midnight
- - on_value and off_value are raw sensor readings
+ - t_since and t_until are in minutes since midnight, and define when the conditions are checked. For all-day trigger use t_since = -1. When t_since > t_until the trigger is checked over midnight.
+ - on_value and off_value are in format parameter+value+importance, see examples.
+ - off_value condition has precedence over on_value
+ - Possible operators for on/off_value are:
+    - "<": Lesser than. "on_value":"<10" on temp readings will resolve as true. Parameter is raw sensor reading
+    - ">": Greater than. Opposite to "<".
+    - "T": resolves true when the output was off for more than parameter minutes, switches off after off_value minutes has passed. See example 2.
+ - Importance is noted by "!" at end, and means that this condition is critical, skips any other triggers relating to this output
  - sensors are (indexed from zero):
     - humidity
     - temperature
     - light
+    - ultrasound
+    - Dallas one wire devices
  - outputs are indexed from zero too
+
+Ex. 1: Switch on output 7 when temperature falls to 25 degrees C, switch it back off when it climbs over 30C
 
 ```json
     {
-        "t_since":0,
+        "t_since":-1,
         "t_until":0,
-        "on_value":"<255",
-        "off_value":">512",
-        "sensor":-1,
+        "on_value":"<250",
+        "off_value":">300",
+        "sensor":1,
         "output":7,
     }
 ```
 
+Ex. 2: Never turn on output 5, if the temperature is bellow 10C:
+
+```json
+    {
+        "t_since":-1,
+        "t_until":0,
+        "on_value":-1,
+        "off_value":"<100!",
+        "sensor":1,
+        "output":5,
+    }
+```
+
+Ex. 3: During the night (since 8pm to 6am), when the output 4 was idle for 10 minutes, run it for 5 minutes:
+
+```json
+    {
+        "t_since":1200,
+        "t_until":360,
+        "on_value":T10,
+        "off_value":"T5",
+        "sensor":-1,
+        "output":4,
+    }
+```
