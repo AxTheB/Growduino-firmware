@@ -73,7 +73,7 @@ Outputs (relay) state
 
 Sensor state
 ------------
-/sensors/{tempX,humidity,light}.jso
+/sensors/{tempX,humidity,light,...}.jso
  - shows last 60 minutes of sensor data in "min" array, with hourly averages for last day in "h" array and daily averages since boot in "day"
  - Values are to be divided by 10 before using
 
@@ -93,6 +93,10 @@ Trigger configuration
  - supports GET, POST
  - changes take effect immediately
  - t_since and t_until are in minutes since midnight, and define when the conditions are checked. For all-day trigger use t_since = -1. When t_since > t_until the trigger is checked over midnight.
+ - when trigger turns on any output, it can be turned off by any of following:
+    - the off_value condition of said trigger is met
+    - t_until of said trigger is encountered
+    - off_value with important (!) mark is true.
  - on_value and off_value are in format operator+parameter+importance, see examples.
  - off_value condition has precedence over on_value
  - Possible operators for on/off_value are:
@@ -146,3 +150,13 @@ Ex. 3: During the night (since 8pm to 6am), when the output 4 was idle for 10 mi
         "output":4,
     }
 ```
+
+Historical data
+-------------
+/data/
+ - stores historical data for all sensors and output
+ - /data/SENSOR/YYYY/MM.jso stores daily averages for given month
+ - /data/SENSOR/YYYY/MM/DD.jso stores hourly averages for given day
+ - /data/SENSOR/YYYY/MM/DD/HH.jso stores data for each hour.
+
+/data/output/YYYY/MM/DD/XX.jso stores log of sensor changes, split by 50 records. GET the sequence until 404 is encountered. TODO
