@@ -100,7 +100,7 @@ Trigger configuration
  - on_value and off_value are in format operator+parameter+importance, see examples.
  - off_value condition has precedence over on_value
  - Possible operators for on/off_value are:
-    - "<": Lesser than. "on_value":"<10" on temp readings will resolve as true. Parameter is raw sensor reading
+    - "<": Lesser than. "on_value":"<100" on temp readings will resolve as true when temperature falls bellow 10C. Parameter is raw sensor reading
     - ">": Greater than. Opposite to "<".
     - "T": resolves true when the output was off for more than parameter minutes, switches off after off_value minutes has passed. See example 2.
  - Importance is noted by "!" at end, and means that this condition is critical, skips any other triggers relating to this output
