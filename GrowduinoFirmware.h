@@ -6,6 +6,8 @@
 #include "WProgram.h"
 #endif
 
+#include <avr/pgmspace.h>
+
 #include <Time.h>
 
 #define MINVALUE -999
@@ -15,8 +17,12 @@
 
 #define RELAY_START 25
 
-#define BUFSIZ 513
+#define USOUND_TRG 34
+#define USOUND_ECHO 35
 
+#define BUFSIZ 128
+
+#define TRIGGERS 3
 
 // #include "config.h"
 #include "Logger.h"
@@ -25,5 +31,7 @@
 #include "sdcard.h"
 #include "config.h"
 #include "outputs.h"
+#include "trigger.h"
+#include "ultrasound.h"
 
 extern int ether;

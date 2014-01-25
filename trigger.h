@@ -3,6 +3,10 @@
 
 #include <aJSON.h>
 
+#define NONE -1
+#define IMP_ON 1
+#define IMP_OFF 2
+
 class Trigger {
     public:
 
@@ -10,14 +14,17 @@ class Trigger {
         int t_until;
         int on_value;
         int off_value;
-        bool lt;
+        char on_cmp;
+        char off_cmp;
+        int important;
         int sensor;
         int output;
         int idx;
 
         Trigger();
+        void init();
         void load(aJsonObject *msg, Logger * loggers[]);
-        void tick();
+        int tick();
         aJsonObject * json(aJsonObject *cnfdata);
 
     private:

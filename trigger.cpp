@@ -6,13 +6,19 @@
 extern Output outputs;
 
 Trigger::Trigger(){
-    t_since = 0;
-    t_until = 0;
-    on_value = 255;
+    init();
+}
+
+void Trigger::init(){
+    t_since = NONE;
+    t_until = NONE;
+    on_value = 256;
     off_value = 512;
-    lt = true;
-    sensor = -1;
-    output = 7;
+    on_cmp = '-';
+    off_cmp = '-';
+    important = NONE;
+    sensor = NONE;
+    output = NONE;
     _logger = NULL;
     idx = 0;
 }
@@ -22,32 +28,50 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[]){
     //extract the ajson from ajson using
     //aJsonObject* msg = aJson.getObjectItem(root, "trigger");
 
+    init();
+
     aJsonObject * cnfobj = aJson.getObjectItem(msg, "t_since");
     if (cnfobj && cnfobj->type == aJson_Int) {
         t_since = cnfobj->valueint;
-    } else {
-        t_since = -1;
     }
 
     cnfobj = aJson.getObjectItem(msg, "t_until");
     if (cnfobj && cnfobj->type == aJson_Int) {
         t_until = cnfobj->valueint;
-    } else {
-        t_until = -1;
     }
 
     cnfobj = aJson.getObjectItem(msg, "on_value");
-    if (cnfobj && cnfobj->type == aJson_Int) {
-        on_value = cnfobj->valueint;
-    } else {
-        on_value = -1;
+    if (cnfobj) {
+        if (cnfobj->type == aJson_Int) {
+            on_value = cnfobj->valueint;
+            on_cmp = '>';
+        } else if (cnfobj->type == aJson_String)  {
+            on_value = atoi(cnfobj->valuestring + 1);
+            on_cmp = cnfobj->valuestring[0];
+
+            if (strchr(cnfobj->valuestring, '!') != NULL)
+                important = IMP_ON;
+
+        } else {
+            on_value = 256;
+        }
     }
 
     cnfobj = aJson.getObjectItem(msg, "off_value");
-    if (cnfobj && cnfobj->type == aJson_Int) {
-        off_value = cnfobj->valueint;
-    } else {
-        off_value = -1;
+    if (cnfobj) {
+        if (cnfobj->type == aJson_Int) {
+            off_value = cnfobj->valueint;
+            off_cmp = '<';
+        } else if (cnfobj->type == aJson_String)  {
+            off_value = atoi(cnfobj->valuestring + 1);
+            off_cmp = cnfobj->valuestring[0];
+
+            if (strchr(cnfobj->valuestring, '!') != NULL)
+                important = IMP_OFF;
+
+        } else {
+            off_value = 512;
+        }
     }
 
     cnfobj = aJson.getObjectItem(msg, "sensor");
@@ -64,12 +88,13 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[]){
         output = -1;
     }
 
-    cnfobj = aJson.getObjectItem(msg, "lt");
+    /* cnfobj = aJson.getObjectItem(msg, "lt");
     if (cnfobj && cnfobj->type == aJson_False) {
         lt = false;
     } else {
         lt= true;
     }
+    */
 
     if (sensor != -1) {
         _logger = loggers[sensor];
@@ -78,102 +103,93 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[]){
     }
 }
 
+
 aJsonObject * Trigger::json(aJsonObject *cnfdata){
     //exports settings as aJson object into msg
 
+    char val_buf[6];
+
     aJson.addNumberToObject(cnfdata, "t_since", t_since);
     aJson.addNumberToObject(cnfdata, "t_until", t_until);
-    aJson.addNumberToObject(cnfdata, "on_value", on_value);
-    aJson.addNumberToObject(cnfdata, "off_value", off_value);
+
+    if (important == IMP_ON) {
+        sprintf(val_buf, "%c%d!", on_cmp, on_value);
+    } else {
+        sprintf(val_buf, "%c%d", on_cmp, on_value);
+    }
+
+    aJson.addStringToObject(cnfdata, "on_value", val_buf);
+
+    if (important == IMP_OFF) {
+        sprintf(val_buf, "%c%d!", off_cmp, off_value);
+    } else {
+        sprintf(val_buf, "%c%d", off_cmp, off_value);
+    }
+
+    aJson.addStringToObject(cnfdata, "off_value", val_buf);
     aJson.addNumberToObject(cnfdata, "sensor", sensor);
     aJson.addNumberToObject(cnfdata, "output", output);
-    if (lt) {
-        aJson.addTrueToObject(cnfdata, "lt");
-    } else {
-        aJson.addFalseToObject(cnfdata, "lt");
-    }
 }
 
-void Trigger::tick(){
-    int sensor_val = _logger->peek();
+int Trigger::tick(){
     int daymin = minute() * 60 + second();
     Serial.print("Ticking ");
     Serial.println(idx);
 
-    // if t_since == t_until run all day.
+    // if t_since == -1 run all day.
     // if t_since > t_until run over midnight
 
-    if (((t_since == t_until) && (t_since == 0)) ||
+    if ((t_since == -1) ||
             (t_since <= daymin && t_until > daymin) ||
             (t_since >= daymin && t_until < daymin)
        ) {
         Serial.print("time ok");
         Serial.println(daymin);
         if (_logger == NULL) {  // if there is no logger defined just keep it on/off
-            if (lt) {
-                outputs.set_delayed(output, 1);
+            if (output > -1 && on_cmp == '<') {
                 Serial.print(output);
                 Serial.print(" to 1 ");
                 Serial.println("On always");
-            } else {
-                outputs.set_delayed(output, 0);
-                Serial.print(output);
-                Serial.print(" to 0 ");
-                Serial.println("Off always");
             }
         } else {    // the logger is defined, time is right.
-            if (lt) {   // if reading is lower than on_value, we should be on
-                if (sensor_val <= on_value) {
-                    outputs.set_delayed(output, 1);
-                    Serial.print(output);
-                    Serial.print(" to 1 ");
-                    Serial.print("lt; s_val <= on ");
-                    Serial.print(sensor_val);
-                    Serial.print(" ");
-                    Serial.println(on_value);
-
-                } else if (sensor_val >= off_value) {
-                    outputs.set_delayed(output, 0);
-                    Serial.print(output);
-                    Serial.print(" to 0 ");
-                    Serial.print("lt; s_val >= off ");
-                    Serial.print(sensor_val);
-                    Serial.print(" ");
-                    Serial.println(off_value);
-                }
-            } else {
-                if (sensor_val >= on_value) {
-                    outputs.set_delayed(output, 1);
-                    Serial.print(output);
-                    Serial.print(" to 1 ");
-                    Serial.print("gt; s_val >= on ");
-                    Serial.print(sensor_val);
-                    Serial.print(" ");
-                    Serial.println(on_value);
-                } else if (sensor_val <= off_value) {
-                    outputs.set_delayed(output, 0);
-                    Serial.print(output);
-                    Serial.print(" to 0 ");
-                    Serial.print("gt; s_val <= off ");
-                    Serial.print(sensor_val);
-                    Serial.print(" ");
-                    Serial.println(off_value);
-                }
+            int sensor_val = _logger->peek();
+            bool retval = false;
+            switch (on_cmp) {
+                case '<':
+                    if (sensor_val <= on_value) {
+                        retval = true;
+                    }
+                    break;
+                case '>':
+                    if (sensor_val >= on_value) {
+                        retval = true;
+                    }
+                    break;
+                case 'T':
+                case 't':
+                    // TODO: timed on/off
+                    break;
             }
+            switch (off_cmp) {
+                case '<':
+                    if (sensor_val <= off_value) {
+                        retval = false;
+                    }
+                    break;
+                case '>':
+                    if (sensor_val >= off_value) {
+                        retval = false;
+                    }
+                    break;
+                case 'T':
+                case 't':
+                    // TODO: timed on/off
+                    break;
+            }
+
         }
-    } else if ((t_until == daymin) && (_logger == NULL) && (t_until != t_since)) {
-        // if there is no logger defined and the trigger had duration, switch off at the end.
-        if (lt) {
-            outputs.set_delayed(output, 1);
-            Serial.print(output);
-            Serial.print(" to 1 ");
-            Serial.println("Trg end 1");
-        } else {
-            outputs.set_delayed(output, 0);
-            Serial.print(output);
-            Serial.print(" to 0");
-            Serial.println("Trg end 0");
-        }
+    } else {
+        return false;
     }
 }
 
@@ -188,10 +204,10 @@ int trigger_load(Trigger triggers[], Logger * loggers[], aJsonObject * cfile, in
 }
 
 int triggers_load(Trigger triggers[], Logger * loggers[]){
-    char fname[] = "/triggers/XX.jso";
+    char fname[] = "triggers/XX.jso";
     for (int i=0; i < TRIGGERS; i++) {
         triggers[i].idx = i;
-        sprintf(fname, "/triggers/%i.jso", i);
+        sprintf(fname, "triggers/%i.jso", i);
         aJsonObject * cfile = file_read("", fname);
         if (cfile != NULL) {
             trigger_load(triggers, loggers, cfile, i);
@@ -203,17 +219,12 @@ int triggers_load(Trigger triggers[], Logger * loggers[]){
 
 int triggers_save(Trigger triggers[]){
 
-    char trgname[10];
-    aJsonObject * cnfdata;
+    char fname[] = "triggers/XX.jso";
 
-    aJsonObject * msg = aJson.createObject();
-
-    if (msg != NULL) {
         for (int i=0; i < TRIGGERS; i++) {
-            sprintf(trgname, "trigger%i", i);
+        sprintf(fname, "triggers/%i.jso", i);
             aJson.addItemToObject(msg, trgname, cnfdata = aJson.createObject());
             triggers[i].json(cnfdata);
-        }
     } else {
         return -1;
     }

@@ -16,6 +16,10 @@
 #include <stdio.h>
 #include <DS1307RTC.h>
 
+// #include <OneWire.h>
+
+#include <avr/pgmspace.h>
+
 int ether = 1;
 
 
@@ -29,12 +33,46 @@ unsigned long t_1;
 unsigned long t_2;
 unsigned long t_3;
 
+
+const char message_1[] PROGMEM="Grow!";
+const char message_2[] PROGMEM="SDcard init";
+const char message_3[] PROGMEM="SD card OK";
+const char message_4[] PROGMEM="INDEX.HTM not found. Not going on";
+const char message_5[] PROGMEM="Inititalising Ethernet";
+const char message_6[] PROGMEM="Loading config";
+
+PROGMEM const char * messages[]={
+    message_1,
+    message_2,
+    message_3,
+    message_4,
+    message_5,
+    message_6,
+};
+
+void Serprintln(int seq){
+    char * buffer;
+    buffer = (char *) malloc(40);
+    if (buffer != NULL) {
+        strcpy_P(buffer, (char * ) pgm_read_word(&(messages[seq - 1])));
+        Serial.println(buffer);
+        free(buffer);
+    } else {
+        Serial.println("malloc fail");
+    }
+}
+
 Logger dht22_temp = Logger("Temp1");
 
 Logger dht22_humidity = Logger("Humidity");
 // light sensor on analog A15
 #define LIGHT_SENSOR_PIN 15
 Logger light_sensor = Logger("Light");
+
+Logger ultrasound = Logger("Ultrasound");
+
+Logger onewire_temp1 = Logger("Temp2");
+//Logger onewire_temp2 = Logger("Temp3");
 
 Config config;
 Output outputs;
@@ -43,43 +81,62 @@ aJsonStream serial_stream(&Serial);
 
 EthernetServer server(80);
 
-Logger * loggers[] = {&dht22_humidity, &dht22_temp, &light_sensor};
+Logger * loggers[] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultrasound};
+//, &onewire_temp1};
+//, &onewire_temp2};
+
+Trigger triggers[TRIGGERS];
 
 int loggers_no = 3;
 
 int freeRam () {
-  extern int __heap_start, *__brkval; 
-  int v; 
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+}
+
+void pFreeRam() {
+    Serial.print("Free ram: ");
+    Serial.println(freeRam());
 }
 
 void setup(void) {
+    pinMode(13, OUTPUT);
     // start serial port
     Serial.begin(115200);
-    Serial.println("Grow!");
-    Serial.print("Free ram: ");
-    Serial.println(freeRam());
-
+    Serial.println("!");
+    Serprintln(1); //grow!
+    pFreeRam();
+    /*
+        int q = 0;
+        while (true) {
+            digitalWrite(13, q);
+            q = 1 - q;
+            delay(600);
+        }
+    */
     delay(1000);
     // serial_buffer = (char*) malloc (1024 * sizeof(int));
-    Serial.println("SDcard init");
+    Serprintln(2); //sd card init
     sdcard_init();
     char index[] = "/INDEX.HTM";
     if (SD.exists(index)) {
-        Serial.println("Card ok");
+        Serprintln(3); //SD card OK
     } else {
-        Serial.println("INDEX.HTM not found. Not going on");
+        Serprintln(4); // INDEX.HTM not found. Not going on
+        int q = 0;
         while (true) {
-            digitalWrite(13, 1 - digitalRead(13));
-            delay(300);
+            digitalWrite(13, q);
+            q = 1 - q;
+            delay(600);
         }
     }
-    Serial.println("Initialising eth");
+    Serprintln(5); //initialising eth
 
     // load config from sdcard
     aJsonObject * cfile = file_read("", "config.jso");
     if (cfile != NULL) {
-        Serial.println("Loading config");
+        Serprintln(6);
         config.load(cfile);
         aJson.deleteItem(cfile);
     } else {
@@ -94,6 +151,13 @@ void setup(void) {
     server.begin();
     Serial.print("server is at ");
     Serial.println(Ethernet.localIP());
+
+    // load triggers if available
+    Serial.println(freeRam());
+    triggers_load(triggers, loggers);
+    Serial.println(freeRam());
+    triggers_save(triggers);
+    Serial.println(freeRam());
 
     // start real time clock
     Serial.println("Initialising clock");
@@ -112,7 +176,7 @@ void setup(void) {
 
     Serial.println("Wasting time (2s)");
     delay(2000);
-    // init temp/humidity logger 
+    // init temp/humidity logger
     myDHT22.readData();
     Serial.print("DHT22 Sensor - temp: ");
     Serial.print(myDHT22.getTemperatureC());
@@ -128,7 +192,7 @@ void worker(){
     myDHT22.readData();
     dht22_temp.timed_log(myDHT22.getTemperatureCInt());
     dht22_humidity.timed_log(myDHT22.getHumidityInt());
-    light_sensor.timed_log(analogRead(LIGHT_SENSOR_PIN));
+    light_sensor.timed_log(map(analogRead(LIGHT_SENSOR_PIN), 0, 1024, 0, 1000));
 
     Serial.print("dht22_temp=");
     aJsonObject *msg = dht22_temp.json();
@@ -147,6 +211,17 @@ void worker(){
     Serial.println();
 
     outputs.log();
+
+    // tick triggers
+    for(int i=0; i < TRIGGERS; i++) {
+        triggers[i].tick();
+    }
+
+    // move relays
+    for(int i=0; i <8; i++) {
+        outputs.hw_update(i);
+    }
+
 }
 
 const char * get_filename_ext(const char *filename){
@@ -225,7 +300,7 @@ const char * extract_filename(char * line){
 }
 
 
-int send_headers(EthernetClient client, char * request, int age) {
+void send_headers(EthernetClient client, char * request, int age) {
     responseNum(client, 200);
     client.println(getContentType(request));
     client.println("Access-Control-Allow-Origin: *");
@@ -291,8 +366,16 @@ int senddata(EthernetClient client, char * request, char * clientline){
     return 1;
 }
 
+int fn_extract_trg(char * request){
+    char * rq;
+    int trg = -1;
+    sscanf(request, "triggers/%d.jso", &trg);
+    if (trg >= TRIGGERS) trg = -1;
+    return trg;
+}
+
 void pageServe(EthernetClient client){
-    char request[32];
+    char request[33];
     char clientline[BUFSIZ];
     int index;
     int linesize;
@@ -335,29 +418,33 @@ void pageServe(EthernetClient client){
                 if (strlcpy(request, extract_filename(clientline), 32) >= 32){
                     Serial.print("Filename too long: ");
                     Serial.println(clientline);
+                    request[32]='\0';
                 }
             }
         }
     }
-    // Headers ale all here, if its post we now should read the body. 
+    // Headers ale all here, if its post we now should read the body.
     if (post) {
-        if (strcmp(request, "save") || strcmp(request, "vystup")) {
+        int trgno = fn_extract_trg(request);
+
+        if (strcasecmp(request, "client.jso") == 0) {
             aJsonStream eth_stream(&client);
             aJsonObject * data = aJson.parse(&eth_stream);
-            file_write("", "vystup.jso", data);
-        }
-        if (strcmp(request, "vstup")) {
-            aJsonStream eth_stream(&client);
-            aJsonObject * data = aJson.parse(&eth_stream);
-            file_write("", "vstup.jso", data);
-        }
-        if (strcmp(request, "config")) {
+            file_write("", "client.jso", data);
+            aJson.deleteItem(data);
+        } else if (strcasecmp(request, "config.jso") == 0) {
             aJsonStream eth_stream(&client);
             aJsonObject * data = aJson.parse(&eth_stream);
             config.load(data);
             config.save();
+            aJson.deleteItem(data);
+        } else if (trgno > -1) {
+            aJsonStream eth_stream(&client);
+            aJsonObject * data = aJson.parse(&eth_stream);
+            trigger_load(triggers, loggers, data, trgno);
+            triggers_save(triggers);
+            aJson.deleteItem(data);
         }
-
     }
 
     // give the web browser time to receive the data
@@ -370,8 +457,7 @@ void loop(void){
     t_loop_start = millis();
     if (dht22_temp.available()) {
         worker();
-        Serial.print("Free ram: ");
-        Serial.println(freeRam());
+        pFreeRam();
     }
     EthernetClient client = server.available();
     if (client) {
@@ -381,17 +467,13 @@ void loop(void){
         Serial.println(t_2 - t_loop_start);
         Serial.println(t_3 - t_loop_start);
         Serial.println(millis() - t_loop_start);
-        Serial.print("Free ram: ");
-        Serial.println(freeRam());
+        pFreeRam();
     }
     delay(5);
-    if (analogRead(LIGHT_SENSOR_PIN) > 250) {
-        outputs.set(0, 1);
-        outputs.set(1, 1);
-        outputs.set(2, 1);
-    } else {
-        outputs.set(0, 0);
-        outputs.set(1, 0);
-        outputs.set(2, 0);
-    }    
+
+    if (analogRead(LIGHT_SENSOR_PIN) < 250) {
+        outputs.set(5, 1);
+    } else if (analogRead(LIGHT_SENSOR_PIN) > 550) {
+        outputs.set(5, 0);
+    }
 }

@@ -96,14 +96,15 @@ Trigger configuration
  - when trigger turns on any output, it can be turned off by any of following:
     - the off_value condition of said trigger is met
     - t_until of said trigger is encountered
-    - off_value with important (!) mark is true.
+    - off_value of any trigger relating to this output with important (!) mark is true.
  - on_value and off_value are in format operator+parameter+importance, see examples.
+ - there is implicit ">" on on_value and "<" on off_value if you send only integers.
  - off_value condition has precedence over on_value
  - Possible operators for on/off_value are:
     - "<": Lesser than. "on_value":"<100" on temp readings will resolve as true when temperature falls bellow 10C. Parameter is raw sensor reading
     - ">": Greater than. Opposite to "<".
     - "T": resolves true when the output was off for more than parameter minutes, switches off after off_value minutes has passed. See example 2.
- - Importance is noted by "!" at end, and means that this condition is critical, skips any other triggers relating to this output
+ - Importance is noted by "!" at end, and means that this condition is critical, if true it skips any other triggers relating to this output
  - sensors are (indexed from zero):
     - humidity
     - temperature
@@ -125,7 +126,7 @@ Ex. 1: Switch on output 7 when temperature falls to 25 degrees C, switch it back
     }
 ```
 
-Ex. 2: Never turn on output 5, if the temperature is bellow 10C:
+Ex. 2: Never turn on output 5 if the temperature is bellow 10C:
 
 ```json
     {
@@ -148,6 +149,19 @@ Ex. 3: During the night (since 8pm to 6am), when the output 4 was idle for 10 mi
         "off_value":"T5",
         "sensor":-1,
         "output":4,
+    }
+```
+
+Ex. 4: During day, when humidity exceeds 55% run output 3 for 5 minutes
+
+```json
+    {
+        "t_since":360,
+        "t_until":1200,
+        "on_value":">550",
+        "off_value":"T5",
+        "sensor":0,
+        "output":3,
     }
 ```
 

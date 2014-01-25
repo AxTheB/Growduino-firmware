@@ -19,7 +19,7 @@ void Logger::setup(bool timed){
         //prepare buffers
         l1 = RingBuffer(60, "min");
         l2 = RingBuffer(24, "h");
-        l3 = RingBuffer(31, "day");
+        l3 = RingBuffer(3, "day");
     } else {
         l1 = RingBuffer(10, "l1");
         l2 = RingBuffer(10, "l2");
