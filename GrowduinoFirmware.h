@@ -22,9 +22,9 @@
 #define USOUND_TRG 34
 #define USOUND_ECHO 35
 
-#define BUFSIZ 128
+#define BUFSIZ 256
 
-#define TRIGGERS 3
+#define TRIGGERS 10
 
 // #include "config.h"
 #include "Logger.h"
