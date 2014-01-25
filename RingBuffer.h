@@ -8,6 +8,7 @@ class RingBuffer
     public:
         RingBuffer(int size, const char* name);
         RingBuffer();
+        void init(int size, const char* name);
         void cleanup(int start, int end);
         void cleanup();
         int avg();

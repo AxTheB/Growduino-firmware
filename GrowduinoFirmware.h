@@ -15,6 +15,8 @@
 #define GET 1
 #define POST 2
 
+#define DHT22_PIN 23
+#define ONEWIRE_PIN 22
 #define RELAY_START 25
 
 #define USOUND_TRG 34
@@ -33,5 +35,6 @@
 #include "outputs.h"
 #include "trigger.h"
 #include "ultrasound.h"
+#include "ds.h"
 
 extern int ether;

@@ -8,18 +8,26 @@
 #include <stdio.h>
 
 RingBuffer::RingBuffer(int size, const char * name) {
+    init(size, name);
+}
+
+RingBuffer::RingBuffer(){
+    RingBuffer(0, "nul");
+}
+
+void RingBuffer::init(int size, const char * name){
     //Prepare RR buffer and clean it so we can start graphing immediatelly
     buf_len = size;
     strlcpy(buf_name, name, 4);
-    buffer = (int*) malloc(sizeof(int) * (size));
+    if (size > 0) {
+        buffer = (int*) malloc(sizeof(int) * (size));
+    } else {
+        buffer = NULL;
+    }
     index = -1;  // points to last logged value
     last_average = MINVALUE;
 
     cleanup();  // fill log with MINVALuEs
-}
-
-RingBuffer::RingBuffer(){
-    RingBuffer(60, "min");
 }
 
 void RingBuffer::cleanup(int start=0, int end=-1) {

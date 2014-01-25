@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <DS1307RTC.h>
 
-// #include <OneWire.h>
+#include <OneWire.h>
 
 #include <avr/pgmspace.h>
 
@@ -24,8 +24,12 @@ int ether = 1;
 
 
 // DHT22 temp and humidity sensor. Treated as main temp and humidity source
-#define DHT22_PIN 23
 DHT22 myDHT22(DHT22_PIN);
+
+// OneWire
+OneWire ds(ONEWIRE_PIN);
+byte temp1_addr[8];
+byte temp2_addr[8];
 
 //profiling
 unsigned long t_loop_start;
@@ -69,10 +73,10 @@ Logger dht22_humidity = Logger("Humidity");
 #define LIGHT_SENSOR_PIN 15
 Logger light_sensor = Logger("Light");
 
-Logger ultrasound = Logger("Ultrasound");
+Logger ultrasound = Logger("Usnd");
 
 Logger onewire_temp1 = Logger("Temp2");
-//Logger onewire_temp2 = Logger("Temp3");
+Logger onewire_temp2 = Logger("Temp3");
 
 Config config;
 Output outputs;
@@ -81,9 +85,7 @@ aJsonStream serial_stream(&Serial);
 
 EthernetServer server(80);
 
-Logger * loggers[] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultrasound};
-//, &onewire_temp1};
-//, &onewire_temp2};
+Logger * loggers[] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultrasound, &onewire_temp1, &onewire_temp2};
 
 Trigger triggers[TRIGGERS];
 
@@ -107,16 +109,9 @@ void setup(void) {
     Serial.println("!");
     Serprintln(1); //grow!
     pFreeRam();
-    /*
-        int q = 0;
-        while (true) {
-            digitalWrite(13, q);
-            q = 1 - q;
-            delay(600);
-        }
-    */
+
     delay(1000);
-    // serial_buffer = (char*) malloc (1024 * sizeof(int));
+
     Serprintln(2); //sd card init
     sdcard_init();
     char index[] = "/INDEX.HTM";
@@ -163,6 +158,11 @@ void setup(void) {
     Serial.println("Initialising clock");
     daytime_init();
 
+    // find ds temp sensor addresses
+    ds.reset_search();
+    ds.search(temp1_addr);
+    ds.search(temp2_addr);
+
     //load data from sd card
     dht22_temp.load();
     dht22_humidity.load();
@@ -193,22 +193,25 @@ void worker(){
     dht22_temp.timed_log(myDHT22.getTemperatureCInt());
     dht22_humidity.timed_log(myDHT22.getHumidityInt());
     light_sensor.timed_log(map(analogRead(LIGHT_SENSOR_PIN), 0, 1024, 0, 1000));
+    ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
 
-    Serial.print("dht22_temp=");
-    aJsonObject *msg = dht22_temp.json();
-    aJson.print(msg, &serial_stream);
-    aJson.deleteItem(msg);
-    Serial.println();
-    Serial.print("dht22_humidity=");
-    msg = dht22_humidity.json();
-    aJson.print(msg, &serial_stream);
-    aJson.deleteItem(msg);
-    Serial.println();
-    Serial.print("light_sensor=");
-    msg = light_sensor.json();
-    aJson.print(msg, &serial_stream);
-    aJson.deleteItem(msg);
-    Serial.println();
+    onewire_temp1.timed_log(ds_read(ds, temp1_addr));
+    onewire_temp2.timed_log(ds_read(ds, temp2_addr));
+
+
+    int numLogers = sizeof(loggers) / sizeof(Logger *);
+
+    Serial.print("# of loggers: ");
+    Serial.println(numLogers, DEC);
+
+    for(int i=0; i < numLogers; i++) {
+        Serial.print(loggers[i]->name);
+        Serial.print(": ");
+        aJsonObject *msg = loggers[i]->json();
+        aJson.print(msg, &serial_stream);
+        aJson.deleteItem(msg);
+        Serial.println();
+    }
 
     outputs.log();
 
@@ -469,11 +472,5 @@ void loop(void){
         Serial.println(millis() - t_loop_start);
         pFreeRam();
     }
-    delay(5);
-
-    if (analogRead(LIGHT_SENSOR_PIN) < 250) {
-        outputs.set(5, 1);
-    } else if (analogRead(LIGHT_SENSOR_PIN) > 550) {
-        outputs.set(5, 0);
-    }
+    delay(50);
 }

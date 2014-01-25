@@ -17,18 +17,17 @@ Logger::Logger(const char * logger_name){
 void Logger::setup(bool timed){
     if (timed) {
         //prepare buffers
-        l1 = RingBuffer(60, "min");
-        l2 = RingBuffer(24, "h");
-        l3 = RingBuffer(3, "day");
+        l1.init(60, "min");
+        l2.init(24, "h");
+        l3.init(31, "day");
     } else {
-        l1 = RingBuffer(10, "l1");
-        l2 = RingBuffer(10, "l2");
-        l3 = RingBuffer(10, "l3");
+        l1.init(10, "l1");
+        l2.init(10, "l2");
+        l3.init(10, "l3");
         l1_idx = -1;
         l2_idx = -1;
         l3_idx = -1;
     }
-    //load();
 }
 
 void Logger::load() {

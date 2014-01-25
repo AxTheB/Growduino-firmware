@@ -193,22 +193,18 @@ int Trigger::tick(){
     }
 }
 
-int trigger_load(Trigger triggers[], Logger * loggers[], aJsonObject * cfile, int trgno){
-    char trgname[] = "triggerXX";
-    sprintf(trgname, "trigger%i", trgno);
-    Serial.println(trgname);
-    aJsonObject * msg = aJson.getObjectItem(cfile, trgname);
-    if (msg != NULL) {
-        triggers[trgno].load(msg, loggers);
-    }
+
+int trigger_load(Trigger triggers[], Logger * loggers[], aJsonObject * cfile, int trgno) {
+    triggers[trgno].load(cfile, loggers);
 }
 
 int triggers_load(Trigger triggers[], Logger * loggers[]){
-    char fname[] = "triggers/XX.jso";
+    char fname[] = "XX.jso";
+
     for (int i=0; i < TRIGGERS; i++) {
         triggers[i].idx = i;
-        sprintf(fname, "triggers/%i.jso", i);
-        aJsonObject * cfile = file_read("", fname);
+        sprintf(fname, "%i.jso", i);
+        aJsonObject * cfile = file_read("triggers", fname);
         if (cfile != NULL) {
             trigger_load(triggers, loggers, cfile, i);
             aJson.deleteItem(cfile);
@@ -218,16 +214,20 @@ int triggers_load(Trigger triggers[], Logger * loggers[]){
 }
 
 int triggers_save(Trigger triggers[]){
+    Serial.println("Save trigers");
 
-    char fname[] = "triggers/XX.jso";
+    char fname[] = "XX.jso";
 
-        for (int i=0; i < TRIGGERS; i++) {
-        sprintf(fname, "triggers/%i.jso", i);
-            aJson.addItemToObject(msg, trgname, cnfdata = aJson.createObject());
-            triggers[i].json(cnfdata);
-    } else {
-        return -1;
+    for (int i=0; i < TRIGGERS; i++) {
+        sprintf(fname, "%i.jso", i);
+        aJsonObject *msg = aJson.createObject();
+        Serial.print("Preparing json ");
+        Serial.println(i, DEC);
+        triggers[i].json(msg);
+        Serial.println("saving");
+        file_write("triggers", fname, msg);
+        aJson.deleteItem(msg);
     }
-    file_write("", "trigger.jso", msg);
-    aJson.deleteItem(msg);
+
+    Serial.println("Saved.");
 }
