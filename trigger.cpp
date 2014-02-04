@@ -132,7 +132,7 @@ aJsonObject * Trigger::json(aJsonObject *cnfdata){
 }
 
 int Trigger::tick(){
-    int daymin = minute() * 60 + second();
+    int daymin = minute() + 60 * hour();
     Serial.print("Ticking ");
     Serial.println(idx);
 
@@ -143,7 +143,7 @@ int Trigger::tick(){
             (t_since <= daymin && t_until > daymin) ||
             (t_since >= daymin && t_until < daymin)
        ) {
-        Serial.print("time ok");
+        Serial.print("time ok: ");
         Serial.println(daymin);
         if (_logger == NULL) {  // if there is no logger defined just keep it on/off
             if (output > -1 && on_cmp == '<') {
