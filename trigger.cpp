@@ -168,6 +168,9 @@ int Trigger::tick(){
                 case 'T':
                 case 't':
                     // TODO: timed on/off
+                    if ((outputs.get(output) == 0) && (outputs.uptime(output) > on_value))
+                        retval = true;
+
                     break;
             }
             switch (off_cmp) {
@@ -204,7 +207,7 @@ int triggers_load(Trigger triggers[], Logger * loggers[]){
     for (int i=0; i < TRIGGERS; i++) {
         triggers[i].idx = i;
         sprintf(fname, "%i.jso", i);
-        aJsonObject * cfile = file_read("triggers", fname);
+        aJsonObject * cfile = file_read("/triggers", fname);
         if (cfile != NULL) {
             trigger_load(triggers, loggers, cfile, i);
             aJson.deleteItem(cfile);
@@ -225,7 +228,7 @@ int triggers_save(Trigger triggers[]){
         Serial.println(i, DEC);
         triggers[i].json(msg);
         Serial.println("saving");
-        file_write("triggers", fname, msg);
+        file_write("/triggers", fname, msg);
         aJson.deleteItem(msg);
     }
 

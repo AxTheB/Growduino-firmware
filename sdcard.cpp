@@ -1,6 +1,7 @@
 #include "GrowduinoFirmware.h"
 
 #include <SD.h>
+#include <aJSON.h>
 
 const int chipSelect = 4;
 

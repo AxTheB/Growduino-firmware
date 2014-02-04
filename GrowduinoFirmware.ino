@@ -85,7 +85,7 @@ aJsonStream serial_stream(&Serial);
 
 EthernetServer server(80);
 
-Logger * loggers[] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultrasound, &onewire_temp1, &onewire_temp2};
+Logger * loggers[LOGGERS] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultrasound, &onewire_temp1, &onewire_temp2};
 
 Trigger triggers[TRIGGERS];
 
@@ -171,7 +171,7 @@ void setup(void) {
     //initialise outputs
     for(int i=0; i <8; i++) {
         pinMode(RELAY_START + i, OUTPUT);
-        outputs.set(i, 0);
+        // outputs.set(i, 0);
     }
 
     Serial.println("Wasting time (2s)");
@@ -325,7 +325,7 @@ int senddata(EthernetClient client, char * request, char * clientline){
             found = true;
             send_headers(client, request, 30);
             aJsonStream eth_stream(&client);
-            aJsonObject *msg = outputs.json_dynamic();
+            aJsonObject *msg = outputs.json();
             aJson.print(msg, &eth_stream);
             aJson.deleteItem(msg);
             return 1;

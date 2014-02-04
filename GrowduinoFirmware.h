@@ -8,6 +8,11 @@
 
 #include <avr/pgmspace.h>
 
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
 #include <Time.h>
 
 #define MINVALUE -999
@@ -24,7 +29,17 @@
 
 #define BUFSIZ 256
 
+// max. 32
 #define TRIGGERS 10
+
+#define OUTPUTS 8
+
+#define LOGGERS 6
+
+#define DEBUG_OUTPUT 1
+
+// How many output chages do we keep in memory
+#define LOGSIZE 50
 
 // #include "config.h"
 #include "Logger.h"
