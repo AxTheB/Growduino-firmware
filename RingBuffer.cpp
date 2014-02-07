@@ -1,8 +1,6 @@
 #include "GrowduinoFirmware.h"
 #include "RingBuffer.h"
 
-#include <libbsd.h>
-
 RingBuffer::RingBuffer(int size, const char * name) {
     init(size, name);
 }

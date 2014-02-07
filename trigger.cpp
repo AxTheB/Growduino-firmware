@@ -12,8 +12,8 @@ Trigger::Trigger(){
 void Trigger::init(){
     t_since = NONE;
     t_until = NONE;
-    on_value = 256;
-    off_value = 512;
+    on_value = 0;
+    off_value = 0;
     on_cmp = '-';
     off_cmp = '-';
     important = NONE;
@@ -53,7 +53,7 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[]){
                 important = IMP_ON;
 
         } else {
-            on_value = 256;
+            on_value = 0;
         }
     }
 
@@ -133,8 +133,10 @@ aJsonObject * Trigger::json(aJsonObject *cnfdata){
 
 int Trigger::tick(){
     int daymin = minute() + 60 * hour();
+#ifdef DEBUG_TRIGGERS
     Serial.print("Ticking ");
     Serial.println(idx);
+#endif
 
     // if t_since == -1 run all day.
     // if t_since > t_until run over midnight
@@ -143,50 +145,104 @@ int Trigger::tick(){
             (t_since <= daymin && t_until > daymin) ||
             (t_since >= daymin && t_until < daymin)
        ) {
+#ifdef DEBUG_TRIGGERS
         Serial.print("time ok: ");
         Serial.println(daymin);
+#endif
         if (_logger == NULL) {  // if there is no logger defined just keep it on/off
             if (output > -1 && on_cmp == '<') {
+#ifdef DEBUG_TRIGGERS
                 Serial.print(output);
                 Serial.print(" to 1 ");
                 Serial.println("On always");
+#endif
+                outputs.set(output, 1, idx);
+
             }
         } else {    // the logger is defined, time is right.
             int sensor_val = _logger->peek();
-            bool retval = false;
+            outputs.set(output, 0, idx);
+#ifdef DEBUG_TRIGGERS
+            Serial.print("On value compare: ");
+#endif
             switch (on_cmp) {
                 case '<':
                     if (sensor_val <= on_value) {
-                        retval = true;
+                        outputs.set(output, 1, idx);
+#ifdef DEBUG_TRIGGERS
+                        Serial.println("Hit on <");
+#endif
+                    } else {
+#ifdef DEBUG_TRIGGERS
+                        Serial.println("Miss on <");
+#endif
                     }
                     break;
                 case '>':
                     if (sensor_val >= on_value) {
-                        retval = true;
+                        outputs.set(output, 1, idx);
+#ifdef DEBUG_TRIGGERS
+                        Serial.println("Hit on >");
+#endif
+                    } else {
+#ifdef DEBUG_TRIGGERS
+                        Serial.println("Miss on >");
+#endif
                     }
                     break;
                 case 'T':
                 case 't':
-                    // TODO: timed on/off
-                    if ((outputs.get(output) == 0) && (outputs.uptime(output) > on_value))
-                        retval = true;
+                    if ((outputs.get(output) == 0) && (outputs.uptime(output) > on_value)) {
+                        outputs.set(output, 1, idx);
+#ifdef DEBUG_TRIGGERS
+                        Serial.println("Hit on T");
+#endif
+                    } else {
+#ifdef DEBUG_TRIGGERS
+                        Serial.println("Miss on T");
+#endif
+                    }
 
                     break;
             }
+            Serial.println("off value compare:");
             switch (off_cmp) {
                 case '<':
                     if (sensor_val <= off_value) {
-                        retval = false;
+                        outputs.set(output, 0, idx);
+#ifdef DEBUG_TRIGGERS
+                        Serial.println("Hit on <");
+#endif
+                    } else {
+#ifdef DEBUG_TRIGGERS
+                        Serial.println("Miss on <");
+#endif
                     }
                     break;
                 case '>':
                     if (sensor_val >= off_value) {
-                        retval = false;
+                        outputs.set(output, 0, idx);
+#ifdef DEBUG_TRIGGERS
+                        Serial.println("Hit on >");
+#endif
+                    } else {
+#ifdef DEBUG_TRIGGERS
+                        Serial.println("Miss on >");
+#endif
                     }
                     break;
                 case 'T':
                 case 't':
-                    // TODO: timed on/off
+                    if ((outputs.get(output) == 1) && (outputs.uptime(output) > off_value)) {
+                        outputs.set(output, 0, idx);
+#ifdef DEBUG_TRIGGERS
+                        Serial.println("Hit on T");
+#endif
+                    } else {
+#ifdef DEBUG_TRIGGERS
+                        Serial.println("Miss on T");
+#endif
+                    }
                     break;
             }
 

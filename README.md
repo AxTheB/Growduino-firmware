@@ -6,6 +6,30 @@ All URLs that correspond to files are in 8.3 form. Use only lowercase in urls.
 
 When there is any data missing, its filled by -999 (MINVALUE from GrowduinoFirmware.h) TODO: Replace -999 with json NULL
 
+Basic system information
+------------------------
+/sensors/status.jso
+Shows compile-time and runtime status. Note that uptime is string not number, this may be fixed in the future
+
+```json
+    {
+        "free_ram":1025,
+        "sensors":6,
+        "outputs":8,
+        "sensor_list":{
+            "0":"Humidity",
+            "1":"Temp1",
+            "2":"Light",
+            "3":"Usnd",
+            "4":"Temp2",
+            "5":"Temp3"
+        },
+        "triggers":10,
+        "triggers_log_size":25,
+        "uptime":"3381"
+    }
+```
+
 Web client configuration
 ------------------------
 /client.jso
@@ -55,7 +79,7 @@ Outputs (relay) state
 ```
 
 /sensors/outputs.jso [Soon, subject to change]
- - Stores last 50 output positions
+ - Stores last output positions
  - Values are bitfield, each bit corresponds to one output
  - supports GET only
 

@@ -37,9 +37,11 @@
 #define LOGGERS 6
 
 #define DEBUG_OUTPUT 1
+//#define DEBUG_SDCARD 1
+#define DEBUG_TRIGGERS 1
 
 // How many output chages do we keep in memory
-#define LOGSIZE 50
+#define LOGSIZE 25
 
 // #include "config.h"
 #include "Logger.h"
@@ -53,3 +55,4 @@
 #include "ds.h"
 
 extern int ether;
+void pFreeRam();

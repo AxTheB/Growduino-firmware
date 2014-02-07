@@ -18,7 +18,9 @@ void file_write(const char * dirname, const char * filename, aJsonObject * data)
     }
     strcpy(filepath, dirname);
     if (!SD.exists(filepath) && filepath[0] == '/') {
+#ifdef DEBUG_SDCARD
         Serial.print("Creating directory: ");
+#endif
         SD.mkdir(filepath);
     }
     strlcat(filepath, "/", 60);
@@ -33,15 +35,31 @@ void file_write(const char * dirname, const char * filename, aJsonObject * data)
 
     digitalWrite(13, 1);
 
+#ifdef DEBUG_SDCARD
+    Serial.print(".");
+#endif
+
     File dataFile = SD.open(filepath, FILE_WRITE);
+#ifdef DEBUG_SDCARD
+    Serial.print(".");
+#endif
     if (dataFile) {
         aJsonStream sd_stream(&dataFile);
         aJson.print(data, &sd_stream);
+#ifdef DEBUG_SDCARD
+        Serial.print(".");
+#endif
         dataFile.close();
+#ifdef DEBUG_SDCARD
+        Serial.print(".");
+#endif
     } else {
         Serial.print("Failed to open ");
         Serial.println(filepath);
     }
+#ifdef DEBUG_SDCARD
+    Serial.println(".");
+#endif
     digitalWrite(13, 0);
 }
 

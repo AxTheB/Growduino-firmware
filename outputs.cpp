@@ -19,6 +19,7 @@ void Output::common_init(){
 
     }
     strcpy(name, "outputs");
+    //log();
 }
 
 int Output::get(int slot){
@@ -37,6 +38,16 @@ int Output::set(int slot, int val, int trigger){
     return (state[slot] != 0);
 }
 
+int Output::breakme(int slot, int val, int trigger){
+    // update valute of %slot% 
+    if (val == 0) {
+        state[slot] = bitclr(broken[slot], trigger);
+    } else {
+        state[slot] = bitset(broken[slot], trigger);
+    }
+    return (state[slot] != 0);
+}
+
 int Output::uptime(int slot){
     // return time since last change
     return now() - ctimes[slot];
@@ -51,32 +62,32 @@ int Output::bitget(int value, int bit){
 
 int Output::bitset(int value, int bit){
     // set bit %bit% in %value% and return new value
-#ifdef DEBUG_OUTPUTS
+#ifdef DEBUG_OUTPUT
     Serial.print("Setting ");
     Serial.print(value, DEC);
     Serial.print(" bit ");
     Serial.print(bit);
 #endif
     value |= 1 << bit;
-#ifdef DEBUG_OUTPUTS
+#ifdef DEBUG_OUTPUT
     Serial.print(" result ");
-    Serial.println(out);
+    Serial.println(value);
 #endif
     return value;
 }
 
 int Output::bitclr(int value, int bit){
     // clear %bit% in %value% and return new value
-#ifdef DEBUG_OUTPUTS
+#ifdef DEBUG_OUTPUT
     Serial.print("Clearing ");
     Serial.print(value, DEC);
     Serial.print(" bit ");
     Serial.print(bit);
 #endif
     value &= ~(1 << bit);
-#ifdef DEBUG_OUTPUTS
+#ifdef DEBUG_OUTPUT
     Serial.print(" result ");
-    Serial.println(out);
+    Serial.println(value);
 #endif
     return value;
 }
@@ -84,16 +95,19 @@ int Output::bitclr(int value, int bit){
 int Output::pack_states(){
     int packed;
     packed = 0;
+#ifdef DEBUG_OUTPUT
+    Serial.print("Packing: ");
+#endif
     for (int i=0; i < OUTPUTS; i++){
-#ifdef DEBUG_OUTPUTS
+#ifdef DEBUG_OUTPUT
         Serial.print(state[i]);
         Serial.print(" ");
 #endif
         packed += get(i) << i;
     }
-#ifdef DEBUG_OUTPUTS
+#ifdef DEBUG_OUTPUT
     Serial.print(": ");
-    Serial.print(packed, BIN);
+    Serial.println(packed, BIN);
 #endif
     return packed;
 }
@@ -101,30 +115,37 @@ int Output::pack_states(){
 int Output::hw_update(int slot){
     // Update output %slot%, checking broken state
     // this is only place where we touch hardware
-    int wanted;
-    if (broken[slot] == 0) {
-#ifdef DEBUG_OUTPUTS
+#ifdef DEBUG_OUTPUT
         Serial.print("Output ");
-        Serial.print(slot);
+        Serial.print(slot, DEC);
+#endif
+    int wanted;
+    if (broken[slot] != 0) {
+#ifdef DEBUG_OUTPUT
         Serial.println(" is broken");
 #endif
         wanted = 0;
     } else {
         wanted = get(slot);
-#ifdef DEBUG_OUTPUTS
-        Serial.print("Desired state ");
+#ifdef DEBUG_OUTPUT
+        Serial.print(" desired state ");
         Serial.println(wanted, DEC);
 #endif
     }
     if (wanted != hw_state[slot]) {
-#ifdef DEBUG_OUTPUTS
+#ifdef DEBUG_OUTPUT
         Serial.println("Changing output");
 #endif
         time_t t_now = now();
         digitalWrite(RELAY_START + slot, wanted);
         log();
         ctimes[slot] = t_now;
+    } else {
+#ifdef DEBUG_OUTPUT
+        Serial.println("Not changing output");
+#endif
     }
+
     return wanted;
 }
 
@@ -150,15 +171,38 @@ bool Output::match(const char * request){
 }
 
 void Output::log(){
-    log_states[log_index] = pack_states();
-    log_times[log_index] = now();
-    log_index++;
-    if (log_index >= LOGSIZE) {
-        log_index = 0;
-        log_file_index++;
+    int packed_states;
+    int last_rec;
+    last_rec = log_index - 1;
+    packed_states = pack_states();
+    if (log_index > 0) {
+        if (log_states[last_rec] == packed_states){
+#ifdef DEBUG_OUTPUT
+            Serial.println("Output log noop");
+#endif
+            return;
+        }
     }
-    save();
-}
+#ifdef DEBUG_OUTPUT
+        Serial.print("Output logging. Index:");
+        Serial.println(log_index);
+        Serial.print("packed states: ");
+        Serial.println(packed_states);
+#endif
+        log_states[log_index] = packed_states;
+        log_times[log_index] = now();
+        log_index++;
+        if (log_index >= LOGSIZE) {
+            log_index = 0;
+            log_file_index++;
+        }
+        save();
+        aJsonObject *msg;
+        msg = json();
+
+        aJson.deleteItem(msg);
+
+    }
 
 char * Output::file_name(char * filename){
     sprintf(filename, "%d.jso", log_file_index);
@@ -171,23 +215,28 @@ char * Output::dir_name(char * dirname){
 }
 
 aJsonObject * Output::json(){
+    aJsonObject *msg = aJson.createObject();
+    msg = json(msg);
+    return msg;
+}
+
+aJsonObject * Output::json(aJsonObject *msg){
     char valname[] = "1390173000";
-    aJsonObject * data = aJson.createObject();
-    aJson.addStringToObject(data, "name", name);
+    aJson.addItemToObject(msg, "name", aJson.createItem(name));
     aJsonObject * values = aJson.createObject();
     for (int i = 0; i < log_index; i++) {
         sprintf(valname, "%ld", log_times[i]);
         aJson.addNumberToObject(values, valname, log_states[i]);
     }
-    aJson.addItemToObject(data, "state", values);
+    aJson.addItemToObject(msg, "state", values);
+    return msg;
 }
 
 int Output::save(){
     char dirname[64];
     char filename[13];
-    aJsonObject *msg;
-
-    msg = json();
+    aJsonObject *msg = aJson.createObject();
+    msg = json(msg);
     dir_name(dirname);
     file_name(filename);
     file_write(dirname, filename, msg);

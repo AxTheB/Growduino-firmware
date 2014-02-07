@@ -43,7 +43,7 @@ void Logger::load() {
         l1.load(data);
         aJson.deleteItem(data);
     } else {
-        Serial.println("fail");
+        Serial.println("l1 fail");
     }
 
 
@@ -54,7 +54,7 @@ void Logger::load() {
         l2.load(data);
         aJson.deleteItem(data);
     } else {
-        Serial.println("fail");
+        Serial.println("l2 fail");
     }
 
     dirname_l3(dirname);
@@ -64,7 +64,7 @@ void Logger::load() {
         l3.load(data);
         aJson.deleteItem(data);
     } else {
-        Serial.println("fail");
+        Serial.println("l3 fail");
     }
 }
 

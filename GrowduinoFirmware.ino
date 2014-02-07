@@ -45,7 +45,7 @@ const char message_4[] PROGMEM="INDEX.HTM not found. Not going on";
 const char message_5[] PROGMEM="Inititalising Ethernet";
 const char message_6[] PROGMEM="Loading config";
 
-PROGMEM const char * messages[]={
+const char * PROGMEM messages[]={
     message_1,
     message_2,
     message_3,
@@ -100,6 +100,26 @@ int freeRam () {
 void pFreeRam() {
     Serial.print("Free ram: ");
     Serial.println(freeRam());
+}
+
+aJsonObject * status(){
+    aJsonObject * msg = aJson.createObject();
+    char buffer[20];
+    int freeram = freeRam();
+    aJson.addItemToObject(msg, "free_ram", aJson.createItem(freeram));
+    aJson.addItemToObject(msg, "sensors", aJson.createItem(LOGGERS));
+    aJson.addItemToObject(msg, "outputs", aJson.createItem(OUTPUTS));
+    aJsonObject * logger_list = aJson.createObject();
+    for (int i=0; i<LOGGERS; i++){
+        sprintf(buffer, "%d", i);
+        aJson.addItemToObject(logger_list, buffer, aJson.createItem(loggers[i]->name));
+    }
+    aJson.addItemToObject(msg, "sensor_list", logger_list);
+    aJson.addItemToObject(msg, "triggers", aJson.createItem(TRIGGERS));
+    aJson.addItemToObject(msg, "triggers_log_size", aJson.createItem(LOGSIZE));
+    sprintf(buffer, "%ld", millis() / 1000);
+    aJson.addItemToObject(msg, "uptime", aJson.createItem(buffer));
+    return msg;
 }
 
 void setup(void) {
@@ -198,9 +218,8 @@ void worker(){
     onewire_temp1.timed_log(ds_read(ds, temp1_addr));
     onewire_temp2.timed_log(ds_read(ds, temp2_addr));
 
-
+    #ifdef DEBUG_LOGGERS
     int numLogers = sizeof(loggers) / sizeof(Logger *);
-
     Serial.print("# of loggers: ");
     Serial.println(numLogers, DEC);
 
@@ -212,8 +231,17 @@ void worker(){
         aJson.deleteItem(msg);
         Serial.println();
     }
+    #endif
 
-    outputs.log();
+#ifdef DEBUG_OUTPUT
+    pFreeRam();
+    aJsonObject *msg = outputs.json();
+    aJson.print(msg, &serial_stream);
+    aJson.deleteItem(msg);
+    Serial.println(); 
+    pFreeRam();
+#endif
+
 
     // tick triggers
     for(int i=0; i < TRIGGERS; i++) {
@@ -224,6 +252,8 @@ void worker(){
     for(int i=0; i <8; i++) {
         outputs.hw_update(i);
     }
+
+    outputs.log();
 
 }
 
@@ -341,6 +371,15 @@ int senddata(EthernetClient client, char * request, char * clientline){
                 return 1;
             }
         }
+        if (strcasecmp(request, "sensors/status.jso") == 0) {
+            found = true;
+            send_headers(client, request, 30);
+            aJsonStream eth_stream(&client);
+            aJsonObject *msg = status();
+            aJson.print(msg, &eth_stream);
+            aJson.deleteItem(msg);
+            return 1;
+        }
         if (!found)
             responseNum(client, 404);
         return 0;
@@ -370,7 +409,6 @@ int senddata(EthernetClient client, char * request, char * clientline){
 }
 
 int fn_extract_trg(char * request){
-    char * rq;
     int trg = -1;
     sscanf(request, "triggers/%d.jso", &trg);
     if (trg >= TRIGGERS) trg = -1;
@@ -380,11 +418,9 @@ int fn_extract_trg(char * request){
 void pageServe(EthernetClient client){
     char request[33];
     char clientline[BUFSIZ];
-    int index;
     int linesize;
     bool is_url;
 
-    index = 0;
     request[0] = 0;
     int post;
     post = 0;
