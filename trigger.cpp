@@ -245,6 +245,10 @@ int Trigger::tick(){
         }
 
     } else {
+
+#ifdef DEBUG_TRIGGERS
+        Serial.println(F("Wrong time"));
+#endif
         return false;
     }
 }

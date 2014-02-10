@@ -217,10 +217,13 @@ void worker(){
     // tick triggers
     for(int i=0; i < TRIGGERS; i++) {
 #ifdef DEBUG_TRIGGERS
+        Serial.print(F("Trigger "));
+        Serial.println(i);
         aJsonObject *msg = aJson.createObject();
         msg = triggers[i].json(msg);
         aJson.print(msg, &serial_stream);
         aJson.deleteItem(msg);
+        Serial.println("");
 #endif
 
         triggers[i].tick();
