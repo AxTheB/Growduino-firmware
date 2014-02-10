@@ -37,35 +37,6 @@ unsigned long t_1;
 unsigned long t_2;
 unsigned long t_3;
 
-
-const char message_1[] PROGMEM="Grow!";
-const char message_2[] PROGMEM="SDcard init";
-const char message_3[] PROGMEM="SD card OK";
-const char message_4[] PROGMEM="INDEX.HTM not found. Not going on";
-const char message_5[] PROGMEM="Inititalising Ethernet";
-const char message_6[] PROGMEM="Loading config";
-
-const char * PROGMEM messages[]={
-    message_1,
-    message_2,
-    message_3,
-    message_4,
-    message_5,
-    message_6,
-};
-
-void Serprintln(int seq){
-    char * buffer;
-    buffer = (char *) malloc(40);
-    if (buffer != NULL) {
-        strcpy_P(buffer, (char * ) pgm_read_word(&(messages[seq - 1])));
-        Serial.println(buffer);
-        free(buffer);
-    } else {
-        Serial.println("malloc fail");
-    }
-}
-
 Logger dht22_temp = Logger("Temp1");
 
 Logger dht22_humidity = Logger("Humidity");
@@ -89,8 +60,6 @@ Logger * loggers[LOGGERS] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultra
 
 Trigger triggers[TRIGGERS];
 
-int loggers_no = 3;
-
 int freeRam () {
   extern int __heap_start, *__brkval;
   int v;
@@ -98,7 +67,7 @@ int freeRam () {
 }
 
 void pFreeRam() {
-    Serial.print("Free ram: ");
+    Serial.print(F("Free ram: "));
     Serial.println(freeRam());
 }
 
@@ -126,19 +95,18 @@ void setup(void) {
     pinMode(13, OUTPUT);
     // start serial port
     Serial.begin(115200);
-    Serial.println("!");
-    Serprintln(1); //grow!
+    Serial.println(F("Grow!"));
     pFreeRam();
 
     delay(1000);
 
-    Serprintln(2); //sd card init
+    Serial.println(F("SD Card init"));
     sdcard_init();
     char index[] = "/INDEX.HTM";
     if (SD.exists(index)) {
-        Serprintln(3); //SD card OK
+        Serial.println(F("SD Card OK"));
     } else {
-        Serprintln(4); // INDEX.HTM not found. Not going on
+        Serial.println(F("INDEX.HTM not found. Not going on"));
         int q = 0;
         while (true) {
             digitalWrite(13, q);
@@ -146,16 +114,16 @@ void setup(void) {
             delay(600);
         }
     }
-    Serprintln(5); //initialising eth
+    Serial.println(F("Inititalising Ethernet"));
 
     // load config from sdcard
     aJsonObject * cfile = file_read("", "config.jso");
     if (cfile != NULL) {
-        Serprintln(6);
+        Serial.println(F("Loading config"));
         config.load(cfile);
         aJson.deleteItem(cfile);
     } else {
-        Serial.println("Using default config");
+        Serial.println(F("Using default config"));
         config.save();
     }
     if (config.use_dhcp == 1) {
@@ -164,7 +132,7 @@ void setup(void) {
         Ethernet.begin(config.mac, config.ip, config.gateway, config.netmask);
     }
     server.begin();
-    Serial.print("server is at ");
+    Serial.print(F("server is at "));
     Serial.println(Ethernet.localIP());
 
     // load triggers if available
@@ -175,7 +143,7 @@ void setup(void) {
     Serial.println(freeRam());
 
     // start real time clock
-    Serial.println("Initialising clock");
+    Serial.println(F("Initialising clock"));
     daytime_init();
 
     // find ds temp sensor addresses
@@ -194,15 +162,15 @@ void setup(void) {
         // outputs.set(i, 0);
     }
 
-    Serial.println("Wasting time (2s)");
+    Serial.println(F("Wasting time (2s)"));
     delay(2000);
     // init temp/humidity logger
     myDHT22.readData();
-    Serial.print("DHT22 Sensor - temp: ");
-    Serial.print(myDHT22.getTemperatureC());
-    Serial.print(" humidity: ");
-    Serial.println(myDHT22.getHumidity());
-    Serial.print("Light sensor: ");
+    Serial.print(F("DHT22 Sensor - temp: "));
+    Serial.print(myDHT22.getTemperatureCInt());
+    Serial.print(F(" humidity: "));
+    Serial.println(myDHT22.getHumidityInt());
+    Serial.print(F("Light sensor: "));
     Serial.println(analogRead(LIGHT_SENSOR_PIN));
 }
 
@@ -220,12 +188,12 @@ void worker(){
 
     #ifdef DEBUG_LOGGERS
     int numLogers = sizeof(loggers) / sizeof(Logger *);
-    Serial.print("# of loggers: ");
+    Serial.print(F("# of loggers: "));
     Serial.println(numLogers, DEC);
 
     for(int i=0; i < numLogers; i++) {
         Serial.print(loggers[i]->name);
-        Serial.print(": ");
+        Serial.print(F(": "));
         aJsonObject *msg = loggers[i]->json();
         aJson.print(msg, &serial_stream);
         aJson.deleteItem(msg);
@@ -292,7 +260,7 @@ const char * getContentType(char * filename) {
 }
 
 void responseNum(EthernetClient client, int code){
-    Serial.print("Returning ");
+    Serial.print(F("Returning "));
     switch (code){
         case 200:
             client.println("HTTP/1.1 200 OK");
@@ -347,10 +315,10 @@ void send_headers(EthernetClient client, char * request, int age) {
 int senddata(EthernetClient client, char * request, char * clientline){
     // Send response
     bool found = false;
-    Serial.print("Request: ");
+    Serial.print(F("Request: "));
     Serial.println(request);
     if (strncasecmp(request, "sensors", 7) == 0) {
-        Serial.println("Sensor area");
+        Serial.println(F("Sensor area"));
         if (outputs.match(request)) {  // outputs
             found = true;
             send_headers(client, request, 30);
@@ -360,7 +328,7 @@ int senddata(EthernetClient client, char * request, char * clientline){
             aJson.deleteItem(msg);
             return 1;
         }
-        for (int i = 0; i < loggers_no; i++) {
+        for (int i = 0; i < LOGGERS; i++) {
             if (loggers[i]->match(request)){  // sensors
                 found = true;
                 send_headers(client, request, 30);
@@ -384,7 +352,7 @@ int senddata(EthernetClient client, char * request, char * clientline){
             responseNum(client, 404);
         return 0;
     }
-    Serial.println("File area");
+    Serial.println(F("File area"));
     // Find the file
     if (!SD.exists(request)) {
         responseNum(client, 404);
@@ -450,12 +418,12 @@ void pageServe(EthernetClient client){
                 is_url = true;
             } else if (strstr(clientline, "POST /") != 0) {
                 post = 1;
-                Serial.println("Processing post request");
+                Serial.println(F("Processing post request"));
                 is_url = true;
             };
             if (is_url) {
                 if (strlcpy(request, extract_filename(clientline), 32) >= 32){
-                    Serial.print("Filename too long: ");
+                    Serial.print(F("Filename too long: "));
                     Serial.println(clientline);
                     request[32]='\0';
                 }
@@ -501,7 +469,7 @@ void loop(void){
     EthernetClient client = server.available();
     if (client) {
         pageServe(client);
-        Serial.println("times:");
+        Serial.println(F("times:"));
         Serial.println(t_1 - t_loop_start);
         Serial.println(t_2 - t_loop_start);
         Serial.println(t_3 - t_loop_start);

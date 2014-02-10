@@ -63,14 +63,14 @@ int Output::bitget(int value, int bit){
 int Output::bitset(int value, int bit){
     // set bit %bit% in %value% and return new value
 #ifdef DEBUG_OUTPUT
-    Serial.print("Setting ");
+    Serial.print(F("Setting "));
     Serial.print(value, DEC);
-    Serial.print(" bit ");
+    Serial.print(F(" bit "));
     Serial.print(bit);
 #endif
     value |= 1 << bit;
 #ifdef DEBUG_OUTPUT
-    Serial.print(" result ");
+    Serial.print(F(" result "));
     Serial.println(value);
 #endif
     return value;
@@ -79,14 +79,14 @@ int Output::bitset(int value, int bit){
 int Output::bitclr(int value, int bit){
     // clear %bit% in %value% and return new value
 #ifdef DEBUG_OUTPUT
-    Serial.print("Clearing ");
+    Serial.print(F("Clearing "));
     Serial.print(value, DEC);
-    Serial.print(" bit ");
+    Serial.print(F(" bit "));
     Serial.print(bit);
 #endif
     value &= ~(1 << bit);
 #ifdef DEBUG_OUTPUT
-    Serial.print(" result ");
+    Serial.print(F(" result "));
     Serial.println(value);
 #endif
     return value;
@@ -96,17 +96,17 @@ int Output::pack_states(){
     int packed;
     packed = 0;
 #ifdef DEBUG_OUTPUT
-    Serial.print("Packing: ");
+    Serial.print(F("Packing: "));
 #endif
     for (int i=0; i < OUTPUTS; i++){
 #ifdef DEBUG_OUTPUT
         Serial.print(state[i]);
-        Serial.print(" ");
+        Serial.print(F(" "));
 #endif
         packed += get(i) << i;
     }
 #ifdef DEBUG_OUTPUT
-    Serial.print(": ");
+    Serial.print(F(": "));
     Serial.println(packed, BIN);
 #endif
     return packed;
@@ -116,25 +116,25 @@ int Output::hw_update(int slot){
     // Update output %slot%, checking broken state
     // this is only place where we touch hardware
 #ifdef DEBUG_OUTPUT
-        Serial.print("Output ");
+        Serial.print(F("Output "));
         Serial.print(slot, DEC);
 #endif
     int wanted;
     if (broken[slot] != 0) {
 #ifdef DEBUG_OUTPUT
-        Serial.println(" is broken");
+        Serial.println(F(" is broken"));
 #endif
         wanted = 0;
     } else {
         wanted = get(slot);
 #ifdef DEBUG_OUTPUT
-        Serial.print(" desired state ");
+        Serial.print(F(" desired state "));
         Serial.println(wanted, DEC);
 #endif
     }
     if (wanted != hw_state[slot]) {
 #ifdef DEBUG_OUTPUT
-        Serial.println("Changing output");
+        Serial.println(F("Changing output"));
 #endif
         time_t t_now = now();
         digitalWrite(RELAY_START + slot, wanted);
@@ -142,7 +142,7 @@ int Output::hw_update(int slot){
         ctimes[slot] = t_now;
     } else {
 #ifdef DEBUG_OUTPUT
-        Serial.println("Not changing output");
+        Serial.println(F("Not changing output"));
 #endif
     }
 
@@ -178,15 +178,15 @@ void Output::log(){
     if (log_index > 0) {
         if (log_states[last_rec] == packed_states){
 #ifdef DEBUG_OUTPUT
-            Serial.println("Output log noop");
+            Serial.println(F("Output log noop"));
 #endif
             return;
         }
     }
 #ifdef DEBUG_OUTPUT
-        Serial.print("Output logging. Index:");
+        Serial.print(F("Output logging. Index:"));
         Serial.println(log_index);
-        Serial.print("packed states: ");
+        Serial.print(F("packed states: "));
         Serial.println(packed_states);
 #endif
         log_states[log_index] = packed_states;

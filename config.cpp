@@ -37,7 +37,7 @@ void Config::load(aJsonObject * json){
     cnfobj = aJson.getObjectItem(json, "mac");
     if (cnfobj && cnfobj->type == aJson_String && mac_aton(cnfobj->valuestring, tmpmac) == 1) {
         mac_aton(cnfobj->valuestring, mac);
-        Serial.print("mac ");
+        Serial.print(F("mac "));
         mac_ntoa(mac, debug_out);
         Serial.println(debug_out);
 
@@ -47,7 +47,7 @@ void Config::load(aJsonObject * json){
         cnfobj = aJson.getObjectItem(json, "ip");
         if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
             inet_aton(cnfobj->valuestring, ip);
-            Serial.print("ip ");
+            Serial.print(F("ip "));
             inet_ntoa(ip, debug_out);
             Serial.println(debug_out);
         }
@@ -55,7 +55,7 @@ void Config::load(aJsonObject * json){
         cnfobj = aJson.getObjectItem(json, "netmask");
         if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
             inet_aton(cnfobj->valuestring, netmask);
-            Serial.print("netmask ");
+            Serial.print(F("netmask "));
             inet_ntoa(ip, debug_out);
             Serial.println(debug_out);
         }
@@ -63,7 +63,7 @@ void Config::load(aJsonObject * json){
         cnfobj = aJson.getObjectItem(json, "gateway");
         if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
             inet_aton(cnfobj->valuestring, gateway);
-            Serial.print("gateway ");
+            Serial.print(F("gateway "));
             inet_ntoa(gateway, debug_out);
             Serial.println(debug_out);
         }
@@ -72,7 +72,7 @@ void Config::load(aJsonObject * json){
     cnfobj = aJson.getObjectItem(json, "ntp");
     if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
         inet_aton(cnfobj->valuestring, ntp);
-        Serial.print("ntp ");
+        Serial.print(F("ntp "));
         inet_ntoa(ntp, debug_out);
         Serial.println(debug_out);
     }

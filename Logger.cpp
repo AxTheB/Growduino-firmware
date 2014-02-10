@@ -31,7 +31,7 @@ void Logger::setup(bool timed){
 }
 
 void Logger::load() {
-    Serial.println("Recovering state");
+    Serial.println(F("Recovering state"));
     char dirname[64];
     char filename[13];
     aJsonObject * data;
@@ -43,7 +43,7 @@ void Logger::load() {
         l1.load(data);
         aJson.deleteItem(data);
     } else {
-        Serial.println("l1 fail");
+        Serial.println(F("l1 fail"));
     }
 
 
@@ -54,7 +54,7 @@ void Logger::load() {
         l2.load(data);
         aJson.deleteItem(data);
     } else {
-        Serial.println("l2 fail");
+        Serial.println(F("l2 fail"));
     }
 
     dirname_l3(dirname);
@@ -64,7 +64,7 @@ void Logger::load() {
         l3.load(data);
         aJson.deleteItem(data);
     } else {
-        Serial.println("l3 fail");
+        Serial.println(F("l3 fail"));
     }
 }
 

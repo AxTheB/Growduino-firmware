@@ -27,30 +27,30 @@ void printDigits(int number) {
 void daytime_init(){
     tmElements_t tm;
     if (RTC.read(tm)) {
-        Serial.println("RTC: Ok.");
+        Serial.println(F("RTC: Ok."));
         setSyncProvider(RTC.get);   // the function to get the time from the RTC
         if (timeStatus() != timeSet)
-            Serial.println("Unable to sync with the RTC");
+            Serial.println(F("Unable to sync with the RTC"));
         else
-            Serial.println("RTC has set the system time"); 
+            Serial.println(F("RTC has set the system time")); 
     } else {
         if (RTC.chipPresent()) {
-            Serial.println("The DS1307 is stopped.");
+            Serial.println(F("The DS1307 is stopped."));
             Serial.println();
         } else {
-            Serial.println("DS1307 read error!  Please check the circuitry.");
+            Serial.println(F("DS1307 read error!  Please check the circuitry."));
             Serial.println();
         }
     }
-    Serial.println("trying NTP sync");
+    Serial.println(F("trying NTP sync"));
     unsigned int localPort = 8888;  // local port to listen for UDP packets
     Udp.begin(localPort);
     if (getNtpTime() > 0) {
         // get time from internets
-        Serial.println("NTP has set the system time");
+        Serial.println(F("NTP has set the system time"));
         setSyncProvider(getNtpTime);
     } else {
-        Serial.println("Unable to reach NTP server");
+        Serial.println(F("Unable to reach NTP server"));
     }
     digitalClockDisplay();
 }
@@ -60,11 +60,11 @@ void digitalClockDisplay(){
     Serial.print(hour());
     printDigits(minute());
     printDigits(second());
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(day());
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(month());
-    Serial.print(" ");
+    Serial.print(F(" "));
     Serial.print(year()); 
     Serial.println(); 
 }
@@ -76,13 +76,13 @@ byte packetBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming & outgoing packets
 
 time_t getNtpTime(){
     while (Udp.parsePacket() > 0) ; // discard any previously received packets
-    Serial.println("Transmit NTP Request");
+    Serial.println(F("Transmit NTP Request"));
     sendNTPpacket(config.ntp);
     uint32_t beginWait = millis();
     while (millis() - beginWait < 1500) {
         int size = Udp.parsePacket();
         if (size >= NTP_PACKET_SIZE) {
-            Serial.println("Receive NTP Response");
+            Serial.println(F("Receive NTP Response"));
             Udp.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
             unsigned long secsSince1900;
             // convert four bytes starting at location 40 to a long integer
@@ -93,7 +93,7 @@ time_t getNtpTime(){
             return secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR;
         }
     }
-    Serial.println("No NTP Response :-(");
+    Serial.println(F("No NTP Response :-("));
     return 0; // return 0 if unable to get the time
 }
 

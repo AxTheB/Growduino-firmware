@@ -15,6 +15,8 @@
 
 #include <Time.h>
 
+#define DHT22_NO_FLOAT 1
+
 #define MINVALUE -999
 
 #define GET 1

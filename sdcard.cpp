@@ -19,14 +19,14 @@ void file_write(const char * dirname, const char * filename, aJsonObject * data)
     strcpy(filepath, dirname);
     if (!SD.exists(filepath) && filepath[0] == '/') {
 #ifdef DEBUG_SDCARD
-        Serial.print("Creating directory: ");
+        Serial.print(F("Creating directory: "));
 #endif
         SD.mkdir(filepath);
     }
     strlcat(filepath, "/", 60);
     strlcat(filepath, filename, 60);
 
-    Serial.print("Writing file ");
+    Serial.print(F("Writing file "));
     Serial.println(filepath);
 
     if (SD.exists(filepath)) {
@@ -36,29 +36,29 @@ void file_write(const char * dirname, const char * filename, aJsonObject * data)
     digitalWrite(13, 1);
 
 #ifdef DEBUG_SDCARD
-    Serial.print(".");
+    Serial.print(F("."));
 #endif
 
     File dataFile = SD.open(filepath, FILE_WRITE);
 #ifdef DEBUG_SDCARD
-    Serial.print(".");
+    Serial.print(F("."));
 #endif
     if (dataFile) {
         aJsonStream sd_stream(&dataFile);
         aJson.print(data, &sd_stream);
 #ifdef DEBUG_SDCARD
-        Serial.print(".");
+        Serial.print(F("."));
 #endif
         dataFile.close();
 #ifdef DEBUG_SDCARD
-        Serial.print(".");
+        Serial.print(F("."));
 #endif
     } else {
-        Serial.print("Failed to open ");
+        Serial.print(F("Failed to open "));
         Serial.println(filepath);
     }
 #ifdef DEBUG_SDCARD
-    Serial.println(".");
+    Serial.println(F("."));
 #endif
     digitalWrite(13, 0);
 }
@@ -77,11 +77,11 @@ aJsonObject * file_read(const char * dirname, const char * filename){
     //strcat(filepath, "/");
     //strcat(filepath, filename);
 
-    Serial.print("opening file ");
+    Serial.print(F("opening file "));
     Serial.println(filepath);
 
     if (!SD.exists(filepath)) {
-        Serial.println("File does not exist");
+        Serial.println(F("File does not exist"));
         return NULL;
     }
     File dataFile = SD.open(filepath, FILE_READ);
@@ -91,7 +91,7 @@ aJsonObject * file_read(const char * dirname, const char * filename){
         dataFile.close();
         return data;
     } else {
-        Serial.println("File read failure");
+        Serial.println(F("File read failure"));
         return NULL;
     }
 
