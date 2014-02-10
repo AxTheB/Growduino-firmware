@@ -23,12 +23,14 @@ void Trigger::init(){
     idx = 0;
 }
 
-void Trigger::load(aJsonObject *msg, Logger * loggers[]){
+void Trigger::load(aJsonObject *msg, Logger * loggers[], int index){
     //Init new trigger from aJSON
     //extract the ajson from ajson using
     //aJsonObject* msg = aJson.getObjectItem(root, "trigger");
 
     init();
+    idx = index;
+
 
     aJsonObject * cnfobj = aJson.getObjectItem(msg, "t_since");
     if (cnfobj && cnfobj->type == aJson_Int) {
@@ -249,7 +251,7 @@ int Trigger::tick(){
 
 
 int trigger_load(Trigger triggers[], Logger * loggers[], aJsonObject * cfile, int trgno) {
-    triggers[trgno].load(cfile, loggers);
+    triggers[trgno].load(cfile, loggers, trgno);
 }
 
 int triggers_load(Trigger triggers[], Logger * loggers[]){
@@ -275,13 +277,19 @@ int triggers_save(Trigger triggers[]){
     for (int i=0; i < TRIGGERS; i++) {
         sprintf(fname, "%i.jso", i);
         aJsonObject *msg = aJson.createObject();
+#ifdef DEBUG_TRIGGERS
         Serial.print(F("Preparing json "));
         Serial.println(i, DEC);
+#endif
         triggers[i].json(msg);
+#ifdef DEBUG_TRIGGERS
         Serial.println(F("saving"));
+#endif
         file_write("/triggers", fname, msg);
         aJson.deleteItem(msg);
     }
 
+#ifdef DEBUG_TRIGGERS
     Serial.println(F("Saved."));
+#endif
 }

@@ -38,9 +38,16 @@
 
 #define LOGGERS 6
 
+#define DEBUG 1
+
+#ifdef DEBUG
+
 #define DEBUG_OUTPUT 1
 //#define DEBUG_SDCARD 1
 #define DEBUG_TRIGGERS 1
+//#define DEBUG_HTTP 1
+
+#endif
 
 // How many output chages do we keep in memory
 #define LOGSIZE 25

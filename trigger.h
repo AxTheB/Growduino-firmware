@@ -23,7 +23,7 @@ class Trigger {
 
         Trigger();
         void init();
-        void load(aJsonObject *msg, Logger * loggers[]);
+        void load(aJsonObject *msg, Logger * loggers[], int index);
         int tick();
         aJsonObject * json(aJsonObject *cnfdata);
 
