@@ -275,25 +275,30 @@ int triggers_load(Trigger triggers[], Logger * loggers[]){
 
 int triggers_save(Trigger triggers[]){
     Serial.println(F("Save trigers"));
-
-    char fname[] = "XX.jso";
-
     for (int i=0; i < TRIGGERS; i++) {
-        sprintf(fname, "%i.jso", i);
-        aJsonObject *msg = aJson.createObject();
-#ifdef DEBUG_TRIGGERS
-        Serial.print(F("Preparing json "));
-        Serial.println(i, DEC);
-#endif
-        triggers[i].json(msg);
-#ifdef DEBUG_TRIGGERS
-        Serial.println(F("saving"));
-#endif
-        file_write("/triggers", fname, msg);
-        aJson.deleteItem(msg);
+        trigger_save(triggers, i);
     }
-
 #ifdef DEBUG_TRIGGERS
     Serial.println(F("Saved."));
 #endif
 }
+
+
+int trigger_save(Trigger triggers[], int idx){
+
+    char fname[] = "XX.jso";
+
+    sprintf(fname, "%i.jso", idx);
+    aJsonObject *msg = aJson.createObject();
+#ifdef DEBUG_TRIGGERS
+    Serial.print(F("Preparing json "));
+    Serial.println(idx, DEC);
+#endif
+    triggers[idx].json(msg);
+#ifdef DEBUG_TRIGGERS
+    Serial.println(F("saving"));
+#endif
+    file_write("/triggers", fname, msg);
+    aJson.deleteItem(msg);
+}
+

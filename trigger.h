@@ -34,3 +34,4 @@ class Trigger {
 int trigger_load(Trigger triggers[], Logger * loggers[], aJsonObject * cfile, int trgno);
 int triggers_load(Trigger triggers[], Logger * loggers[]);
 int triggers_save(Trigger triggers[]);
+int trigger_save(Trigger triggers[], int idx);

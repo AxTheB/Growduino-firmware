@@ -60,8 +60,6 @@ Logger * loggers[LOGGERS] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultra
 
 Trigger triggers[TRIGGERS];
 
-int save_triggers;
-
 int freeRam () {
   extern int __heap_start, *__brkval;
   int v;
@@ -142,7 +140,6 @@ void setup(void) {
     triggers_load(triggers, loggers);
     Serial.println(freeRam());
     triggers_save(triggers);
-    save_triggers = 0;
     Serial.println(freeRam());
 
     // start real time clock
@@ -227,10 +224,6 @@ void worker(){
 #endif
 
         triggers[i].tick();
-    }
-
-    if (save_triggers == 1) {
-        triggers_save(triggers);
     }
 
     // move relays
@@ -468,8 +461,7 @@ void pageServe(EthernetClient client){
             aJsonStream eth_stream(&client);
             aJsonObject * data = aJson.parse(&eth_stream);
             trigger_load(triggers, loggers, data, trgno);
-            //triggers_save(triggers);
-            save_triggers = 1;
+            trigger_save(triggers, trgno);
             aJson.deleteItem(data);
         }
     }
