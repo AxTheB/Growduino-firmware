@@ -32,7 +32,7 @@
 #define BUFSIZ 256
 
 // max. 32
-#define TRIGGERS 10
+#define TRIGGERS 32
 
 #define OUTPUTS 8
 

@@ -143,6 +143,14 @@ int Trigger::tick(){
     Serial.println(idx);
 #endif
 
+    if (output == -1) {
+#ifdef DEBUG_TRIGGERS
+    Serial.println(F("Skipping trigger (no output)"));
+#endif
+    return false;
+    }
+
+
     // if t_since == -1 run all day.
     // if t_since > t_until run over midnight
 
@@ -154,14 +162,14 @@ int Trigger::tick(){
         Serial.print(F("time ok: "));
         Serial.println(daymin);
 #endif
-        if (_logger == NULL) {  // if there is no logger defined just keep it on/off
+        if (_logger == NULL) {  // if there is no logger defined use minvalue (for unconditional time triggers)
             sensor_val = MINVALUE;
-        } else {    // the logger is defined, time is right.
+        } else {    // the logger is defined
             sensor_val = _logger->peek();
         }
         outputs.set(output, 0, idx);
 #ifdef DEBUG_TRIGGERS
-        Serial.print(F("On value compare: "));
+        Serial.print(F("Evaluating ON condition: "));
 #endif
         switch (on_cmp) {
             case '<':
@@ -203,7 +211,7 @@ int Trigger::tick(){
 
                 break;
         }
-        Serial.println(F("off value compare:"));
+        Serial.print(F("Evaluating OFF condition: "));
         switch (off_cmp) {
             case '<':
                 if (sensor_val <= off_value) {
