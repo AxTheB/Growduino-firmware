@@ -189,7 +189,7 @@ int Trigger::tick(){
                 }
                 break;
             case '>':
-                if (sensor_val > on_value) {
+                if (sensor_val > on_value || sensor == -1) {
                     outputs.set(output, 1, idx);
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on >"));
@@ -234,7 +234,7 @@ int Trigger::tick(){
                 }
                 break;
             case '>':
-                if (sensor_val >= off_value) {
+                if (sensor_val >= off_value && sensor != -1) {
                     outputs.set(output, 0, idx);
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on >"));
