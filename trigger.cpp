@@ -55,7 +55,7 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[], int index){
                 important = IMP_ON;
 
         } else {
-            on_value = 0;
+            on_value = MINVALUE;
         }
     }
 
@@ -72,7 +72,7 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[], int index){
                 important = IMP_OFF;
 
         } else {
-            off_value = 512;
+            off_value = MINVALUE;
         }
     }
 
@@ -98,7 +98,7 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[], int index){
     }
     */
 
-    if (sensor != -1) {
+    if (sensor >=0 && sensor < LOGGERS) {
         _logger = loggers[sensor];
     } else {
         _logger = NULL;
@@ -145,9 +145,9 @@ int Trigger::tick(){
 
     if (output == -1) {
 #ifdef DEBUG_TRIGGERS
-    Serial.println(F("Skipping trigger (no output)"));
+        Serial.println(F("Skipping trigger (no output)"));
 #endif
-    return false;
+        return false;
     }
 
 
@@ -162,18 +162,22 @@ int Trigger::tick(){
         Serial.print(F("time ok: "));
         Serial.println(daymin);
 #endif
-        if (_logger == NULL) {  // if there is no logger defined use minvalue (for unconditional time triggers)
+        if (_logger == NULL || sensor == -1) {  // if there is no logger defined use minvalue (for unconditional time triggers)
             sensor_val = MINVALUE;
         } else {    // the logger is defined
             sensor_val = _logger->peek();
         }
         outputs.set(output, 0, idx);
 #ifdef DEBUG_TRIGGERS
-        Serial.print(F("Evaluating ON condition: "));
+        Serial.print(F("Evaluating ON condition ("));
+        Serial.print(sensor_val);
+        Serial.print(on_cmp);
+        Serial.print(on_value);
+        Serial.print(F("):"));
 #endif
         switch (on_cmp) {
             case '<':
-                if (sensor_val <= on_value) {
+                if (sensor_val < on_value || sensor == -1) {
                     outputs.set(output, 1, idx);
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on <"));
@@ -185,7 +189,7 @@ int Trigger::tick(){
                 }
                 break;
             case '>':
-                if (sensor_val >= on_value) {
+                if (sensor_val > on_value) {
                     outputs.set(output, 1, idx);
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on >"));
@@ -211,10 +215,14 @@ int Trigger::tick(){
 
                 break;
         }
-        Serial.print(F("Evaluating OFF condition: "));
+        Serial.print(F("Evaluating OFF condition ("));
+        Serial.print(sensor_val);
+        Serial.print(off_cmp);
+        Serial.print(off_value);
+        Serial.print(F("):"));
         switch (off_cmp) {
             case '<':
-                if (sensor_val <= off_value) {
+                if (sensor_val <= off_value && sensor != -1) {
                     outputs.set(output, 0, idx);
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on <"));
