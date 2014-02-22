@@ -261,6 +261,7 @@ int Trigger::tick(){
         }
 
     } else {
+        outputs.set(output, 0, idx);
 
 #ifdef DEBUG_TRIGGERS
         Serial.println(F("Wrong time"));
