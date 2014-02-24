@@ -138,6 +138,7 @@ int Output::hw_update(int slot){
 #endif
         time_t t_now = now();
         digitalWrite(RELAY_START + slot, wanted);
+        hw_state[slot] = wanted;
         log();
         ctimes[slot] = t_now;
     } else {
