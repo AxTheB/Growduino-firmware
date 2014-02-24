@@ -9,7 +9,8 @@ When there is any data missing, its filled by -999 (MINVALUE from GrowduinoFirmw
 Basic system information
 ------------------------
 /sensors/status.jso
-Shows compile-time and runtime status. Note that uptime is string not number, this may be fixed in the future
+Shows compile-time and runtime status. Note that uptime is string not number, this may be fixed in the future.
+daymin is minutes since midnight.
 
 ```json
     {
@@ -26,7 +27,8 @@ Shows compile-time and runtime status. Note that uptime is string not number, th
         },
         "triggers":10,
         "triggers_log_size":25,
-        "uptime":"3381"
+        "uptime":"3381",
+        "daymin":234
     }
 ```
 
@@ -60,25 +62,6 @@ Firmware configuration
 Outputs (relay) state
 ---------------------
 /sensors/outputs.jso
- - Stores last 60 minutes of sensor state
- - each value displays state after triggers run, one per minute
- - Values are bitfield, each bit corresponds to one output
- - supports GET only
- - soon to be obsoleted
-
-```json
-    {
-        "name":"outputs",
-        "min":[
-            160,
-            160,
-            ...
-            160
-        ]
-    }
-```
-
-/sensors/outputs.jso [Soon, subject to change]
  - Stores last output positions
  - Values are bitfield, each bit corresponds to one output
  - supports GET only
@@ -128,7 +111,7 @@ Trigger configuration
     - "<": Lesser than. "on_value":"<100" on temp readings will resolve as true when temperature falls bellow 10C. Parameter is raw sensor reading
     - ">": Greater than. Opposite to "<".
     - "T": resolves true when the output was off for more than parameter minutes, switches off after off_value minutes has passed. See example 2.
- - Importance is noted by "!" at end, and means that this condition is critical, if true it skips any other triggers relating to this output
+ - Importance is noted by "!" at end, and means that this condition is critical, if off condition is true it disables that output until on condition is met
  - sensors are (indexed from zero):
     - humidity
     - temperature
@@ -194,7 +177,7 @@ Historical data
 /data/
  - stores historical data for all sensors and output
  - /data/SENSOR/YYYY/MM.jso stores daily averages for given month
- - /data/SENSOR/YYYY/MM/DD.jso stores hourly averages for given day
+ - /data/SENSOR/YYYY/MM/DD.jso stores hourly averages for given day, where "hour" is "minutes since midnight / 60". Leap days are 23 or 25 hours long.
  - /data/SENSOR/YYYY/MM/DD/HH.jso stores data for each hour.
 
 /data/output/YYYY/MM/DD/XX.jso stores log of sensor changes, split by 50 records. GET the sequence until 404 is encountered. TODO
