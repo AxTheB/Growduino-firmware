@@ -29,7 +29,7 @@
 #define USOUND_TRG 34
 #define USOUND_ECHO 35
 
-#define BUFSIZ 256
+#define BUFSIZE 256
 
 // max. 32
 #define TRIGGERS 32

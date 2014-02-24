@@ -13,9 +13,10 @@
 
 extern Config config;
 
+int timeZone = 1; //CET
+
 time_t time_now;
 EthernetUDP Udp;
-const int timeZone = 1;     // Central European Time
 
 void printDigits(int number) {
     if (number >= 0 && number < 10) {
@@ -55,8 +56,12 @@ void daytime_init(){
     digitalClockDisplay();
 }
 
-void digitalClockDisplay(){
+void digitalClockDisplay(char * time){
     // digital clock display of the time
+    sprintf(time, "%4d %2d %2d %2d:%2d:%2d", year(), month(), day(), hour(), minute(), second());
+}
+
+void digitalClockDisplay(){
     Serial.print(hour());
     printDigits(minute());
     printDigits(second());
@@ -79,7 +84,7 @@ time_t getNtpTime(){
     Serial.println(F("Transmit NTP Request"));
     sendNTPpacket(config.ntp);
     uint32_t beginWait = millis();
-    while (millis() - beginWait < 1500) {
+    while (millis() - beginWait < 2000) {
         int size = Udp.parsePacket();
         if (size >= NTP_PACKET_SIZE) {
             Serial.println(F("Receive NTP Response"));
@@ -119,3 +124,8 @@ void sendNTPpacket(IPAddress &address){
     Udp.endPacket();
 }
 
+int daymin(){
+    int daymin;
+    daymin = hour() * 60 + minute();
+    return daymin;
+}

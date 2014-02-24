@@ -22,7 +22,6 @@
 
 int ether = 1;
 
-
 // DHT22 temp and humidity sensor. Treated as main temp and humidity source
 DHT22 myDHT22(DHT22_PIN);
 
@@ -73,7 +72,7 @@ void pFreeRam() {
 
 aJsonObject * status(){
     aJsonObject * msg = aJson.createObject();
-    char buffer[20];
+    char buffer[21];
     int freeram = freeRam();
     aJson.addItemToObject(msg, "free_ram", aJson.createItem(freeram));
     aJson.addItemToObject(msg, "sensors", aJson.createItem(LOGGERS));
@@ -88,6 +87,12 @@ aJsonObject * status(){
     aJson.addItemToObject(msg, "triggers_log_size", aJson.createItem(LOGSIZE));
     sprintf(buffer, "%ld", millis() / 1000);
     aJson.addItemToObject(msg, "uptime", aJson.createItem(buffer));
+    aJson.addItemToObject(msg, "tz", aJson.createItem(timeZone));
+    aJson.addItemToObject(msg, "daymin", aJson.createItem(daymin()));
+    digitalClockDisplay(buffer);
+    aJson.addItemToObject(msg, "time", aJson.createItem(buffer));
+
+
     return msg;
 }
 
@@ -377,7 +382,7 @@ int senddata(EthernetClient client, char * request, char * clientline){
     // abuse clientline as sd buffer
     int remain = 0;
     while ((remain = dataFile.available())) {
-        remain = min(remain, BUFSIZ -1);
+        remain = min(remain, BUFSIZE -1);
         dataFile.read(clientline, remain);
         clientline[remain] = 0;
         client.write(clientline);
@@ -395,7 +400,7 @@ int fn_extract_trg(char * request){
 
 void pageServe(EthernetClient client){
     char request[33];
-    char clientline[BUFSIZ];
+    char clientline[BUFSIZE];
     int linesize;
     bool is_url;
 
@@ -406,7 +411,7 @@ void pageServe(EthernetClient client){
     t_1 = millis();
     while (client.connected()) {
         if (client.available()) {
-            linesize = client.readBytesUntil('\n', clientline, BUFSIZ-1);
+            linesize = client.readBytesUntil('\n', clientline, BUFSIZE-1);
             clientline[linesize] = '\0';
             #ifdef DEBUG_HTTP
             Serial.println(clientline);
