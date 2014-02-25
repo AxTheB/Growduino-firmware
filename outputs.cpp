@@ -40,6 +40,9 @@ int Output::set(int slot, int val, int trigger){
 
 int Output::breakme(int slot, int val, int trigger){
     // update valute of %slot% 
+    if (slot < 0 || slot > OUTPUTS || trigger < 0 || trigger > TRIGGERS ) {
+        return NONE;
+    }
     if (val == 0) {
         state[slot] = bitclr(broken[slot], trigger);
     } else {
