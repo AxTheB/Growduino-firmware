@@ -18,13 +18,6 @@ int timeZone = 1; //CET
 time_t time_now;
 EthernetUDP Udp;
 
-void printDigits(int number) {
-    if (number >= 0 && number < 10) {
-        Serial.write('0');
-    }
-    Serial.print(number);
-}
-
 void daytime_init(){
     tmElements_t tm;
     if (RTC.read(tm)) {
@@ -58,20 +51,13 @@ void daytime_init(){
 
 void digitalClockDisplay(char * time){
     // digital clock display of the time
-    sprintf(time, "%4d %2d %2d %2d:%2d:%2d", year(), month(), day(), hour(), minute(), second());
+    sprintf(time, "%4d-%02d-%02d %02d:%02d:%02d", year(), month(), day(), hour(), minute(), second());
 }
 
 void digitalClockDisplay(){
-    Serial.print(hour());
-    printDigits(minute());
-    printDigits(second());
-    Serial.print(F(" "));
-    Serial.print(day());
-    Serial.print(F(" "));
-    Serial.print(month());
-    Serial.print(F(" "));
-    Serial.print(year()); 
-    Serial.println(); 
+    char time[21];
+    digitalClockDisplay(time);
+    Serial.print(time);
 }
 
 //-------- NTP code ----------/
