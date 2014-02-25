@@ -20,7 +20,7 @@ void Trigger::init(){
     sensor = NONE;
     output = NONE;
     _logger = NULL;
-    idx = 0;
+    idx = NONE;
 }
 
 void Trigger::load(aJsonObject *msg, Logger * loggers[], int index){
@@ -29,6 +29,12 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[], int index){
     //aJsonObject* msg = aJson.getObjectItem(root, "trigger");
 
     init();
+    if (idx != NONE && output != NONE) {
+        Serial.print(F("Clean up trigger "));
+        Serial.println(idx, DEC);
+        outputs.revive(output, idx);
+        outputs.set(output, 0, idx);
+    }
     idx = index;
 
 
@@ -161,7 +167,7 @@ int Trigger::tick(){
         } else {    // the logger is defined
             sensor_val = _logger->peek();
         }
-        outputs.set(output, 0, idx);
+        //outputs.set(output, 0, idx);
 #ifdef DEBUG_TRIGGERS
         Serial.print(F("Evaluating ON condition ("));
         Serial.print(sensor_val);

@@ -11,11 +11,11 @@ void Output::common_init(){
     time_t t_now = now();
     log_index = 0;
     log_file_index = 0;
-    for (int i = 0; i < OUTPUTS; i++){
-        broken[i] = 0;
-        ctimes[i] = t_now;
-        state[i] = 0;
-        hw_state[i] = 0;
+    for (int slot = 0; slot < OUTPUTS; slot++){
+        broken[slot] = 0;
+        ctimes[slot] = t_now;
+        state[slot] = 0;
+        hw_state[slot] = 0;
 
     }
     strcpy(name, "outputs");
@@ -40,22 +40,30 @@ int Output::set(int slot, int val, int trigger){
 
 int Output::breakme(int slot, int val, int trigger){
     // update valute of %slot% 
+
     if (slot < 0 || slot > OUTPUTS || trigger < 0 || trigger > TRIGGERS ) {
+        Serial.println(F("breakme: nop"));
         return NONE;
     }
     if (val == 0) {
-        state[slot] = bitclr(broken[slot], trigger);
+        Serial.println(F("breakme: clr"));
+        broken[slot] = bitclr(broken[slot], trigger);
     } else {
-        state[slot] = bitset(broken[slot], trigger);
+        Serial.println(F("breakme: set"));
+        broken[slot] = bitset(broken[slot], trigger);
     }
     return (state[slot] != 0);
 }
 
 void Output::kill(int slot, int trigger){
+    Serial.print(F("Killing output #"));
+    Serial.println(slot, DEC);
     breakme(slot, 1, trigger);
 }
 
 void Output::revive(int slot, int trigger){
+    Serial.print(F("Reviving output #"));
+    Serial.println(slot, DEC);
     breakme(slot, 0, trigger);
 }
 
@@ -130,6 +138,7 @@ int Output::hw_update(int slot){
 #ifdef DEBUG_OUTPUT
         Serial.print(F("Output "));
         Serial.print(slot, DEC);
+
 #endif
     int wanted;
     if (broken[slot] != 0) {
