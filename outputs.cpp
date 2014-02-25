@@ -48,6 +48,15 @@ int Output::breakme(int slot, int val, int trigger){
     return (state[slot] != 0);
 }
 
+void Output::kill(int slot, int trigger){
+    breakme(slot, 1, trigger);
+}
+
+void Output::revive(int slot, int trigger){
+    breakme(slot, 0, trigger);
+}
+
+
 int Output::uptime(int slot){
     // return time since last change
     return now() - ctimes[slot];

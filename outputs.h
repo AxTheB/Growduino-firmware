@@ -28,7 +28,8 @@ public:
     char * file_name(char * filename);
     int set(int slot, int val, int trigger);
     int breakme(int slot, int val, int trigger);
-
+    void kill(int slot, int trigger);
+    void revive(int slot, int trigger);
 
 private:
     unsigned char sensor_state;

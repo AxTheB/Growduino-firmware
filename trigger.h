@@ -4,8 +4,6 @@
 #include <aJSON.h>
 
 #define NONE -1
-#define IMP_ON 1
-#define IMP_OFF 2
 
 class Trigger {
     public:

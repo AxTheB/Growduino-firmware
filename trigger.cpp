@@ -16,7 +16,7 @@ void Trigger::init(){
     off_value = 0;
     on_cmp = '-';
     off_cmp = '-';
-    important = NONE;
+    important = false;
     sensor = NONE;
     output = NONE;
     _logger = NULL;
@@ -52,7 +52,7 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[], int index){
             on_cmp = cnfobj->valuestring[0];
 
             if (strchr(cnfobj->valuestring, '!') != NULL)
-                important = IMP_ON;
+                important = true;
 
         } else {
             on_value = MINVALUE;
@@ -69,7 +69,7 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[], int index){
             off_cmp = cnfobj->valuestring[0];
 
             if (strchr(cnfobj->valuestring, '!') != NULL)
-                important = IMP_OFF;
+                important = true;
 
         } else {
             off_value = MINVALUE;
@@ -90,14 +90,6 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[], int index){
         output = -1;
     }
 
-    /* cnfobj = aJson.getObjectItem(msg, "lt");
-    if (cnfobj && cnfobj->type == aJson_False) {
-        lt = false;
-    } else {
-        lt= true;
-    }
-    */
-
     if (sensor >=0 && sensor < LOGGERS) {
         _logger = loggers[sensor];
     } else {
@@ -114,15 +106,11 @@ aJsonObject * Trigger::json(aJsonObject *cnfdata){
     aJson.addNumberToObject(cnfdata, "t_since", t_since);
     aJson.addNumberToObject(cnfdata, "t_until", t_until);
 
-    if (important == IMP_ON) {
-        sprintf(val_buf, "%c%d!", on_cmp, on_value);
-    } else {
-        sprintf(val_buf, "%c%d", on_cmp, on_value);
-    }
+    sprintf(val_buf, "%c%d", on_cmp, on_value);
 
     aJson.addStringToObject(cnfdata, "on_value", val_buf);
 
-    if (important == IMP_OFF) {
+    if (!important) {
         sprintf(val_buf, "%c%d!", off_cmp, off_value);
     } else {
         sprintf(val_buf, "%c%d", off_cmp, off_value);
@@ -179,6 +167,7 @@ int Trigger::tick(){
             case '<':
                 if (sensor_val < on_value || sensor == -1) {
                     outputs.set(output, 1, idx);
+                    if (important) outputs.revive(output, idx);
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on <"));
 #endif
@@ -191,6 +180,7 @@ int Trigger::tick(){
             case '>':
                 if (sensor_val > on_value || sensor == -1) {
                     outputs.set(output, 1, idx);
+                    if (important) outputs.revive(output, idx);
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on >"));
 #endif
@@ -204,6 +194,7 @@ int Trigger::tick(){
             case 't':
                 if ((outputs.get(output) == 0) && (outputs.uptime(output) > on_value)) {
                     outputs.set(output, 1, idx);
+                    if (important) outputs.revive(output, idx);
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on T"));
 #endif
@@ -224,6 +215,7 @@ int Trigger::tick(){
             case '<':
                 if (sensor_val <= off_value && sensor != -1) {
                     outputs.set(output, 0, idx);
+                    if (important) outputs.kill(output, idx);
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on <"));
 #endif
@@ -236,6 +228,7 @@ int Trigger::tick(){
             case '>':
                 if (sensor_val >= off_value && sensor != -1) {
                     outputs.set(output, 0, idx);
+                    if (important) outputs.kill(output, idx);
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on >"));
 #endif
@@ -249,6 +242,7 @@ int Trigger::tick(){
             case 't':
                 if ((outputs.get(output) == 1) && (outputs.uptime(output) > off_value)) {
                     outputs.set(output, 0, idx);
+                    if (important) outputs.kill(output, idx);
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on T"));
 #endif
@@ -261,7 +255,9 @@ int Trigger::tick(){
         }
 
     } else {
+        //default out-of-time state is disabled, not broken
         outputs.set(output, 0, idx);
+        if (important) outputs.revive(output, idx);
 
 #ifdef DEBUG_TRIGGERS
         Serial.println(F("Wrong time"));
