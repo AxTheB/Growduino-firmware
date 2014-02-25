@@ -57,7 +57,7 @@ void digitalClockDisplay(char * time){
 void digitalClockDisplay(){
     char time[21];
     digitalClockDisplay(time);
-    Serial.print(time);
+    Serial.println(time);
 }
 
 //-------- NTP code ----------/
