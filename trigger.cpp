@@ -140,7 +140,9 @@ int Trigger::tick(){
     int sensor_val;
 #ifdef DEBUG_TRIGGERS
     Serial.print(F("Ticking "));
-    Serial.println(idx);
+    Serial.print(idx);
+    Serial.print(F(" at time "));
+    Serial.println(daymin);
 #endif
 
     if (output == NONE) {
@@ -153,10 +155,20 @@ int Trigger::tick(){
 
     // if t_since == -1 run all day.
     // if t_since > t_until run over midnight
+    
+    if (t_since == -1) {
+        Serial.println(F("All day trigger"));
+    }
+    if (t_since <= daymin && t_until > daymin) {
+        Serial.println(F("Hit normal trigger"));
+    }
+    if ((t_since > t_until) && (t_since <= daymin || t_until > daymin)) {
+        Serial.println(F("Hit overnight trigger"));
+    }
 
     if ((t_since == -1) ||
             (t_since <= daymin && t_until > daymin) ||
-            (t_since >= daymin && t_until < daymin)
+            ((t_since > t_until) && (t_since <= daymin || t_until > daymin))
        ) {
 #ifdef DEBUG_TRIGGERS
         Serial.print(F("time ok: "));
@@ -207,6 +219,12 @@ int Trigger::tick(){
                 break;
             case 'T':
             case 't':
+#ifdef DEBUG_TRIGGERS
+                Serial.print(F("output uptime "));
+                Serial.println(outputs.uptime(output));
+                Serial.print(F("output state "));
+                Serial.println(outputs.get(output));
+#endif
                 if ((outputs.get(output) == 0) && (outputs.uptime(output) > on_value)) {
                     if (important) {
                         outputs.revive(output, idx);
@@ -224,11 +242,13 @@ int Trigger::tick(){
 
                 break;
         }
+#ifdef DEBUG_TRIGGERS
         Serial.print(F("Evaluating OFF condition ("));
         Serial.print(sensor_val);
         Serial.print(off_cmp);
         Serial.print(off_value);
         Serial.print(F("):"));
+#endif
         switch (off_cmp) {
             case '<':
                 if (sensor_val <= off_value && sensor != NONE) {
@@ -264,6 +284,13 @@ int Trigger::tick(){
                 break;
             case 'T':
             case 't':
+#ifdef DEBUG_TRIGGERS
+                Serial.print(F("output uptime "));
+                Serial.println(outputs.uptime(output));
+                Serial.print(F("output state "));
+                Serial.println(outputs.get(output));
+#endif
+
                 if ((outputs.get(output) == 1) && (outputs.uptime(output) > off_value)) {
                     if (important) {
                         outputs.kill(output, idx);
@@ -287,7 +314,9 @@ int Trigger::tick(){
         if (important) outputs.revive(output, idx);
 
 #ifdef DEBUG_TRIGGERS
-        Serial.println(F("Wrong time"));
+        Serial.print(F("Wrong time: "));
+        Serial.println(daymin);
+#endif
 #endif
         return false;
     }
