@@ -317,7 +317,6 @@ int Trigger::tick(){
         Serial.print(F("Wrong time: "));
         Serial.println(daymin);
 #endif
-#endif
         return false;
     }
 }
