@@ -15,6 +15,7 @@
 
 #include <Time.h>
 
+
 #define DHT22_NO_FLOAT 1
 
 #define MINVALUE -999
@@ -32,13 +33,23 @@
 #define BUFSIZE 256
 
 // max. 32
-#define TRIGGERS 32
+#define TRIGGERS 6
 
 #define OUTPUTS 8
 
 #define LOGGERS 6
 
 #define DEBUG 1
+
+#define LCD_RESET 36
+#define LCD_ENABLE 37
+#define LCD_D1 38
+#define LCD_D2 39
+#define LCD_D3 40
+#define LCD_D4 41
+
+#define LCD_BUFFER_LINES 5
+
 
 #ifdef DEBUG
 
@@ -62,6 +73,8 @@
 #include "trigger.h"
 #include "ultrasound.h"
 #include "ds.h"
+#include "Lcd.h"
 
 extern int ether;
 void pFreeRam();
+

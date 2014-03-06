@@ -20,6 +20,10 @@
 
 #include <avr/pgmspace.h>
 
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd(LCD_RESET, LCD_ENABLE, LCD_D1, LCD_D2, LCD_D3, LCD_D4);
+
 int ether = 1;
 
 // DHT22 temp and humidity sensor. Treated as main temp and humidity source
@@ -52,6 +56,8 @@ Config config;
 Output outputs;
 
 aJsonStream serial_stream(&Serial);
+
+//LiquidCrystal lcd(8,9,4,5,6,7);
 
 EthernetServer server(80);
 
@@ -101,6 +107,7 @@ void setup(void) {
     // start serial port
     Serial.begin(115200);
     Serial.println(F("Grow!"));
+    lcd_setup();
     pFreeRam();
 
     delay(1000);
@@ -113,12 +120,13 @@ void setup(void) {
     } else {
         Serial.println(F("INDEX.HTM not found. Not going on"));
         int q = 0;
-        while (true) {
+        while (!SD.exists(index)) {
             digitalWrite(13, q);
             q = 1 - q;
             delay(600);
         }
     }
+    digitalWrite(13, LOW);
     Serial.println(F("Inititalising Ethernet"));
 
     // load config from sdcard
@@ -180,8 +188,8 @@ void setup(void) {
 }
 
 void worker(){
+    digitalWrite(13, HIGH);
     //read sensors and store data
-    pinMode(13, OUTPUT);
     myDHT22.readData();
     dht22_temp.timed_log(myDHT22.getTemperatureCInt());
     dht22_humidity.timed_log(myDHT22.getHumidityInt());
@@ -237,7 +245,14 @@ void worker(){
     }
 
     outputs.log();
+    lcd_flush();
+    char lcd_msg[17];
+    sprintf(lcd_msg, "T: %d.%dC", dht22_temp.peek() / 10, dht22_temp.peek() % 10);
+    lcd_publish(lcd_msg);
 
+    sprintf(lcd_msg, "H: %d.%d%%", dht22_humidity.peek() / 10, dht22_humidity.peek() % 10);
+    lcd_publish(lcd_msg);
+    digitalWrite(13, LOW);
 }
 
 const char * get_filename_ext(const char *filename){
@@ -483,6 +498,7 @@ void loop(void){
         worker();
         pFreeRam();
     }
+    lcd_tick();
     EthernetClient client = server.available();
     if (client) {
         pageServe(client);
