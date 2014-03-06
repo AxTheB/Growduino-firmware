@@ -13,6 +13,7 @@ public:
     Output(aJsonObject * json);
 
     int get(int slot);
+    int hw_get(int slot);
     //int set(int slot, int state);
     //int set_delayed(int slot, int state);
     int flip(int slot);

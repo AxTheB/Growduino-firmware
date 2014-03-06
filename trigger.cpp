@@ -226,7 +226,7 @@ int Trigger::tick(){
                 Serial.print(F("output state "));
                 Serial.println(outputs.get(output));
 #endif
-                if ((outputs.get(output) == 0) && (outputs.uptime(output) > on_value)) {
+                if ((outputs.hw_get(output) == 0) && (outputs.uptime(output) > on_value)) {
                     if (important) {
                         outputs.revive(output, idx);
                     } else {
@@ -292,7 +292,7 @@ int Trigger::tick(){
                 Serial.println(outputs.get(output));
 #endif
 
-                if ((outputs.get(output) == 1) && (outputs.uptime(output) > off_value)) {
+                if ((outputs.hw_get(output) == 1) && (outputs.uptime(output) > off_value)) {
                     if (important) {
                         outputs.kill(output, idx);
                     } else {

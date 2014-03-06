@@ -28,6 +28,11 @@ int Output::get(int slot){
     return (state[slot] != 0);
 }
 
+int Output::hw_get(int slot){
+    // return true if %slot% is on
+    return (hw_state[slot] != 0);
+}
+
 int Output::set(int slot, int val, int trigger){
     // update valute of %slot% 
     if (val == 0) {
