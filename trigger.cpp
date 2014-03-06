@@ -136,13 +136,14 @@ aJsonObject * Trigger::json(aJsonObject *cnfdata){
 }
 
 int Trigger::tick(){
-    int daymin = minute() + 60 * hour();
+    //int l_daymin = minute() + 60 * hour();
+    int l_daymin = daymin();
     int sensor_val;
 #ifdef DEBUG_TRIGGERS
     Serial.print(F("Ticking "));
     Serial.print(idx);
     Serial.print(F(" at time "));
-    Serial.println(daymin);
+    Serial.println(l_daymin);
 #endif
 
     if (output == NONE) {
@@ -159,20 +160,20 @@ int Trigger::tick(){
     if (t_since == -1) {
         Serial.println(F("All day trigger"));
     }
-    if (t_since <= daymin && t_until > daymin) {
+    if (t_since <= l_daymin && t_until > l_daymin) {
         Serial.println(F("Hit normal trigger"));
     }
-    if ((t_since > t_until) && (t_since <= daymin || t_until > daymin)) {
+    if ((t_since > t_until) && (t_since <= l_daymin || t_until > l_daymin)) {
         Serial.println(F("Hit overnight trigger"));
     }
 
     if ((t_since == -1) ||
-            (t_since <= daymin && t_until > daymin) ||
-            ((t_since > t_until) && (t_since <= daymin || t_until > daymin))
+            (t_since <= l_daymin && t_until > l_daymin) ||
+            ((t_since > t_until) && (t_since <= l_daymin || t_until > l_daymin))
        ) {
 #ifdef DEBUG_TRIGGERS
         Serial.print(F("time ok: "));
-        Serial.println(daymin);
+        Serial.println(l_daymin);
 #endif
         if (_logger == NULL || sensor == NONE) {  // if there is no logger defined use minvalue (for unconditional time triggers)
             sensor_val = MINVALUE;
@@ -315,7 +316,7 @@ int Trigger::tick(){
 
 #ifdef DEBUG_TRIGGERS
         Serial.print(F("Wrong time: "));
-        Serial.println(daymin);
+        Serial.println(l_daymin);
 #endif
         return false;
     }
