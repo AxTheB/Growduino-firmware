@@ -24,13 +24,14 @@ public:
     aJsonObject * json();
     void log();
     int hw_update(int slot);
-    int uptime(int slot);
+    time_t uptime(int slot);
     char * dir_name(char * dirname);
     char * file_name(char * filename);
     int set(int slot, int val, int trigger);
     int breakme(int slot, int val, int trigger);
     void kill(int slot, int trigger);
     void revive(int slot, int trigger);
+    void common_init();
 
 private:
     unsigned char sensor_state;
@@ -47,7 +48,6 @@ private:
     int log_index;
     int log_file_index;
 
-    void common_init();
     int pack_states();
     int bitget(int value, int slot);
     int bitset(int value, int slot);

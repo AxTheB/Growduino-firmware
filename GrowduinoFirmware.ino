@@ -170,6 +170,7 @@ void setup(void) {
     light_sensor.load();
 
     //initialise outputs
+    outputs.common_init();
     for(int i=0; i <8; i++) {
         pinMode(RELAY_START + i, OUTPUT);
         // outputs.set(i, 0);

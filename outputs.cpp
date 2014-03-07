@@ -73,7 +73,7 @@ void Output::revive(int slot, int trigger){
 }
 
 
-int Output::uptime(int slot){
+time_t Output::uptime(int slot){
     // return time since last change
     return now() - ctimes[slot];
 }
