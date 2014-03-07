@@ -31,7 +31,6 @@ void lcd_flush() {
 void lcd_tick() {
     long currrun = millis() / 5000;
     if (currrun != lastrun) {
-        Serial.println(lastrun);
         lastrun = currrun;
         lcd.setCursor(0, 0);
         lcd.print(lcd_lines[lcd_last_printed_line]);
