@@ -18,7 +18,7 @@ int clip(long value) {
 }
 
 
-long ultrasound_ping(int trigger, int echo){
+long ultrasound_ping_inner(int trigger, int echo){
     pinMode(trigger, OUTPUT);
     pinMode(echo, INPUT);
     state = LOW;
@@ -46,3 +46,13 @@ long ultrasound_ping(int trigger, int echo){
     }
     return timetocm(timeOut - timeIn);
 }
+
+long ultrasound_ping(int trigger, int echo) {
+    long distance;
+    distance = MINVALUE;
+    for (int i = 0; (i < 5 && distance == MINVALUE) ; i++){
+        distance = ultrasound_ping_inner(trigger, echo);
+    }
+    return distance;
+}
+
