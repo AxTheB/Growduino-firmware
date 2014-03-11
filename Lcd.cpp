@@ -32,7 +32,7 @@ void lcd_tick() {
     long currrun = millis() / 5000;
     if (currrun != lastrun) {
         lastrun = currrun;
-        lcd.setCursor(0, 0);
+        lcd.clear();
         lcd.print(lcd_lines[lcd_last_printed_line]);
 
         lcd_last_printed_line += 1;
