@@ -113,6 +113,9 @@ void setup(void) {
     delay(1000);
 
     Serial.println(F("SD Card init"));
+    // disable ethernet before card init
+    pinMode(10,OUTPUT);
+    digitalWrite(10,HIGH);
     sdcard_init();
     char index[] = "/INDEX.HTM";
     if (SD.exists(index)) {

@@ -292,7 +292,7 @@ int Trigger::tick(){
                 Serial.println(outputs.get(output));
 #endif
 
-                if ((outputs.hw_get(output) == 1) && (outputs.uptime(output) > off_value * 60)) {
+                if ((outputs.hw_get(output) == 1) && (outputs.uptime(output) >= off_value * 60)) {
                     if (important) {
                         outputs.kill(output, idx);
                     } else {
