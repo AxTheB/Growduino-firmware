@@ -28,13 +28,12 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[], int index){
     //extract the ajson from ajson using
     //aJsonObject* msg = aJson.getObjectItem(root, "trigger");
 
-    init();
     if (idx != NONE && output != NONE) {
         Serial.print(F("Clean up trigger "));
         Serial.println(idx, DEC);
-        outputs.revive(output, idx);
-        outputs.set(output, 0, idx);
+        set_default_state();
     }
+    init();
     idx = index;
 
 
@@ -109,7 +108,6 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[], int index){
     outputs.revive(output, idx);
 }
 
-
 aJsonObject * Trigger::json(aJsonObject *cnfdata){
     //exports settings as aJson object into msg
 
@@ -133,6 +131,12 @@ aJsonObject * Trigger::json(aJsonObject *cnfdata){
     aJson.addNumberToObject(cnfdata, "output", output);
 
     return cnfdata;
+}
+
+void Trigger::set_default_state(){
+        //default out-of-time state is disabled, not broken
+        outputs.set(output, 0, idx);
+        if (important) outputs.revive(output, idx);
 }
 
 int Trigger::tick(){
@@ -310,9 +314,7 @@ int Trigger::tick(){
         }
 
     } else {
-        //default out-of-time state is disabled, not broken
-        outputs.set(output, 0, idx);
-        if (important) outputs.revive(output, idx);
+        set_default_state();
 
 #ifdef DEBUG_TRIGGERS
         Serial.print(F("Wrong time: "));
@@ -321,7 +323,6 @@ int Trigger::tick(){
         return false;
     }
 }
-
 
 int trigger_load(Trigger triggers[], Logger * loggers[], aJsonObject * cfile, int trgno) {
     triggers[trgno].load(cfile, loggers, trgno);
@@ -352,9 +353,7 @@ int triggers_save(Trigger triggers[]){
 #endif
 }
 
-
 int trigger_save(Trigger triggers[], int idx){
-
     char fname[] = "XX.jso";
 
     sprintf(fname, "%i.jso", idx);

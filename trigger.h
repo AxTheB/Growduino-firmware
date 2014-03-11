@@ -24,6 +24,7 @@ class Trigger {
         void load(aJsonObject *msg, Logger * loggers[], int index);
         int tick();
         aJsonObject * json(aJsonObject *cnfdata);
+        void set_default_state();
 
     private:
         Logger * _logger;
