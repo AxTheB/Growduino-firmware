@@ -251,11 +251,15 @@ void worker(){
     outputs.log();
     lcd_flush();
     char lcd_msg[17];
-    sprintf(lcd_msg, "T: %d.%dC", dht22_temp.peek() / 10, dht22_temp.peek() % 10);
+    sprintf(lcd_msg, "Temp: %d.%dC", dht22_temp.peek() / 10, dht22_temp.peek() % 10);
     lcd_publish(lcd_msg);
 
-    sprintf(lcd_msg, "H: %d.%d%%", dht22_humidity.peek() / 10, dht22_humidity.peek() % 10);
+    sprintf(lcd_msg, "Hum: %d.%d%%", dht22_humidity.peek() / 10, dht22_humidity.peek() % 10);
     lcd_publish(lcd_msg);
+
+    sprintf(lcd_msg, "Usnd: %dcm", ultrasound.peek());
+    lcd_publish(lcd_msg);
+
     digitalWrite(13, LOW);
 }
 
