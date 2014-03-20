@@ -22,6 +22,12 @@
 
 #include <LiquidCrystal.h>
 
+#include <GSM_Shield.h>
+
+GSM gsm;
+
+int gsm_init_done = 0;
+
 LiquidCrystal lcd(LCD_RESET, LCD_ENABLE, LCD_D1, LCD_D2, LCD_D3, LCD_D4);
 
 int ether = 1;
@@ -112,16 +118,17 @@ void setup(void) {
 
     delay(1000);
 
-    Serial.println(F("SD Card init"));
+    //Serial.println(F("SD Card init"));
+    lcd_print_immediate(F("SD Card init"));
     // disable ethernet before card init
     pinMode(10,OUTPUT);
     digitalWrite(10,HIGH);
     sdcard_init();
     char index[] = "/INDEX.HTM";
     if (SD.exists(index)) {
-        Serial.println(F("SD Card OK"));
+        lcd_print_immediate(F("SD init OK"));
     } else {
-        Serial.println(F("INDEX.HTM not found. Not going on"));
+        lcd_print_immediate(F("INDEX.HTM not found"));
         int q = 0;
         while (!SD.exists(index)) {
             digitalWrite(13, q);
@@ -131,15 +138,15 @@ void setup(void) {
     }
     digitalWrite(13, LOW);
     Serial.println(F("Inititalising Ethernet"));
+    lcd_print_immediate(F("Starting Eth..."));
 
     // load config from sdcard
     aJsonObject * cfile = file_read("", "config.jso");
     if (cfile != NULL) {
-        Serial.println(F("Loading config"));
         config.load(cfile);
         aJson.deleteItem(cfile);
     } else {
-        Serial.println(F("Using default config"));
+        lcd_print_immediate(F("E:Default cfg"));
         config.save();
     }
     if (config.use_dhcp == 1) {
@@ -157,6 +164,9 @@ void setup(void) {
     Serial.println(freeRam());
     triggers_save(triggers);
     Serial.println(freeRam());
+
+    lcd_print_immediate(F("Starting GSM..."));
+    gsm.TurnOn(9600);
 
     // start real time clock
     Serial.println(F("Initialising clock"));
@@ -178,9 +188,6 @@ void setup(void) {
         pinMode(RELAY_START + i, OUTPUT);
         // outputs.set(i, 0);
     }
-
-    Serial.println(F("Wasting time (2s)"));
-    delay(2000);
     // init temp/humidity logger
     myDHT22.readData();
     Serial.print(F("DHT22 Sensor - temp: "));
@@ -259,6 +266,29 @@ void worker(){
 
     sprintf(lcd_msg, "Usnd: %dcm", ultrasound.peek());
     lcd_publish(lcd_msg);
+
+    lcd_tick();
+
+    int gsm_reg;
+    gsm_reg = gsm.CheckRegistration();
+    switch (gsm_reg){
+        case REG_NOT_REGISTERED:
+            lcd_publish("GSM not registered");
+            break;
+        case REG_REGISTERED:
+            lcd_publish("GSM registered");
+            if (gsm_init_done == 0) {
+                Serial3.println("AT+CLTS=1\r");
+                Serial3.println("AT+CENG=3\r");
+            }
+            break;
+        case REG_NO_RESPONSE:
+            lcd_publish("GSM no response");
+            break;
+        case REG_COMM_LINE_BUSY:
+            lcd_publish("GSM busy");
+            break;
+    }
 
     digitalWrite(13, LOW);
 }
@@ -506,7 +536,6 @@ void loop(void){
         worker();
         pFreeRam();
     }
-    lcd_tick();
     EthernetClient client = server.available();
     if (client) {
         pageServe(client);
@@ -518,4 +547,5 @@ void loop(void){
         pFreeRam();
     }
     delay(50);
+    lcd_tick();
 }

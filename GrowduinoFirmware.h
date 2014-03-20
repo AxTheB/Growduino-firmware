@@ -32,6 +32,8 @@
 
 #define BUFSIZE 256
 
+#define ALARM_STR_MAXSIZE 32
+
 // max. 32
 #define TRIGGERS 6
 
@@ -39,7 +41,7 @@
 
 #define LOGGERS 6
 
-#define DEBUG 1
+// #define DEBUG 1
 
 #define LCD_RESET 36
 #define LCD_ENABLE 37
@@ -50,14 +52,14 @@
 
 #define LCD_BUFFER_LINES 5
 
+#define GSM_ENABLE 6
+
 
 #ifdef DEBUG
-
 #define DEBUG_OUTPUT 1
 //#define DEBUG_SDCARD 1
 #define DEBUG_TRIGGERS 1
 #define DEBUG_HTTP 1
-
 #endif
 
 // How many output chages do we keep in memory
@@ -74,6 +76,7 @@
 #include "ultrasound.h"
 #include "ds.h"
 #include "Lcd.h"
+#include "alerts.h"
 
 extern int ether;
 void pFreeRam();
