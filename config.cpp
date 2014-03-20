@@ -6,9 +6,6 @@
 /*
  * Config object
  * Stores network data
- * TODO:
- * store triggers
- * store I/O names
  */
 
 
