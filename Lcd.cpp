@@ -3,42 +3,85 @@
 extern LiquidCrystal lcd;
 
 char lcd_lines[LCD_BUFFER_LINES][17];
-int lcd_last_printed_line, lcd_buffer_line;
+int lcd_last_printed_line, inserted_lines;
 long lastrun;
 
 void lcd_setup(){
     
     lcd.begin(16,2);
     lcd_flush();
-    lcd.print(F("Grow! "));
+    lcd_publish(F("Initialising LCD"));
+    lcd_tick();
     lastrun = -1;
+
 }
 void lcd_publish(char * msg) {
-    strlcpy((char * ) lcd_lines[lcd_buffer_line], msg, 17);
-    lcd_buffer_line += 1;
-    if (lcd_buffer_line == LCD_BUFFER_LINES)
-        lcd_buffer_line = 0;
+    // Inserts msg into buffer
+    Serial.print("lcd_publish: ");
+    Serial.println(msg);
+    if (inserted_lines < LCD_BUFFER_LINES) {
+        strlcpy((char * ) lcd_lines[inserted_lines], msg, 17);
+        inserted_lines += 1;
+        lastrun = -1;
+    } else {
+        lcd_print_immediate(F("lcd buf overflow"));
+    }
 }
-void lcd_flush() {
+
+void lcd_publish(const __FlashStringHelper * msg) {
+    // inserts msg into buffer from flash
+    Serial.print("lcd_publish: ");
+    Serial.println(msg);
+    if (inserted_lines < LCD_BUFFER_LINES) {
+        strlcpy_P((char * ) lcd_lines[inserted_lines], (char *) msg, 17);
+        inserted_lines += 1;
+        lastrun = -1;
+    } else {
+        lcd_print_immediate(F("lcd buf overflow"));
+    }
+}
+
+void lcd_print_immediate(const __FlashStringHelper * msg) {
+    // injects msg from flash just after buffer start and displays it
+    if (inserted_lines > 1) {
+        strlcpy((char * ) lcd_lines[0], lcd_lines[inserted_lines - 1],17);
+        inserted_lines = 2;
+    } else {
+        inserted_lines += 1;
+    }
+    strlcpy_P((char * ) lcd_lines[inserted_lines - 1], (char *) msg, 17);
+    lastrun = -1;
     lcd_last_printed_line = 0;
-    lcd_last_printed_line=0;
+    
+    lcd_tick();
+}
+
+void lcd_flush() {
+    // cleans buffer
+    lcd_last_printed_line = 0;
     lcd.setCursor(0, 0);
     for (int i =0; i < LCD_BUFFER_LINES; i++) {
         lcd_lines[i][0] = '\0';
     }
-    lcd_buffer_line = 0;
+    inserted_lines = 0;
+    lastrun = -1;
 }
+
 void lcd_tick() {
     long currrun = millis() / 5000;
     if (currrun != lastrun) {
+
         lastrun = currrun;
         lcd.clear();
         lcd.print(lcd_lines[lcd_last_printed_line]);
 
-        lcd_last_printed_line += 1;
-        if (lcd_last_printed_line >= lcd_buffer_line)
-            lcd_last_printed_line = 0;
-        lcd.setCursor(0, 1);
-        lcd.print(lcd_lines[lcd_last_printed_line]);
+        if (inserted_lines > 1) {
+            lcd_last_printed_line += 1;
+            if (lcd_last_printed_line >= inserted_lines)
+                lcd_last_printed_line = 0;
+            lcd.setCursor(0, 1);
+            lcd.print(lcd_lines[lcd_last_printed_line]);
+        }
+    } else {
     }
 }
