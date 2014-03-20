@@ -181,3 +181,21 @@ Historical data
  - /data/SENSOR/YYYY/MM/DD/HH.jso stores data for each hour.
 
 /data/output/YYYY/MM/DD/XX.jso stores log of sensor changes, split by 50 records. GET the sequence until 404 is encountered. TODO
+
+
+Alerts
+------
+Sends message to remote person when trigger chages state
+/alerts/X.jso
+ - supports GET, POST
+
+ ```json
+    {
+        "on_message":"Temp too high!",
+        "off_message":"Temp back at normal",
+        "trigger":1,
+        "target":"+420777123456",
+    }
+```
+ - target may be phone number for SMS or mail address (TODO)
+ - when one of the messages is empty or missing then nothing is sent on corresponding trigger change
