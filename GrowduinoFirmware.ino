@@ -56,7 +56,8 @@ Logger dht22_temp = Logger("Temp1");
 Logger dht22_humidity = Logger("Humidity");
 // light sensor on analog A15
 #define LIGHT_SENSOR_PIN 15
-Logger light_sensor = Logger("Light");
+Logger light_sensor = Logger("Light1");
+Logger light_sensor2 = Logger("Light2");
 
 Logger ultrasound = Logger("Usnd");
 
@@ -72,7 +73,7 @@ aJsonStream serial_stream(&Serial);
 
 EthernetServer server(80);
 
-Logger * loggers[LOGGERS] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultrasound, &onewire_temp1, &onewire_temp2};
+Logger * loggers[LOGGERS] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultrasound, &onewire_temp1, &onewire_temp2, &light_sensor2};
 
 Trigger triggers[TRIGGERS];
 
@@ -214,17 +215,18 @@ void worker(){
     dht22_temp.timed_log(myDHT22.getTemperatureCInt());
     dht22_humidity.timed_log(myDHT22.getHumidityInt());
     light_sensor.timed_log(map(analogRead(LIGHT_SENSOR_PIN), 0, 1024, 0, 1000));
+    light_sensor2.timed_log(map(analogRead(LIGHT_SENSOR_PIN-1), 0, 1024, 0, 1000));
     ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
 
     onewire_temp1.timed_log(ds_read(ds, temp1_addr));
     onewire_temp2.timed_log(ds_read(ds, temp2_addr));
 
     #ifdef DEBUG_LOGGERS
-    int numLogers = sizeof(loggers) / sizeof(Logger *);
-    Serial.print(F("# of loggers: "));
-    Serial.println(numLogers, DEC);
+    //  int numLogers = sizeof(loggers) / sizeof(Logger *);
+    // Serial.print(F("# of loggers: "));
+    // Serial.println(numLogers, DEC);
 
-    for(int i=0; i < numLogers; i++) {
+    for(int i=0; i < LOGGERS; i++) {
         Serial.print(loggers[i]->name);
         Serial.print(F(": "));
         aJsonObject *msg = loggers[i]->json();

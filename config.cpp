@@ -88,8 +88,8 @@ int Config::save(){
         aJson.addStringToObject(root, "netmask", addr);
         inet_ntoa(gateway, addr);
         aJson.addStringToObject(root, "gateway", addr);
-        inet_ntoa(ntp, addr);
     }
+    inet_ntoa(ntp, addr);
     aJson.addItemToObject(root, "ntp", aJson.createItem(addr));
     file_write("", "config.jso", root);
     aJson.deleteItem(root);
