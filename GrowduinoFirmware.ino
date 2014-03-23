@@ -20,15 +20,20 @@
 
 #include <avr/pgmspace.h>
 
-#include <LiquidCrystal.h>
+//#include <LiquidCrystal.h>
+#include <Adafruit_MCP23017.h>
+#include <Adafruit_RGBLCDShield.h>
 
 #include <GSM_Shield.h>
+
+// #include <avr/wdt.h>
 
 GSM gsm;
 
 int gsm_init_done = 0;
 
-LiquidCrystal lcd(LCD_RESET, LCD_ENABLE, LCD_D1, LCD_D2, LCD_D3, LCD_D4);
+//LiquidCrystal lcd(LCD_RESET, LCD_ENABLE, LCD_D1, LCD_D2, LCD_D3, LCD_D4);
+Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 
 int ether = 1;
 
@@ -109,6 +114,7 @@ aJsonObject * status(){
 }
 
 void setup(void) {
+    // wdt_disable();
     pinMode(13, OUTPUT);
     // start serial port
     Serial.begin(115200);
@@ -188,6 +194,9 @@ void setup(void) {
         pinMode(RELAY_START + i, OUTPUT);
         // outputs.set(i, 0);
     }
+
+    // wdt_enable(WDTO_8S);
+
     // init temp/humidity logger
     myDHT22.readData();
     Serial.print(F("DHT22 Sensor - temp: "));
@@ -531,6 +540,7 @@ void pageServe(EthernetClient client){
 }
 
 void loop(void){
+    // wdt_reset();
     t_loop_start = millis();
     if (dht22_temp.available()) {
         worker();
