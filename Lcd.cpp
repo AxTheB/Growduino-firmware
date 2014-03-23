@@ -1,6 +1,11 @@
 #include "GrowduinoFirmware.h"
-#include <LiquidCrystal.h>
-extern LiquidCrystal lcd;
+//#include <LiquidCrystal.h>
+
+#include <Adafruit_MCP23017.h>
+#include <Adafruit_RGBLCDShield.h>
+
+//extern LiquidCrystal lcd;
+extern Adafruit_RGBLCDShield lcd;
 
 char lcd_lines[LCD_BUFFER_LINES][17];
 int lcd_last_printed_line, inserted_lines;
@@ -9,6 +14,7 @@ long lastrun;
 void lcd_setup(){
     
     lcd.begin(16,2);
+    lcd.setBacklight(0x07);
     lcd_flush();
     lcd_publish(F("Initialising LCD"));
     lcd_tick();
