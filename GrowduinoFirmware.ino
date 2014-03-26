@@ -24,11 +24,15 @@
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
 
+// #define USE_GSM 1
+
+#ifdef USE_GSM
 #include <GSM_Shield.h>
-
-// #include <avr/wdt.h>
-
 GSM gsm;
+#endif
+
+#include <avr/wdt.h>
+
 
 int gsm_init_done = 0;
 
@@ -115,7 +119,7 @@ aJsonObject * status(){
 }
 
 void setup(void) {
-    // wdt_disable();
+    wdt_disable();
     pinMode(13, OUTPUT);
     // start serial port
     Serial.begin(115200);
@@ -172,11 +176,15 @@ void setup(void) {
     triggers_save(triggers);
     Serial.println(freeRam());
 
+    #ifdef USE_GSM
     lcd_print_immediate(F("Starting GSM..."));
+    Serial3.begin(9600);
     gsm.TurnOn(9600);
+    #endif
 
     // start real time clock
     Serial.println(F("Initialising clock"));
+    lcd_print_immediate(F("Starting clock"));
     daytime_init();
 
     // find ds temp sensor addresses
@@ -196,7 +204,9 @@ void setup(void) {
         // outputs.set(i, 0);
     }
 
-    // wdt_enable(WDTO_8S);
+    #ifdef WATCHDOG
+    wdt_enable(WDTO_8S);
+    #endif
 
     // init temp/humidity logger
     myDHT22.readData();
@@ -209,6 +219,10 @@ void setup(void) {
 }
 
 void worker(){
+    #ifdef DEBUG
+    Serial.print(F("Uptime: "));
+    Serial.println(millis() / 1000);
+    #endif
     digitalWrite(13, HIGH);
     //read sensors and store data
     myDHT22.readData();
@@ -227,6 +241,9 @@ void worker(){
     // Serial.println(numLogers, DEC);
 
     for(int i=0; i < LOGGERS; i++) {
+        #ifdef WATCHDOG
+        wdt_reset();
+        #endif
         Serial.print(loggers[i]->name);
         Serial.print(F(": "));
         aJsonObject *msg = loggers[i]->json();
@@ -280,6 +297,7 @@ void worker(){
 
     lcd_tick();
 
+    #ifdef USE_GSM
     int gsm_reg;
     gsm_reg = gsm.CheckRegistration();
     switch (gsm_reg){
@@ -300,6 +318,7 @@ void worker(){
             lcd_publish("GSM busy");
             break;
     }
+    #endif
 
     digitalWrite(13, LOW);
 }
@@ -542,7 +561,10 @@ void pageServe(EthernetClient client){
 }
 
 void loop(void){
-    // wdt_reset();
+    #ifdef WATCHDOG
+    wdt_reset();
+    #endif
+
     t_loop_start = millis();
     if (dht22_temp.available()) {
         worker();
