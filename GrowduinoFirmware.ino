@@ -31,8 +31,6 @@
 GSM gsm;
 #endif
 
-#include <avr/wdt.h>
-
 
 int gsm_init_done = 0;
 
@@ -494,6 +492,9 @@ void pageServe(EthernetClient client){
     t_1 = millis();
     while (client.connected()) {
         if (client.available()) {
+            #ifdef WATCHDOG
+            wdt_reset();
+            #endif
             linesize = client.readBytesUntil('\n', clientline, BUFSIZE-1);
             clientline[linesize] = '\0';
             #ifdef DEBUG_HTTP
