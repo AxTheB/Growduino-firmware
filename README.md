@@ -55,7 +55,9 @@ Firmware configuration
         "netmask":"255.255.255.0",
         "gateway":"195.113.57.254",
         "mac":"de:ad:be:ef:55:44",
-        "ntp":"195.113.56.8"
+        "ntp":"195.113.56.8",
+        "smtp":"10.0.0.1",
+        "mail_from":"me@exmaple.com"
     }
 ```
 

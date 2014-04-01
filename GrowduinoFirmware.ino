@@ -74,10 +74,12 @@ aJsonStream serial_stream(&Serial);
 //LiquidCrystal lcd(8,9,4,5,6,7);
 
 EthernetServer server(80);
+EthernetClient eth_client;
 
 Logger * loggers[LOGGERS] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultrasound, &onewire_temp1, &onewire_temp2, &light_sensor2};
 
 Trigger triggers[TRIGGERS];
+Alert alerts[ALERTS];
 
 int freeRam () {
   extern int __heap_start, *__brkval;
@@ -132,6 +134,8 @@ void setup(void) {
     // disable ethernet before card init
     pinMode(10,OUTPUT);
     digitalWrite(10,HIGH);
+    pinMode(53,OUTPUT);
+    digitalWrite(53,HIGH);
     sdcard_init();
     char index[] = "/INDEX.HTM";
     if (SD.exists(index)) {
@@ -174,9 +178,17 @@ void setup(void) {
     triggers_save(triggers);
     Serial.println(freeRam());
 
+    // load alerts
+    Serial.println(F("Loading alerts"));
+    alerts_load(alerts);
+    Serial.println(freeRam());
+    alerts_save(alerts);
+    Serial.println(freeRam());
+
+
     #ifdef USE_GSM
     lcd_print_immediate(F("Starting GSM..."));
-    Serial3.begin(9600);
+    //Serial3.begin(9600);
     gsm.TurnOn(9600);
     #endif
 
@@ -274,6 +286,20 @@ void worker(){
 #endif
 
         triggers[i].tick();
+    }
+    // tick alerts
+    for(int i=0; i < ALERTS; i++) {
+#ifdef DEBUG_TRIGGERS
+        Serial.print(F("Alert "));
+        Serial.println(i);
+        aJsonObject *msg = aJson.createObject();
+        msg = alerts[i].json(msg);
+        aJson.print(msg, &serial_stream);
+        aJson.deleteItem(msg);
+        Serial.println("");
+#endif
+
+        alerts[i].tick();
     }
 
     // move relays
@@ -479,6 +505,13 @@ int fn_extract_trg(char * request){
     return trg;
 }
 
+int fn_extract_alert(char * request){
+    int alert = -1;
+    sscanf(request, "alerts/%d.jso", &alert);
+    if (alert >= ALERTS) alert = -1;
+    return alert;
+}
+
 void pageServe(EthernetClient client){
     char request[33];
     char clientline[BUFSIZE];
@@ -533,7 +566,8 @@ void pageServe(EthernetClient client){
     }
     // Headers ale all here, if its post we now should read the body.
     if (post) {
-        int trgno = fn_extract_trg(request);
+        int trg_no = fn_extract_trg(request);
+        int alert_no = fn_extract_alert(request);
 
         if (strcasecmp(request, "client.jso") == 0) {
             aJsonStream eth_stream(&client);
@@ -546,11 +580,17 @@ void pageServe(EthernetClient client){
             config.load(data);
             config.save();
             aJson.deleteItem(data);
-        } else if (trgno > -1) {
+        } else if (trg_no > -1) {
             aJsonStream eth_stream(&client);
             aJsonObject * data = aJson.parse(&eth_stream);
-            trigger_load(triggers, loggers, data, trgno);
-            trigger_save(triggers, trgno);
+            trigger_load(triggers, loggers, data, trg_no);
+            trigger_save(triggers, trg_no);
+            aJson.deleteItem(data);
+        } else if (alert_no > -1) {
+            aJsonStream eth_stream(&client);
+            aJsonObject * data = aJson.parse(&eth_stream);
+            alert_load(data, alert_no);
+            alert_save(alerts, alert_no);
             aJson.deleteItem(data);
         }
     }

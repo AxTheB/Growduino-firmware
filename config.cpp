@@ -14,6 +14,7 @@ Config::Config(){
     use_dhcp = 1;
     mac_aton("de:ad:be:ef:55:44", mac);
     ntp = IPAddress(195, 113, 56, 8);
+    mail_from = NULL;
 }
 
 void Config::load(aJsonObject * json){
@@ -21,6 +22,7 @@ void Config::load(aJsonObject * json){
     byte tmpmac[6];
     char debug_out[32];
     IPAddress tmpip;
+    int json_strlen;
 
     aJsonObject* cnfobj = aJson.getObjectItem(json, "use_dhcp");
     if (cnfobj) {
@@ -66,6 +68,29 @@ void Config::load(aJsonObject * json){
         }
     }
 
+    cnfobj = aJson.getObjectItem(json, "smtp");
+    if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
+        inet_aton(cnfobj->valuestring, smtp);
+        Serial.print(F("smtp "));
+        inet_ntoa(smtp, debug_out);
+        Serial.println(debug_out);
+    }
+
+    cnfobj = aJson.getObjectItem(json, "mail_from");
+    if (cnfobj->type == aJson_String)  {
+        if (mail_from != NULL) {
+            free(mail_from);
+            mail_from = NULL;
+        }
+        json_strlen = strnlen(cnfobj->valuestring, 31);
+        mail_from = (char *) malloc(json_strlen + 1);
+        if (mail_from == NULL) {
+            Serial.println(F("OOM on config load (mail_from)"));
+        } else {
+            strlcpy(mail_from, cnfobj->valuestring, json_strlen + 1);
+        }
+    }
+
     cnfobj = aJson.getObjectItem(json, "ntp");
     if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
         inet_aton(cnfobj->valuestring, ntp);
@@ -91,6 +116,9 @@ int Config::save(){
     }
     inet_ntoa(ntp, addr);
     aJson.addItemToObject(root, "ntp", aJson.createItem(addr));
+    inet_ntoa(smtp, addr);
+    aJson.addStringToObject(root, "smtp", addr);
+    aJson.addStringToObject(root, "mail_from", mail_from);
     file_write("", "config.jso", root);
     aJson.deleteItem(root);
     return 1;

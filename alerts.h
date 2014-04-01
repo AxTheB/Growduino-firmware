@@ -14,4 +14,10 @@ class Alert {
         void load(aJsonObject *msg, int index);
         int tick();
         aJsonObject * json(aJsonObject *cnfdata);
+        int send_message();
 };
+
+int alerts_save(Alert alerts[]);
+int alerts_load(Alert alerts[]);
+int alert_save(Alert alerts[], int idx);
+int alert_load(aJsonObject * cfile, int alert_no);

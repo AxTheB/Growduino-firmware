@@ -21,5 +21,6 @@ class Config
         IPAddress netmask;
         IPAddress gateway;
         IPAddress ntp;
+        IPAddress smtp;
+        char * mail_from;
 };
-

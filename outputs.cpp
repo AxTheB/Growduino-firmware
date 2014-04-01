@@ -25,16 +25,19 @@ void Output::common_init(){
 int Output::get(int slot){
     // return true if %slot% should be on
     // ignoring broken state
+    if (slot == -1 || slot >= OUTPUTS) return 0;
     return (state[slot] != 0);
 }
 
 int Output::hw_get(int slot){
     // return true if %slot% is on
+    if (slot == -1 || slot >= OUTPUTS) return 0;
     return (hw_state[slot] != 0);
 }
 
 int Output::set(int slot, int val, int trigger){
     // update valute of %slot% 
+    if (slot == -1 || slot >= OUTPUTS) return 0;
     if (val == 0) {
         state[slot] = bitclr(state[slot], trigger);
     } else {
@@ -46,7 +49,7 @@ int Output::set(int slot, int val, int trigger){
 int Output::breakme(int slot, int val, int trigger){
     // update valute of %slot% 
 
-    if (slot < 0 || slot > OUTPUTS || trigger < 0 || trigger > TRIGGERS ) {
+    if (slot < 0 || slot >= OUTPUTS || trigger < 0 || trigger > TRIGGERS ) {
         Serial.println(F("breakme: nop"));
         return NONE;
     }
@@ -61,12 +64,14 @@ int Output::breakme(int slot, int val, int trigger){
 }
 
 void Output::kill(int slot, int trigger){
+    if (slot == -1 || slot >= OUTPUTS) return;
     Serial.print(F("Killing output #"));
     Serial.println(slot, DEC);
     breakme(slot, 1, trigger);
 }
 
 void Output::revive(int slot, int trigger){
+    if (slot == -1 || slot >= OUTPUTS) return;
     Serial.print(F("Reviving output #"));
     Serial.println(slot, DEC);
     breakme(slot, 0, trigger);
@@ -75,6 +80,7 @@ void Output::revive(int slot, int trigger){
 
 time_t Output::uptime(int slot){
     // return time since last change
+    if (slot == -1 || slot >= OUTPUTS) return 0;
     return now() - ctimes[slot];
 }
 

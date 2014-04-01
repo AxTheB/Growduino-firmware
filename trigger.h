@@ -3,8 +3,6 @@
 
 #include <aJSON.h>
 
-#define NONE -1
-
 class Trigger {
     public:
 
@@ -18,6 +16,7 @@ class Trigger {
         int sensor;
         int output;
         int idx;
+        int state;
 
         Trigger();
         void init();

@@ -21,6 +21,7 @@ void Trigger::init(){
     output = NONE;
     _logger = NULL;
     idx = NONE;
+    state = S_OFF;
 }
 
 void Trigger::load(aJsonObject *msg, Logger * loggers[], int index){
@@ -136,6 +137,7 @@ aJsonObject * Trigger::json(aJsonObject *cnfdata){
 void Trigger::set_default_state(){
         //default out-of-time state is disabled, not broken
         outputs.set(output, 0, idx);
+        state = S_OFF;
         if (important) outputs.revive(output, idx);
 }
 
@@ -150,31 +152,34 @@ int Trigger::tick(){
     Serial.println(l_daymin);
 #endif
 
+    /* do not skip triggers without output, they may have alerts on them
     if (output == NONE) {
 #ifdef DEBUG_TRIGGERS
         Serial.println(F("Skipping trigger (no output)"));
 #endif
         return false;
     }
-
+    */
 
     // if t_since == -1 run all day.
     // if t_since > t_until run over midnight
-    
+
+    int time_ok = 0;
+
     if (t_since == -1) {
         Serial.println(F("All day trigger"));
+        time_ok = 1;
     }
     if (t_since <= l_daymin && t_until > l_daymin) {
         Serial.println(F("Hit normal trigger"));
+        time_ok = 1;
     }
     if ((t_since > t_until) && (t_since <= l_daymin || t_until > l_daymin)) {
         Serial.println(F("Hit overnight trigger"));
+        time_ok = 1;
     }
 
-    if ((t_since == -1) ||
-            (t_since <= l_daymin && t_until > l_daymin) ||
-            ((t_since > t_until) && (t_since <= l_daymin || t_until > l_daymin))
-       ) {
+    if (time_ok == 1) {
 #ifdef DEBUG_TRIGGERS
         Serial.print(F("time ok: "));
         Serial.println(l_daymin);
@@ -195,6 +200,7 @@ int Trigger::tick(){
         switch (on_cmp) {
             case '<':
                 if (sensor_val < on_value || sensor == NONE) {
+                    state = S_ON;
                     outputs.set(output, 1, idx);
                     if (important) outputs.revive(output, idx);
 #ifdef DEBUG_TRIGGERS
@@ -212,6 +218,7 @@ int Trigger::tick(){
                         outputs.revive(output, idx);
                     } else {
                         outputs.set(output, 1, idx);
+                        state = S_ON;
                     }
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on >"));
@@ -235,6 +242,7 @@ int Trigger::tick(){
                         outputs.revive(output, idx);
                     } else {
                         outputs.set(output, 1, idx);
+                        state = S_ON;
                     }
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on T"));
@@ -261,6 +269,7 @@ int Trigger::tick(){
                         outputs.kill(output, idx);
                     } else {
                         outputs.set(output, 0, idx);
+                        state = S_OFF;
                     }
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on <"));
@@ -277,6 +286,7 @@ int Trigger::tick(){
                         outputs.kill(output, idx);
                     } else {
                         outputs.set(output, 0, idx);
+                        state = S_OFF;
                     }
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on >"));
@@ -301,6 +311,7 @@ int Trigger::tick(){
                         outputs.kill(output, idx);
                     } else {
                         outputs.set(output, 0, idx);
+                        state = S_OFF;
                     }
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on T"));
@@ -315,7 +326,6 @@ int Trigger::tick(){
 
     } else {
         set_default_state();
-
 #ifdef DEBUG_TRIGGERS
         Serial.print(F("Wrong time: "));
         Serial.println(l_daymin);

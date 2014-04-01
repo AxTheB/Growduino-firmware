@@ -36,7 +36,9 @@
 #define ALARM_STR_MAXSIZE 32
 
 // max. 32
-#define TRIGGERS 6
+#define TRIGGERS 16
+
+#define ALERTS 7
 
 #define OUTPUTS 8
 
@@ -78,7 +80,11 @@
 #include "ds.h"
 #include "Lcd.h"
 #include "alerts.h"
+#include "smtp.h"
 
 extern int ether;
 void pFreeRam();
 
+#define NONE -1
+#define S_ON 1
+#define S_OFF 0
