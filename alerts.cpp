@@ -78,7 +78,15 @@ void Alert::load(aJsonObject *msg, int index){
 }
 
 int Alert::send_message() {
+#ifdef DEBUG_TRIGGERS
+        Serial.print(F("Alarm target "));
+        Serial.print(target);
+#endif
+
     if (strchr(target, '@') != NULL) {
+#ifdef DEBUG_TRIGGERS
+        Serial.print(F("Sending mail"));
+#endif
         //send mail
         int size;
         char subject[32];
@@ -118,8 +126,8 @@ int Alert::tick() {
 #endif
 
         last_state = triggers[trigger].state;
-        return last_state;
         send_message();
+        return last_state;
     }
 }
 
