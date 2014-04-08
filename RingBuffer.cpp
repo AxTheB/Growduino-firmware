@@ -28,6 +28,7 @@ void RingBuffer::cleanup(int start=0, int end=-1) {
     //fills parts of buffer with minvalue so we can put gaps in graph.
 
     if (start !=0 || end != -1) {  //Do not write to Serial on initial cleanup, as its not initialised yet
+#ifdef DEBUG_RB_DATA
         Serial.print(F("Cleanup "));
         Serial.print(buf_name);
         Serial.print(F(" "));
@@ -35,6 +36,7 @@ void RingBuffer::cleanup(int start=0, int end=-1) {
         Serial.print(F(" "));
         Serial.print(end);
         Serial.println(F(";"));
+#endif
     }
 
     if (end > buf_len || start == end) {
@@ -64,16 +66,22 @@ void RingBuffer::load(aJsonObject * data){
     int item;
     char * dValue;
 
+#ifdef DEBUG_RB_DATA
     Serial.print(F("Loading buffer "));
     Serial.println(buf_name);
+#endif
     buff = aJson.getObjectItem(data, buf_name);
     if (!buff) {
+#ifdef DEBUG_RB_DATA
         Serial.println(F("json contains no related data"));
+#endif
         i_end = -1;
     } else {
         i_end = aJson.getArraySize(buff);
+#ifdef DEBUG_RB_DATA
         Serial.print(F("Array size: "));
         Serial.println(i_end);
+#endif
         for(i=0; i<i_end; i++){
             data_item = aJson.getArrayItem(buff, i);
             dValue = aJson.print(data_item);
@@ -84,6 +92,7 @@ void RingBuffer::load(aJsonObject * data){
             free(dValue);
         }
     }
+#ifdef DEBUG_RB_DATA
     Serial.print(F("Loaded buffer "));
     Serial.print(buf_name);
     Serial.print(F(". Stored "));
@@ -91,6 +100,7 @@ void RingBuffer::load(aJsonObject * data){
     Serial.print(F(" values, index is now "));
     Serial.print(index);
     Serial.println(F("."));
+#endif
 }
 
 int RingBuffer::avg(){
@@ -150,6 +160,7 @@ aJsonObject* RingBuffer::json_dynamic(aJsonObject *msg) {
 }
 
 bool RingBuffer::store(int value, int slot){
+#ifdef DEBUG_RB_DATA
     Serial.print(F("Storing "));
     Serial.print(value);
     Serial.print(F(" into "));
@@ -158,6 +169,7 @@ bool RingBuffer::store(int value, int slot){
     Serial.print(slot);
     Serial.print(F(" with index "));
     Serial.println(index);
+#endif
     //stay inside buffer
     //this allows us to log sequence longer than buffer, for example using
     //ordinary timestamp or day-seconds

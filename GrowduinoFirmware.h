@@ -9,6 +9,8 @@
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>
 
+//#define WATCHDOG 1
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,7 +46,7 @@
 
 #define LOGGERS 7
 
-// #define DEBUG 1
+#define DEBUG 1
 
 #define LCD_RESET 36
 #define LCD_ENABLE 37
@@ -61,6 +63,7 @@
 #ifdef DEBUG
 #define DEBUG_OUTPUT 1
 //#define DEBUG_SDCARD 1
+//#define DEBUG_RB_DATA 1
 #define DEBUG_TRIGGERS 1
 #define DEBUG_HTTP 1
 #endif
