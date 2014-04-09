@@ -39,10 +39,14 @@ void daytime_init(){
     Serial.println(F("trying NTP sync"));
     unsigned int localPort = 8888;  // local port to listen for UDP packets
     Udp.begin(localPort);
-    if (getNtpTime() > 0) {
+    time_t ntptime = getNtpTime();
+    if (ntptime > 0) {
         // get time from internets
         Serial.println(F("NTP has set the system time"));
         setSyncProvider(getNtpTime);
+        if (RTC.chipPresent()) {
+            RTC.set(ntptime);
+        }
     } else {
         Serial.println(F("Unable to reach NTP server"));
     }
@@ -50,11 +54,12 @@ void daytime_init(){
 }
 
 void digitalClockDisplay(char * time){
-    // digital clock display of the time
+    // pushes current time into char * time
     sprintf(time, "%4d-%02d-%02d %02d:%02d:%02d", year(), month(), day(), hour(), minute(), second());
 }
 
 void digitalClockDisplay(){
+    // prints time in readable format to serial console
     char time[21];
     digitalClockDisplay(time);
     Serial.println(time);
