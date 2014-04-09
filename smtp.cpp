@@ -8,27 +8,28 @@
   copied from http://playground.arduino.cc/Code/Email#.Uzc30HWx0S4
 * * */
 
-extern EthernetClient eth_client;
+EthernetClient eth_client;
 extern Config config;
 
 int send_mail(char * dest, char * subject, char * body){
     byte thisByte = 0;
     byte respCode;
-    if(eth_client.connect(config.smtp,25)) {
+    byte smtp[4] = { config.smtp[0], config.smtp[1], config.smtp[2], config.smtp[3] };
+    if(eth_client.connect(smtp, 25)) {
         Serial.println(F("SMTP connect"));
+        Serial.println(config.smtp);
+        lcd_publish(F("SMTP connect"));
     } else {
         Serial.println(F("connection failed"));
+        lcd_publish(F("SMTP fail"));
         return 0;
     }
 
     if(!eRcv()) return 0;
     Serial.println(F("Sending helo"));
 
-    // change to your public ip
-    char send_mail_buf[] = "255.255.255.255";
-    config.inet_ntoa(Ethernet.localIP(), send_mail_buf);
     eth_client.print(F("helo "));
-    eth_client.println(send_mail_buf);
+    eth_client.println(config.sys_name);
 
     if(!eRcv()) return 0;
     Serial.println(F("Sending From"));
@@ -44,7 +45,7 @@ int send_mail(char * dest, char * subject, char * body){
     Serial.println(F("Sending To"));
     eth_client.print(F("RCPT To: <"));
     eth_client.print(dest);
-    eth_client.print(F(">"));
+    eth_client.println(F(">"));
 
     if(!eRcv()) return 0;
 
@@ -61,12 +62,15 @@ int send_mail(char * dest, char * subject, char * body){
     eth_client.println(F(">"));
 
     // change to your address
-    eth_client.print(F("From: Me <"));
+    eth_client.print(F("From: "));
+    eth_client.print(config.sys_name);
+    eth_client.print(F(" <"));
     eth_client.print(config.mail_from);
-    eth_client.print(F(">"));
+    eth_client.println(F(">"));
 
     eth_client.print(F("Subject: "));
-    eth_client.print(subject);
+    eth_client.print(config.sys_name);
+    eth_client.print(F(" alert"));
     eth_client.println(F("\r\n"));
 
     eth_client.println(body);
