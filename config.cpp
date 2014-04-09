@@ -15,6 +15,9 @@ Config::Config(){
     mac_aton("de:ad:be:ef:55:44", mac);
     ntp = IPAddress(195, 113, 56, 8);
     mail_from = NULL;
+    sys_name = (char *) malloc(10);
+    strlcpy(sys_name, "growduino", 10);
+    smtp_port = 25;
 }
 
 void Config::load(aJsonObject * json){
@@ -76,6 +79,13 @@ void Config::load(aJsonObject * json){
         Serial.println(debug_out);
     }
 
+    cnfobj = aJson.getObjectItem(json, "smtp_port");
+    if (cnfobj) {
+            smtp_port = cnfobj->valueint;
+    } else {
+        smtp_port = 25;
+    }
+
     cnfobj = aJson.getObjectItem(json, "mail_from");
     if (cnfobj->type == aJson_String)  {
         if (mail_from != NULL) {
@@ -98,6 +108,21 @@ void Config::load(aJsonObject * json){
         inet_ntoa(ntp, debug_out);
         Serial.println(debug_out);
     }
+
+    cnfobj = aJson.getObjectItem(json, "sys_name");
+    if (cnfobj->type == aJson_String)  {
+        if (sys_name != NULL) {
+            free(sys_name);
+            sys_name = NULL;
+        }
+        json_strlen = strnlen(cnfobj->valuestring, 31);
+        sys_name = (char *) malloc(json_strlen + 1);
+        if (sys_name == NULL) {
+            Serial.println(F("OOM on config load (sys_name)"));
+        } else {
+            strlcpy(sys_name, cnfobj->valuestring, json_strlen + 1);
+        }
+    }
 }
 
 int Config::save(){
@@ -119,6 +144,8 @@ int Config::save(){
     inet_ntoa(smtp, addr);
     aJson.addStringToObject(root, "smtp", addr);
     aJson.addStringToObject(root, "mail_from", mail_from);
+    aJson.addStringToObject(root, "sys_name", sys_name);
+    aJson.addNumberToObject(root, "smtp_port", smtp_port);
     file_write("", "config.jso", root);
     aJson.deleteItem(root);
     return 1;
@@ -150,6 +177,7 @@ int Config::inet_aton(const char* aIPAddrString, IPAddress& aResult) {
 }
 
 char * Config::inet_ntoa(IPAddress addr, char * dest) {
+    //creates string from IPAddress
     //sprintf(dest, "%d.%d.%d.%d", IPAddress[0], IPAddress[1], IPAddress[2], IPAddress[3]);
     sprintf(dest, "%d.%d.%d.%d", addr[0], addr[1], addr[2], addr[3]);
     return dest;

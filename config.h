@@ -22,5 +22,7 @@ class Config
         IPAddress gateway;
         IPAddress ntp;
         IPAddress smtp;
+        int smtp_port;
         char * mail_from;
+        char * sys_name;
 };
