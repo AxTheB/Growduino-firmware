@@ -64,7 +64,7 @@ Logger light_sensor2 = Logger("Light2");
 Logger ultrasound = Logger("Usnd");
 
 Logger onewire_temp1 = Logger("Temp2");
-Logger onewire_temp2 = Logger("Temp3");
+// Logger onewire_temp2 = Logger("Temp3");
 
 Config config;
 Output outputs;
@@ -74,9 +74,8 @@ aJsonStream serial_stream(&Serial);
 //LiquidCrystal lcd(8,9,4,5,6,7);
 
 EthernetServer server(80);
-EthernetClient eth_client;
 
-Logger * loggers[LOGGERS] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultrasound, &onewire_temp1, &onewire_temp2, &light_sensor2};
+Logger * loggers[LOGGERS] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultrasound, &onewire_temp1, &light_sensor2};
 
 Trigger triggers[TRIGGERS];
 Alert alerts[ALERTS];
@@ -96,6 +95,7 @@ aJsonObject * status(){
     aJsonObject * msg = aJson.createObject();
     char buffer[21];
     int freeram = freeRam();
+    aJson.addItemToObject(msg, "sys_name", aJson.createItem(config.sys_name));
     aJson.addItemToObject(msg, "free_ram", aJson.createItem(freeram));
     aJson.addItemToObject(msg, "sensors", aJson.createItem(LOGGERS));
     aJson.addItemToObject(msg, "outputs", aJson.createItem(OUTPUTS));
@@ -119,6 +119,7 @@ aJsonObject * status(){
 }
 
 void setup(void) {
+    int i;
     wdt_disable();
     pinMode(13, OUTPUT);
     // start serial port
@@ -203,13 +204,13 @@ void setup(void) {
     ds.search(temp2_addr);
 
     //load data from sd card
-    dht22_temp.load();
-    dht22_humidity.load();
-    light_sensor.load();
+    for(i=0; i <LOGGERS; i++){
+        loggers[i]->load();
+    }
 
     //initialise outputs
     outputs.common_init();
-    for(int i=0; i <8; i++) {
+    for(i=0; i <8; i++) {
         pinMode(RELAY_START + i, OUTPUT);
         // outputs.set(i, 0);
     }
@@ -243,7 +244,7 @@ void worker(){
     ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
 
     onewire_temp1.timed_log(ds_read(ds, temp1_addr));
-    onewire_temp2.timed_log(ds_read(ds, temp2_addr));
+    //onewire_temp2.timed_log(ds_read(ds, temp2_addr));
 
     #ifdef DEBUG_LOGGERS
     //  int numLogers = sizeof(loggers) / sizeof(Logger *);

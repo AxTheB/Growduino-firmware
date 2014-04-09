@@ -44,7 +44,7 @@
 
 #define OUTPUTS 8
 
-#define LOGGERS 7
+#define LOGGERS 6
 
 #define DEBUG 1
 
