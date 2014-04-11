@@ -170,8 +170,8 @@ aJsonObject * Logger::json_dynamic(){
     // aJson.addNumberToObject(msg, "time", (double) time);
     aJson.addStringToObject(msg, "name", name);
     msg = l1.json_dynamic(msg);
-    msg = l2.json_dynamic(msg);
-    msg = l3.json_dynamic(msg);
+    //msg = l2.json_dynamic(msg);
+    //msg = l3.json_dynamic(msg);
     return msg;
 }
 
