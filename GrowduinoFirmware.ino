@@ -120,6 +120,7 @@ aJsonObject * status(){
 
 void setup(void) {
     int i;
+    int we_have_net = 0;
     wdt_disable();
     pinMode(13, OUTPUT);
     // start serial port
@@ -164,9 +165,11 @@ void setup(void) {
         config.save();
     }
     if (config.use_dhcp == 1) {
-        Ethernet.begin(config.mac);
-    } else {
-        Ethernet.begin(config.mac, config.ip, config.gateway, config.netmask);
+        we_have_net = Ethernet.begin(config.mac);
+    }
+
+    if (we_have_net == 0) {
+        Ethernet.begin(config.mac, config.ip, config.gateway, config.gateway, config.netmask);
     }
     server.begin();
     Serial.print(F("server is at "));
@@ -230,6 +233,7 @@ void setup(void) {
 }
 
 void worker(){
+    // Here the sensors are read, files written and so on. Once per minute
     #ifdef DEBUG
     Serial.print(F("Uptime: "));
     Serial.println(millis() / 1000);
@@ -344,6 +348,15 @@ void worker(){
             break;
     }
     #endif
+
+    msg = dht22_humidity.json_dynamic();
+    aJson.print(msg, &serial_stream);
+    Serial.println();
+    Serial.println(F("Pre-delete"));
+        pFreeRam();
+    aJson.deleteItem(msg);
+    Serial.println(F("Post-delete"));
+        pFreeRam();
 
     digitalWrite(13, LOW);
 }
