@@ -13,7 +13,7 @@
 
 extern Config config;
 
-int timeZone = 1; //CET
+int timeZone = 2; //CEST
 
 time_t time_now;
 EthernetUDP Udp;
