@@ -13,8 +13,6 @@
 
 extern Config config;
 
-int timeZone = 2; //CEST
-
 time_t time_now;
 EthernetUDP Udp;
 
@@ -86,7 +84,7 @@ time_t getNtpTime(){
             secsSince1900 |= (unsigned long)packetBuffer[41] << 16;
             secsSince1900 |= (unsigned long)packetBuffer[42] << 8;
             secsSince1900 |= (unsigned long)packetBuffer[43];
-            return secsSince1900 - 2208988800UL + timeZone * SECS_PER_HOUR;
+            return secsSince1900 - 2208988800UL + config.time_zone * SECS_PER_HOUR;
         }
     }
     Serial.println(F("No NTP Response :-("));
@@ -119,4 +117,8 @@ int daymin(){
     int daymin;
     daymin = hour() * 60 + minute();
     return daymin;
+}
+
+time_t utc_now(){
+    return now() - config.time_zone * SECS_PER_HOUR;
 }

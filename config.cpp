@@ -18,6 +18,7 @@ Config::Config(){
     sys_name = (char *) malloc(10);
     strlcpy(sys_name, "growduino", 10);
     smtp_port = 25;
+    time_zone = 2;
 }
 
 void Config::load(aJsonObject * json){
@@ -99,6 +100,8 @@ void Config::load(aJsonObject * json){
         } else {
             strlcpy(mail_from, cnfobj->valuestring, json_strlen + 1);
         }
+
+
     }
 
     cnfobj = aJson.getObjectItem(json, "ntp");
@@ -123,6 +126,12 @@ void Config::load(aJsonObject * json){
             strlcpy(sys_name, cnfobj->valuestring, json_strlen + 1);
         }
     }
+    cnfobj = aJson.getObjectItem(json, "time_zone");
+    if (cnfobj) {
+        time_zone = cnfobj->valueint;
+    } else {
+        time_zone = 25;
+    }
 }
 
 int Config::save(){
@@ -145,6 +154,7 @@ int Config::save(){
     aJson.addStringToObject(root, "smtp", addr);
     aJson.addStringToObject(root, "mail_from", mail_from);
     aJson.addStringToObject(root, "sys_name", sys_name);
+    aJson.addNumberToObject(root, "time_zone", time_zone);
     aJson.addNumberToObject(root, "smtp_port", smtp_port);
     file_write("", "config.jso", root);
     aJson.deleteItem(root);

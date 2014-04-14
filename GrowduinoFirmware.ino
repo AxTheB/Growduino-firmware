@@ -109,7 +109,7 @@ aJsonObject * status(){
     aJson.addItemToObject(msg, "triggers_log_size", aJson.createItem(LOGSIZE));
     sprintf(buffer, "%ld", millis() / 1000);
     aJson.addItemToObject(msg, "uptime", aJson.createItem(buffer));
-    aJson.addItemToObject(msg, "tz", aJson.createItem(timeZone));
+    aJson.addItemToObject(msg, "tz", aJson.createItem(config.time_zone));
     aJson.addItemToObject(msg, "daymin", aJson.createItem(daymin()));
     digitalClockDisplay(buffer);
     aJson.addItemToObject(msg, "time", aJson.createItem(buffer));
@@ -315,16 +315,16 @@ void worker(){
     outputs.log();
     lcd_flush();
     char lcd_msg[18];
-    sprintf(lcd_msg, "Air Temp: %d.%dC", dht22_temp.peek() / 10, dht22_temp.peek() % 10);
+    snprintf(lcd_msg, 17, "Air Temp %d.%dC", dht22_temp.peek() / 10, dht22_temp.peek() % 10);
     lcd_publish(lcd_msg);
 
-    sprintf(lcd_msg, "Humidity: %d.%d%%", dht22_humidity.peek() / 10, dht22_humidity.peek() % 10);
+    snprintf(lcd_msg, 17, "Humidity %d.%d%%", dht22_humidity.peek() / 10, dht22_humidity.peek() % 10);
     lcd_publish(lcd_msg);
 
-    sprintf(lcd_msg, "Water Level: %dcm", ultrasound.peek());
+    snprintf(lcd_msg, 17, "Water Lvl %dcm", ultrasound.peek());
     lcd_publish(lcd_msg);
 
-    sprintf(lcd_msg, "Water Temp: %d.%dC", onewire_temp1.peek() / 10, onewire_temp1.peek() % 10);
+    snprintf(lcd_msg, 17, "Water Temp %d.%dC", onewire_temp1.peek() / 10, onewire_temp1.peek() % 10);
     lcd_publish(lcd_msg);
 
     lcd_tick();

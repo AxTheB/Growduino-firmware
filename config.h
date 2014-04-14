@@ -14,6 +14,7 @@ class Config
         char * inet_ntoa(IPAddress addr, char * dest);
         int mac_aton(const char * MacAddr, byte (&macResult)[6]);
         char * mac_ntoa(byte addr[], char * dest);
+        signed int time_zone;
 
         int use_dhcp;
         byte mac[6];

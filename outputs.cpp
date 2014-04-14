@@ -1,6 +1,7 @@
 #include "GrowduinoFirmware.h"
 
 #include "outputs.h"
+#include "daytime.h"
 
 
 Output::Output() {
@@ -8,7 +9,7 @@ Output::Output() {
 }
 
 void Output::common_init(){
-    time_t t_now = now();
+    time_t t_now = utc_now();
     log_index = 0;
     log_file_index = 0;
     for (int slot = 0; slot < OUTPUTS; slot++){
@@ -81,7 +82,7 @@ void Output::revive(int slot, int trigger){
 time_t Output::uptime(int slot){
     // return time since last change
     if (slot == -1 || slot >= OUTPUTS) return 0;
-    return now() - ctimes[slot];
+    return utc_now() - ctimes[slot];
 }
 
 int Output::bitget(int value, int bit){
@@ -168,7 +169,7 @@ int Output::hw_update(int slot){
 #ifdef DEBUG_OUTPUT
         Serial.println(F("Changing output"));
 #endif
-        time_t t_now = now();
+        time_t t_now = utc_now();
         digitalWrite(RELAY_START + slot, wanted);
         hw_state[slot] = wanted;
         log();
@@ -223,7 +224,7 @@ void Output::log(){
         Serial.println(packed_states);
 #endif
         log_states[log_index] = packed_states;
-        log_times[log_index] = now();
+        log_times[log_index] = utc_now();
         log_index++;
         if (log_index >= LOGSIZE) {
             log_index = 0;

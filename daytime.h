@@ -12,4 +12,4 @@ time_t getNtpTime();
 void sendNTPpacket(IPAddress &address);
 
 int daymin();
-extern int timeZone;
+time_t utc_now();
