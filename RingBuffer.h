@@ -15,7 +15,7 @@ class RingBuffer
         int get_last_avg();
         aJsonObject * json();
         aJsonObject * json(aJsonObject *msg);
-        aJsonObject * json_dynamic(aJsonObject *msg);
+        void printjson(Stream * output);
         bool store(int value, int slot);
         char buf_name[4];
         void load(aJsonObject * data);

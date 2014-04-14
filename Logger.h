@@ -12,7 +12,7 @@ class Logger
         void setup(bool timed);
         bool available();
         aJsonObject * json();
-        aJsonObject * json_dynamic();
+        void printjson(Stream * output);
         RingBuffer l1, l2, l3;
         char name[9];  //name, like "Temp1" or "Light"
         char* dirname_l1(char *dirname);

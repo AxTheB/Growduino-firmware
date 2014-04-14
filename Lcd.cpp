@@ -12,7 +12,6 @@ int lcd_last_printed_line, inserted_lines;
 long lastrun;
 
 void lcd_setup(){
-    
     lcd.begin(16,2);
     lcd.setBacklight(0x07);
     lcd_flush();

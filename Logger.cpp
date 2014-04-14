@@ -164,15 +164,12 @@ aJsonObject * Logger::json(){
     return msg;
 }
 
-aJsonObject * Logger::json_dynamic(){
-    // create json with unwinded buffers (all values, most recent last)
-    aJsonObject *msg = aJson.createObject();
-    // aJson.addNumberToObject(msg, "time", (double) time);
-    aJson.addStringToObject(msg, "name", name);
-    msg = l1.json_dynamic(msg);
-    //msg = l2.json_dynamic(msg);
-    //msg = l3.json_dynamic(msg);
-    return msg;
+void Logger::printjson(Stream * output){
+    output->print("{\"name\":\"");
+    output->print(name);
+    output->print("\",");
+    l1.printjson(output);
+    output->print("}");
 }
 
 void Logger::log(int value) {

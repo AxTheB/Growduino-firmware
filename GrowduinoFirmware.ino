@@ -314,14 +314,17 @@ void worker(){
 
     outputs.log();
     lcd_flush();
-    char lcd_msg[17];
-    sprintf(lcd_msg, "Temp: %d.%dC", dht22_temp.peek() / 10, dht22_temp.peek() % 10);
+    char lcd_msg[18];
+    sprintf(lcd_msg, "Air Temp: %d.%dC", dht22_temp.peek() / 10, dht22_temp.peek() % 10);
     lcd_publish(lcd_msg);
 
-    sprintf(lcd_msg, "Hum: %d.%d%%", dht22_humidity.peek() / 10, dht22_humidity.peek() % 10);
+    sprintf(lcd_msg, "Humidity: %d.%d%%", dht22_humidity.peek() / 10, dht22_humidity.peek() % 10);
     lcd_publish(lcd_msg);
 
-    sprintf(lcd_msg, "Usnd: %dcm", ultrasound.peek());
+    sprintf(lcd_msg, "Water Level: %dcm", ultrasound.peek());
+    lcd_publish(lcd_msg);
+
+    sprintf(lcd_msg, "Water Temp: %d.%dC", onewire_temp1.peek() / 10, onewire_temp1.peek() % 10);
     lcd_publish(lcd_msg);
 
     lcd_tick();
@@ -348,15 +351,6 @@ void worker(){
             break;
     }
     #endif
-
-    msg = dht22_humidity.json_dynamic();
-    aJson.print(msg, &serial_stream);
-    Serial.println();
-    Serial.println(F("Pre-delete"));
-        pFreeRam();
-    aJson.deleteItem(msg);
-    Serial.println(F("Post-delete"));
-        pFreeRam();
 
     digitalWrite(13, LOW);
 }
@@ -468,10 +462,7 @@ int senddata(EthernetClient client, char * request, char * clientline){
             if (loggers[i]->match(request)){  // sensors
                 found = true;
                 send_headers(client, request, 30);
-                aJsonStream eth_stream(&client);
-                aJsonObject *msg = loggers[i]->json_dynamic();
-                aJson.print(msg, &eth_stream);
-                aJson.deleteItem(msg);
+                loggers[i]->printjson(&client);
                 return 1;
             }
         }
