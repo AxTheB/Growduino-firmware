@@ -140,6 +140,7 @@ aJsonObject* RingBuffer::json_dynamic(aJsonObject *msg) {
     // ie last 60 minutes of logging for "min" buffer
     int * dynamic_buffer = (int*) malloc(sizeof(int) * (buf_len));
     if (dynamic_buffer != NULL) {
+        Serial.println(F("dynamic_buffer malloc ok"));
         // fill-in values
         for (int j = 0; j < buf_len; j++) {
             if ((j + index + 1) < buf_len) {  // put oldest sample at dynamic_buffer[0]
@@ -155,6 +156,7 @@ aJsonObject* RingBuffer::json_dynamic(aJsonObject *msg) {
             return msg;
 
     } else {  // if we are low on memry, try to return short json at last
+        Serial.println(F("dynamic_buffer OOM"));
         return json(msg);
     }
 }
