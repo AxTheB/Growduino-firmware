@@ -200,9 +200,12 @@ int Trigger::tick(){
         switch (on_cmp) {
             case '<':
                 if (sensor_val < on_value || sensor == NONE) {
-                    state = S_ON;
-                    outputs.set(output, 1, idx);
-                    if (important) outputs.revive(output, idx);
+                    if (important) {
+                        outputs.revive(output, idx);
+                    } else {
+                        state = S_ON;
+                        outputs.set(output, 1, idx);
+                    }
 #ifdef DEBUG_TRIGGERS
                     Serial.println(F("Hit on <"));
 #endif
