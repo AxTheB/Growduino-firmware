@@ -82,7 +82,7 @@ void Config::load(aJsonObject * json){
 
     cnfobj = aJson.getObjectItem(json, "smtp_port");
     if (cnfobj) {
-            smtp_port = cnfobj->valueint;
+        sscanf(cnfobj->valuestring, "%d", &smtp_port);
     } else {
         smtp_port = 25;
     }
@@ -128,9 +128,9 @@ void Config::load(aJsonObject * json){
     }
     cnfobj = aJson.getObjectItem(json, "time_zone");
     if (cnfobj) {
-        time_zone = cnfobj->valueint;
+        sscanf(cnfobj->valuestring, "%d", &time_zone);
     } else {
-        time_zone = 25;
+        time_zone = 2;
     }
 }
 
@@ -154,8 +154,11 @@ int Config::save(){
     aJson.addStringToObject(root, "smtp", addr);
     aJson.addStringToObject(root, "mail_from", mail_from);
     aJson.addStringToObject(root, "sys_name", sys_name);
-    aJson.addNumberToObject(root, "time_zone", time_zone);
-    aJson.addNumberToObject(root, "smtp_port", smtp_port);
+    char buf[] = "-32000";
+    sprintf(buf, "%d", smtp_port);
+    aJson.addStringToObject(root, "smtp_port", buf);
+    sprintf(buf, "%d", time_zone);
+    aJson.addStringToObject(root, "time_zone", buf);
     file_write("", "config.jso", root);
     aJson.deleteItem(root);
     return 1;
