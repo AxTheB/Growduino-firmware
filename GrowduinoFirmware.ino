@@ -61,6 +61,8 @@ Logger dht22_humidity = Logger("Humidity");
 Logger light_sensor = Logger("Light1");
 Logger light_sensor2 = Logger("Light2");
 
+int ups_level;
+
 Logger ultrasound = Logger("Usnd");
 
 Logger onewire_temp1 = Logger("Temp2");
@@ -270,6 +272,7 @@ void worker(){
         Serial.println();
     }
     #endif
+    ups_level = analogRead(UPS_READ_PIN);
 
 #ifdef DEBUG_OUTPUT
     pFreeRam();

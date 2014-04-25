@@ -19,6 +19,7 @@ Config::Config(){
     strlcpy(sys_name, "growduino", 10);
     smtp_port = 25;
     time_zone = 2;
+    ups_trigger_level = 255;
 }
 
 void Config::load(aJsonObject * json){
@@ -132,6 +133,13 @@ void Config::load(aJsonObject * json){
     } else {
         time_zone = 2;
     }
+    cnfobj = aJson.getObjectItem(json, "ups_trigger_level");
+    if (cnfobj) {
+        sscanf(cnfobj->valuestring, "%d", &ups_trigger_level);
+    } else {
+        ups_trigger_level = 255;
+    }
+
 }
 
 int Config::save(){
@@ -159,6 +167,8 @@ int Config::save(){
     aJson.addStringToObject(root, "smtp_port", buf);
     sprintf(buf, "%d", time_zone);
     aJson.addStringToObject(root, "time_zone", buf);
+    sprintf(buf, "%d", ups_trigger_level);
+    aJson.addStringToObject(root, "ups_trigger_level", buf);
     file_write("", "config.jso", root);
     aJson.deleteItem(root);
     return 1;

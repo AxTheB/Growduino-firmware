@@ -15,6 +15,7 @@ class Alert {
         int tick();
         aJsonObject * json(aJsonObject *cnfdata);
         int send_message();
+        int process_alert(int trigger_state);
 };
 
 int alerts_save(Alert alerts[]);

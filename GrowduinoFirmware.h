@@ -59,6 +59,8 @@
 
 #define GSM_ENABLE 6
 
+#define UPS_READ_PIN 8
+
 
 #ifdef DEBUG
 #define DEBUG_OUTPUT 1

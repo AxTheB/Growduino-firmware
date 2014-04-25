@@ -2,6 +2,8 @@
 extern Alert alerts[];
 extern Output outputs;
 extern Trigger triggers[];
+extern int ups_level;
+extern Config config;
 
 Alert::Alert(){
     on_message = NULL;
@@ -77,6 +79,22 @@ void Alert::load(aJsonObject *msg, int index){
     }
 }
 
+int Alert::process_alert(int trigger_state){
+    if (last_state != trigger_state) {
+
+#ifdef DEBUG_TRIGGERS
+        Serial.print(F("Alarm - triger "));
+        Serial.print(trigger);
+        Serial.print(F(" changed state"));
+        Serial.println(trigger_state);
+#endif
+        last_state = trigger_state;
+        send_message();
+    }
+    return last_state;
+}
+
+
 int Alert::send_message() {
 #ifdef DEBUG_TRIGGERS
         Serial.print(F("Alarm target "));
@@ -114,20 +132,16 @@ int Alert::send_message() {
 
 int Alert::tick() {
     if (last_state == NONE) {
-        last_state = triggers[trigger].state;
+        if (trigger == -2)
+            last_state = ups_level < config.ups_trigger_level;
+        else
+            last_state = triggers[trigger].state;
         return NONE;
     }
-    if (last_state != triggers[trigger].state) {
-#ifdef DEBUG_TRIGGERS
-        Serial.print(F("Alarm - triger "));
-        Serial.print(trigger);
-        Serial.print(F(" changed state"));
-        Serial.println(triggers[trigger].state);
-#endif
-
-        last_state = triggers[trigger].state;
-        send_message();
-        return last_state;
+    if (trigger == -2) {
+        last_state = process_alert(ups_level < config.ups_trigger_level);
+    } else {
+        last_state = process_alert(triggers[trigger].state);
     }
 }
 

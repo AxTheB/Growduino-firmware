@@ -15,6 +15,7 @@ class Config
         int mac_aton(const char * MacAddr, byte (&macResult)[6]);
         char * mac_ntoa(byte addr[], char * dest);
         int time_zone;
+        int ups_trigger_level;
 
         int use_dhcp;
         byte mac[6];
