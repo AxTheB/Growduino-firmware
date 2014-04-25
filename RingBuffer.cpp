@@ -136,15 +136,27 @@ aJsonObject* RingBuffer::json(aJsonObject *msg) {
 }
 
 void RingBuffer::printjson(Stream * output){
+    printjson(output, true);
+}
+
+void RingBuffer::printjson(Stream * output, bool full){
+    int buf_end;
     output->print("\"min\":[");
-        for (int j = 0; j < buf_len; j++) {
-            if (j>0) output->print(",");
-            if ((j + index + 1) < buf_len) {  // put oldest sample at dynamic_buffer[0]
-                output->print(buffer[j + index + 1]);
-            } else {
-                output->print(buffer[j + index + 1 - buf_len]);
-            }
+    if (full) {
+    for (int j = 0; j < buf_len; j++) {
+        if (j > 0) output->print(",");
+        if ((j + index + 1) < buf_len) {  // put oldest sample at dynamic_buffer[0]
+            output->print(buffer[j + index + 1]);
+        } else {
+            output->print(buffer[j + index + 1 - buf_len]);
         }
+    }
+    } else {
+    for (int j = 0; j <= index; j++) { //print only values since start of buffer
+        if (j > 0) output->print(",");
+            output->print(buffer[j]);
+    }
+    }
     output->print("]");
 }
 

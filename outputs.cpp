@@ -2,6 +2,7 @@
 
 #include "outputs.h"
 #include "daytime.h"
+#include "sdcard.h"
 
 
 Output::Output() {
@@ -77,7 +78,6 @@ void Output::revive(int slot, int trigger){
     Serial.println(slot, DEC);
     breakme(slot, 0, trigger);
 }
-
 
 time_t Output::uptime(int slot){
     // return time since last change
@@ -248,6 +248,58 @@ char * Output::dir_name(char * dirname){
         return dirname;
 }
 
+void Output::load(){
+    //recover last state of output history
+    Serial.println(F("Loading relay history"));
+    char filename[12];
+    char dirname[50];
+    aJsonObject * buff;
+    aJsonObject * data_item;
+
+    file_name(filename);
+    dir_name(dirname);
+    log_file_index = 0;
+    while (file_exists(dirname, filename)){ //find first unused filename
+        log_file_index++;
+        file_name(filename);
+    }
+    Serial.print(F("last used file: "));
+    Serial.print(log_file_index);
+    if (log_file_index > 0) log_file_index--; //back off to last used filename
+    file_name(filename);
+    aJsonObject * logfile = file_read(dirname, filename);
+    buff = aJson.getObjectItem(logfile, "state");
+
+    if (!buff) {
+#ifdef DEBUG_OUTPUT
+        Serial.println(F("json contains no related data"));
+#endif
+    }
+
+    data_item = buff->child;
+    int idx = 0;
+    time_t tstamp = 0;
+    int value = 0;
+
+    while (data_item != NULL) {
+        Serial.println(F("Loading data item"));
+        Serial.print(F("Name: "));
+        Serial.println(data_item->name);
+        sscanf(data_item->name, "%lu", &tstamp);
+        Serial.print(F("iName: "));
+        Serial.println(tstamp);
+        value = data_item->valueint;
+        Serial.print(F("Value: "));
+        Serial.println(value);
+        Serial.println(F("----"));
+        log_times[idx] = tstamp;
+        log_states[idx] = value;
+        idx++;
+        data_item = data_item->next;
+    }
+    log_index = idx;
+}
+
 aJsonObject * Output::json(){
     aJsonObject *msg = aJson.createObject();
     msg = json(msg);
@@ -275,5 +327,5 @@ int Output::save(){
     file_name(filename);
     file_write(dirname, filename, msg);
     aJson.deleteItem(msg);
+    return 1;
 }
-

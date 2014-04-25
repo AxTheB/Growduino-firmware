@@ -16,6 +16,7 @@ class RingBuffer
         aJsonObject * json();
         aJsonObject * json(aJsonObject *msg);
         void printjson(Stream * output);
+        void printjson(Stream * output, bool full);
         bool store(int value, int slot);
         char buf_name[4];
         void load(aJsonObject * data);

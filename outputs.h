@@ -18,6 +18,7 @@ public:
     //int set_delayed(int slot, int state);
     int flip(int slot);
     int save();
+    void load();
     bool match(const char * request);
     char name[9];
     aJsonObject * json(aJsonObject *msg);

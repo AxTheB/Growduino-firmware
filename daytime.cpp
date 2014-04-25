@@ -8,7 +8,6 @@
 
 #include <stdio.h>
 
-#include <Time.h>
 #include <DS1307RTC.h>
 
 extern Config config;

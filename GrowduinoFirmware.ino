@@ -45,7 +45,7 @@ DHT22 myDHT22(DHT22_PIN);
 // OneWire
 OneWire ds(ONEWIRE_PIN);
 byte temp1_addr[8];
-byte temp2_addr[8];
+//byte temp2_addr[8];
 
 //profiling
 unsigned long t_loop_start;
@@ -162,8 +162,8 @@ void setup(void) {
         aJson.deleteItem(cfile);
     } else {
         lcd_print_immediate(F("E:Default cfg"));
-        config.save();
     }
+    config.save();
     if (config.use_dhcp == 1) {
         we_have_net = Ethernet.begin(config.mac);
     }
@@ -204,7 +204,7 @@ void setup(void) {
     // find ds temp sensor addresses
     ds.reset_search();
     ds.search(temp1_addr);
-    ds.search(temp2_addr);
+    //  ds.search(temp2_addr);
 
     //load data from sd card
     for(i=0; i <LOGGERS; i++){
@@ -213,10 +213,13 @@ void setup(void) {
 
     //initialise outputs
     outputs.common_init();
+    Serial.println(F("invoking load"));
+    outputs.load();
     for(i=0; i <8; i++) {
         pinMode(RELAY_START + i, OUTPUT);
         // outputs.set(i, 0);
     }
+    //outputs.load();
 
     #ifdef WATCHDOG
     wdt_enable(WDTO_8S);
@@ -404,7 +407,6 @@ void responseNum(EthernetClient client, int code){
             client.println("<h2>File Not Found!</h2>");
             break;
     }
-
 }
 
 const char * extract_filename(char * line){
@@ -575,10 +577,11 @@ void pageServe(EthernetClient client){
         int alert_no = fn_extract_alert(request);
 
         if (strcasecmp(request, "client.jso") == 0) {
-            aJsonStream eth_stream(&client);
-            aJsonObject * data = aJson.parse(&eth_stream);
-            file_write("", "client.jso", data);
-            aJson.deleteItem(data);
+            //aJsonStream eth_stream(&client);
+            //aJsonObject * data = aJson.parse(&eth_stream);
+            //file_write("", "client.jso", data);
+            //aJson.deleteItem(data);
+            file_passthru("", "client.jso", &client);
         } else if (strcasecmp(request, "config.jso") == 0) {
             aJsonStream eth_stream(&client);
             aJsonObject * data = aJson.parse(&eth_stream);
