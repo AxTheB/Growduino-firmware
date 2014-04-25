@@ -113,6 +113,7 @@ aJsonObject * status(){
     aJson.addItemToObject(msg, "uptime", aJson.createItem(buffer));
     aJson.addItemToObject(msg, "tz", aJson.createItem(config.time_zone));
     aJson.addItemToObject(msg, "daymin", aJson.createItem(daymin()));
+    aJson.addItemToObject(msg, "ups_level", aJson.createItem(ups_level));
     digitalClockDisplay(buffer);
     aJson.addItemToObject(msg, "time", aJson.createItem(buffer));
 
