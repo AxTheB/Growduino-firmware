@@ -267,37 +267,40 @@ void Output::load(){
     Serial.print(log_file_index);
     if (log_file_index > 0) log_file_index--; //back off to last used filename
     file_name(filename);
-    aJsonObject * logfile = file_read(dirname, filename);
-    buff = aJson.getObjectItem(logfile, "state");
 
-    if (!buff) {
+    if (file_exists(dirname, filename)){ // Restore data
+        aJsonObject * logfile = file_read(dirname, filename);
+        buff = aJson.getObjectItem(logfile, "state");
+
+        if (!buff) {
 #ifdef DEBUG_OUTPUT
-        Serial.println(F("json contains no related data"));
+            Serial.println(F("json contains no related data"));
 #endif
-    }
+        }
 
-    data_item = buff->child;
-    int idx = 0;
-    time_t tstamp = 0;
-    int value = 0;
+        data_item = buff->child;
+        int idx = 0;
+        time_t tstamp = 0;
+        int value = 0;
 
-    while (data_item != NULL) {
-        Serial.println(F("Loading data item"));
-        Serial.print(F("Name: "));
-        Serial.println(data_item->name);
-        sscanf(data_item->name, "%lu", &tstamp);
-        Serial.print(F("iName: "));
-        Serial.println(tstamp);
-        value = data_item->valueint;
-        Serial.print(F("Value: "));
-        Serial.println(value);
-        Serial.println(F("----"));
-        log_times[idx] = tstamp;
-        log_states[idx] = value;
-        idx++;
-        data_item = data_item->next;
+        while (data_item != NULL) {
+            Serial.println(F("Loading data item"));
+            Serial.print(F("Name: "));
+            Serial.println(data_item->name);
+            sscanf(data_item->name, "%lu", &tstamp);
+            Serial.print(F("iName: "));
+            Serial.println(tstamp);
+            value = data_item->valueint;
+            Serial.print(F("Value: "));
+            Serial.println(value);
+            Serial.println(F("----"));
+            log_times[idx] = tstamp;
+            log_states[idx] = value;
+            idx++;
+            data_item = data_item->next;
+        }
+        log_index = idx;
     }
-    log_index = idx;
 }
 
 aJsonObject * Output::json(){
