@@ -182,7 +182,7 @@ Historical data
  - /data/SENSOR/YYYY/MM/DD.jso stores hourly averages for given day, where "hour" is "minutes since midnight / 60". Leap days are 23 or 25 hours long.
  - /data/SENSOR/YYYY/MM/DD/HH.jso stores data for each hour.
 
-/data/output/YYYY/MM/DD/XX.jso stores log of sensor changes, split by 50 records. GET the sequence until 404 is encountered. TODO
+/data/output/YYYY/MM/DD/X.jso stores log of sensor changes, split by LOGSIZE (default 25) records. GET the sequence until 404 is encountered.
 
 
 Alerts
