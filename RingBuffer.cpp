@@ -140,24 +140,43 @@ void RingBuffer::printjson(Stream * output){
 }
 
 void RingBuffer::printjson(Stream * output, bool full){
-    int buf_end;
+    int buf_idx;
+#ifdef DEBUG_RB_DATA
+    Serial.println(F("Debug: printjson"));
+#endif
     output->print("\"min\":[");
     if (full) {
-    for (int j = 0; j < buf_len; j++) {
-        if (j > 0) output->print(",");
-        if ((j + index + 1) < buf_len) {  // put oldest sample at dynamic_buffer[0]
-            output->print(buffer[j + index + 1]);
-        } else {
-            output->print(buffer[j + index + 1 - buf_len]);
+        for (int j = 0; j < buf_len; j++) {
+            if (j > 0) output->print(",");
+            if ((j + index + 1) < buf_len) {  // put oldest sample at dynamic_buffer[0]
+                buf_idx = j + index + 1;
+            } else {
+                buf_idx = j + index + 1 - buf_len;
+            }
+            if (0 >= buf_idx < buf_len) {
+                output->print(buffer[buf_idx], DEC);
+            } else {
+#ifdef DEBUG_RB_DATA
+                Serial.print(F("Err: read outside ringbuffer j:"));
+                Serial.print(j, DEC);
+                Serial.print(F(" index:"));
+                Serial.print(index, DEC);
+                Serial.print(F(" buf_len:"));
+                Serial.print(buf_len, DEC);
+                Serial.println();
+#endif
+            }
+        }
+    } else {
+        for (int j = 0; j <= index; j++) { //print only values since start of buffer
+            if (j > 0) output->print(",");
+            output->print(buffer[j], DEC);
         }
     }
-    } else {
-    for (int j = 0; j <= index; j++) { //print only values since start of buffer
-        if (j > 0) output->print(",");
-            output->print(buffer[j]);
-    }
-    }
     output->print("]");
+#ifdef DEBUG_RB_DATA
+    Serial.println(F("Debug: printjson done"));
+#endif
 }
 
 bool RingBuffer::store(int value, int slot){
