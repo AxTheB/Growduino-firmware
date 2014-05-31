@@ -13,8 +13,8 @@ class RingBuffer
         void cleanup();
         int avg();
         int get_last_avg();
-        aJsonObject * json();
-        aJsonObject * json(aJsonObject *msg);
+//        aJsonObject * json();
+//        aJsonObject * json(aJsonObject *msg);
         void printjson(Stream * output);
         void printjson(Stream * output, bool full);
         bool store(int value, int slot);

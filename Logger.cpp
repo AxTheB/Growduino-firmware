@@ -115,7 +115,6 @@ char * Logger::dirname_l3(char * dirname){
 void Logger::timed_log(int value) {
     //Write value to l1, recalculate l2 and l3 buffer
     peekval = value;
-    aJsonObject *msg;
 
     time = now();
 
@@ -129,32 +128,30 @@ void Logger::timed_log(int value) {
     //write to card
     char dirname[40];
     char filename[13];
+    File msg;
     if (l1_idx % 5 == 0 || log_every_time) {
         // l1 - write every 5 min
         dirname_l1(dirname);
         sprintf(filename, "%02d.jso", hour());
-        msg = l1.json();
-        file_write(dirname, filename, msg);
-        aJson.deleteItem(msg);
-    }
-    if (l1_idx == 59 || log_every_time) {
-        // l2 - write at end of hour
+        file_for_write(dirname, filename, &msg);
+        l1.printjson(&msg);
+        msg.close();
+        // l2
         dirname_l2(dirname);
         sprintf(filename, "%02d.jso", day());
-        msg = l2.json();
-        file_write(dirname, filename, msg);
-        aJson.deleteItem(msg);
-        if (l2_idx == 23 || log_every_time) { 
-            // at end of the day, write l3 buffer.
-            dirname_l3(dirname);
-            sprintf(filename, "%02d.jso", month());
-            msg = l3.json();
-            file_write(dirname, filename, msg);
-            aJson.deleteItem(msg);
-        }
+        file_for_write(dirname, filename, &msg);
+        l2.printjson(&msg);
+        msg.close();
+        // l3
+        dirname_l3(dirname);
+        sprintf(filename, "%02d.jso", month());
+        file_for_write(dirname, filename, &msg);
+        l3.printjson(&msg);
+        msg.close();
     }
 }
 
+/*
 aJsonObject * Logger::json(){
     // create json with this roation only
     aJsonObject *msg = aJson.createObject();
@@ -163,6 +160,7 @@ aJsonObject * Logger::json(){
     msg = l3.json(msg);
     return msg;
 }
+*/
 
 void Logger::printjson(Stream * output){
     output->print("{\"name\":\"");

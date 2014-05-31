@@ -304,10 +304,7 @@ void worker(){
 #ifdef DEBUG_TRIGGERS
         Serial.print(F("Alert "));
         Serial.println(i);
-        aJsonObject *msg = aJson.createObject();
-        msg = alerts[i].json(msg);
-        aJson.print(msg, &serial_stream);
-        aJson.deleteItem(msg);
+        alerts[i].json(&Serial);
         Serial.println("");
 #endif
 
@@ -322,16 +319,19 @@ void worker(){
     outputs.log();
     lcd_flush();
     char lcd_msg[18];
-    snprintf(lcd_msg, 17, "Air Temp %d.%dC", dht22_temp.peek() / 10, dht22_temp.peek() % 10);
+    snprintf(lcd_msg, 17, "Air Temp %d.%dC", dht22_temp.peek() / 10, abs(dht22_temp.peek() % 10));
     lcd_publish(lcd_msg);
 
-    snprintf(lcd_msg, 17, "Humidity %d.%d%%", dht22_humidity.peek() / 10, dht22_humidity.peek() % 10);
+    snprintf(lcd_msg, 17, "Humidity %d.%d%%", dht22_humidity.peek() / 10, abs(dht22_humidity.peek() % 10));
     lcd_publish(lcd_msg);
 
     snprintf(lcd_msg, 17, "Water Lvl %dcm", ultrasound.peek());
     lcd_publish(lcd_msg);
 
-    snprintf(lcd_msg, 17, "Water Temp %d.%dC", onewire_temp1.peek() / 10, onewire_temp1.peek() % 10);
+    snprintf(lcd_msg, 17, "Water Temp %d.%dC", onewire_temp1.peek() / 10, abs(onewire_temp1.peek() % 10));
+    lcd_publish(lcd_msg);
+
+    snprintf(lcd_msg, 17, "Uptime %ds", (int) millis() / 1000);
     lcd_publish(lcd_msg);
 
     lcd_tick();

@@ -122,6 +122,7 @@ int RingBuffer::get_last_avg(){
     return toret;
 }
 
+/*
 aJsonObject* RingBuffer::json(){
     aJsonObject *msg = aJson.createObject();
     msg = json(msg);
@@ -134,6 +135,7 @@ aJsonObject* RingBuffer::json(aJsonObject *msg) {
 
     return msg;
 }
+*/
 
 void RingBuffer::printjson(Stream * output){
     printjson(output, true);
@@ -144,7 +146,9 @@ void RingBuffer::printjson(Stream * output, bool full){
 #ifdef DEBUG_RB_DATA
     Serial.println(F("Debug: printjson"));
 #endif
-    output->print("\"min\":[");
+    output->print("\"");
+    output->print(buf_name);
+    output->print("\":[");
     if (full) {
         for (int j = 0; j < buf_len; j++) {
             if (j > 0) output->print(",");
@@ -153,7 +157,7 @@ void RingBuffer::printjson(Stream * output, bool full){
             } else {
                 buf_idx = j + index + 1 - buf_len;
             }
-            if (0 >= buf_idx < buf_len) {
+            if ((buf_idx >= 0) && (buf_idx < buf_len)) {
                 output->print(buffer[buf_idx], DEC);
             } else {
 #ifdef DEBUG_RB_DATA

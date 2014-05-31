@@ -142,35 +142,72 @@ void Config::load(aJsonObject * json){
 
 }
 
+
+
+
 int Config::save(){
-    char addr[20];
-    aJsonObject * root = aJson.createObject();
-    aJson.addNumberToObject(root, "use_dhcp", use_dhcp);
-    mac_ntoa(mac, addr);
-    aJson.addStringToObject(root, "mac", addr);
-    if (use_dhcp == 0) {
-        inet_ntoa(ip, addr);
-        aJson.addStringToObject(root, "ip", addr);
-        inet_ntoa(netmask, addr);
-        aJson.addStringToObject(root, "netmask", addr);
-        inet_ntoa(gateway, addr);
-        aJson.addStringToObject(root, "gateway", addr);
-    }
-    inet_ntoa(ntp, addr);
-    aJson.addItemToObject(root, "ntp", aJson.createItem(addr));
-    inet_ntoa(smtp, addr);
-    aJson.addStringToObject(root, "smtp", addr);
-    aJson.addStringToObject(root, "mail_from", mail_from);
-    aJson.addStringToObject(root, "sys_name", sys_name);
-    char buf[] = "-32000";
-    sprintf(buf, "%d", smtp_port);
-    aJson.addStringToObject(root, "smtp_port", buf);
-    sprintf(buf, "%d", time_zone);
-    aJson.addStringToObject(root, "time_zone", buf);
-    sprintf(buf, "%d", ups_trigger_level);
-    aJson.addStringToObject(root, "ups_trigger_level", buf);
-    file_write("", "config.jso", root);
-    aJson.deleteItem(root);
+    char buffer[20];
+    File cnfdata;
+    file_for_write("", "config.jso", &cnfdata);
+
+    cnfdata.print("{");
+
+    cnfdata.print("\"use_dhcp\":");
+    cnfdata.print(use_dhcp);
+    cnfdata.print(",");
+
+    mac_ntoa(mac, buffer);
+    cnfdata.print("\"mac\":\"");
+    cnfdata.print(buffer);
+    cnfdata.print("\",");
+
+    inet_ntoa(ip, buffer);
+    cnfdata.print("\"ip\":\"");
+    cnfdata.print(buffer);
+    cnfdata.print("\",");
+
+    inet_ntoa(netmask, buffer);
+    cnfdata.print("\"netmask\":\"");
+    cnfdata.print(buffer);
+    cnfdata.print("\",");
+
+    inet_ntoa(gateway, buffer);
+    cnfdata.print("\"gateway\":\"");
+    cnfdata.print(buffer);
+    cnfdata.print("\",");
+
+    inet_ntoa(ntp, buffer);
+    cnfdata.print("\"ntp\":\"");
+    cnfdata.print(buffer);
+    cnfdata.print("\",");
+
+    inet_ntoa(smtp, buffer);
+    cnfdata.print("\"smtp\":\"");
+    cnfdata.print(buffer);
+    cnfdata.print("\",");
+
+    cnfdata.print("\"mail_from\":\"");
+    cnfdata.print(mail_from);
+    cnfdata.print("\",");
+
+    cnfdata.print("\"sys_name\":\"");
+    cnfdata.print(sys_name);
+    cnfdata.print("\",");
+
+    cnfdata.print("\"smtp_port\":\"");
+    cnfdata.print(smtp_port);
+    cnfdata.print("\",");
+
+    cnfdata.print("\"time_zone\":\"");
+    cnfdata.print(time_zone);
+    cnfdata.print("\",");
+
+    cnfdata.print("\"ups_trigger_level\":\"");
+    cnfdata.print(ups_trigger_level);
+    cnfdata.print("\"");
+
+    cnfdata.print("}");
+    cnfdata.close();
     return 1;
 }
 

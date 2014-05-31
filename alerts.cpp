@@ -124,10 +124,8 @@ int Alert::send_message() {
         strlcpy(subject, body, size);  // copy first line of body to subject
         send_mail(target, subject, body);
         return 0;
-    } else {
-        //send SMS
-        return 1;
     }
+    return 1;
 }
 
 int Alert::tick() {
@@ -143,41 +141,60 @@ int Alert::tick() {
     } else {
         last_state = process_alert(triggers[trigger].state);
     }
+    return last_state;
 }
 
-aJsonObject * Alert::json(aJsonObject *cnfdata){
-    //exports settings as aJson object into msg
-
-    aJson.addStringToObject(cnfdata, "on_message", on_message);
-    aJson.addStringToObject(cnfdata, "off_message", off_message);
-    aJson.addStringToObject(cnfdata, "target", target);
-    aJson.addNumberToObject(cnfdata, "trigger", trigger);
-
-    return cnfdata;
+void Alert::json(Stream * cnfdata){
+    char buffer[] = " -100";
+    //writes object data to stream
+    
+    cnfdata->print("{");
+    /*
+    cnfdata->write("\"on_message\":\"");
+    cnfdata->write(on_message);
+    cnfdata->write("\", \"off_message\":\"");
+    cnfdata->write(off_message);
+    cnfdata->write("\", \"target\":\"");
+    cnfdata->write(target);
+    cnfdata->write("\", \"trigger\":");
+    sprintf(buffer, "%d", trigger);
+    cnfdata->write(buffer);
+    cnfdata->write("}");
+    */
+    cnfdata->print("\"on_message\":\"");
+    cnfdata->print(on_message);
+    cnfdata->print("\", \"off_message\":\"");
+    cnfdata->print(off_message);
+    cnfdata->print("\", \"target\":\"");
+    cnfdata->print(target);
+    cnfdata->print("\", \"trigger\":");
+    cnfdata->print(trigger, DEC);
+    cnfdata->print("}");
 }
 
-int alert_load(aJsonObject * cfile, int alert_no) {
+void alert_load(aJsonObject * cfile, int alert_no) {
     alerts[alert_no].load(cfile, alert_no);
 }
 
-int alert_save(Alert alerts[], int idx){
+void alert_save(Alert alerts[], int idx){
     char fname[] = "XX.jso";
+    File msg;
 
     sprintf(fname, "%i.jso", idx);
-    aJsonObject *msg = aJson.createObject();
+    file_for_write("/alerts", fname, &msg);
+
 #ifdef DEBUG_TRIGGERS
     Serial.print(F("Preparing json "));
     Serial.println(idx, DEC);
 #endif
-    alerts[idx].json(msg);
+    alerts[idx].json(&msg);
 #ifdef DEBUG_TRIGGERS
     Serial.println(F("saving"));
 #endif
-    file_write("/alerts", fname, msg);
-    aJson.deleteItem(msg);
+    msg.close();
 }
 
-int alerts_save(Alert alerts[]){
+void alerts_save(Alert alerts[]){
 #ifdef DEBUG_TRIGGERS
         Serial.println(F("Save alerts"));
 #endif

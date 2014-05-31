@@ -13,12 +13,13 @@ class Alert {
         void init();
         void load(aJsonObject *msg, int index);
         int tick();
-        aJsonObject * json(aJsonObject *cnfdata);
+        //aJsonObject * json(aJsonObject *cnfdata);
+        void json(Stream * cnfdata);
         int send_message();
         int process_alert(int trigger_state);
 };
 
-int alerts_save(Alert alerts[]);
+void alerts_save(Alert alerts[]);
 int alerts_load(Alert alerts[]);
-int alert_save(Alert alerts[], int idx);
-int alert_load(aJsonObject * cfile, int alert_no);
+void alert_save(Alert alerts[], int idx);
+void alert_load(aJsonObject * cfile, int alert_no);
