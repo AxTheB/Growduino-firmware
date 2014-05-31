@@ -21,8 +21,9 @@ public:
     void load();
     bool match(const char * request);
     char name[9];
-    aJsonObject * json(aJsonObject *msg);
-    aJsonObject * json();
+    // aJsonObject * json(aJsonObject *msg);
+    // aJsonObject * json();
+    void json(Stream * msg);
     void log();
     int hw_update(int slot);
     time_t uptime(int slot);

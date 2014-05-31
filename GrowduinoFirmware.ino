@@ -56,6 +56,9 @@ unsigned long t_3;
 Logger dht22_temp = Logger("Temp1");
 
 Logger dht22_humidity = Logger("Humidity");
+
+File sd_file;
+
 // light sensor on analog A15
 #define LIGHT_SENSOR_PIN 15
 Logger light_sensor = Logger("Light1");
@@ -277,10 +280,8 @@ void worker(){
 
 #ifdef DEBUG_OUTPUT
     pFreeRam();
-    aJsonObject *msg = outputs.json();
-    aJson.print(msg, &serial_stream);
-    aJson.deleteItem(msg);
-    Serial.println(); 
+    outputs.json(&Serial);
+    Serial.println();
     pFreeRam();
 #endif
 
@@ -290,10 +291,7 @@ void worker(){
 #ifdef DEBUG_TRIGGERS
         Serial.print(F("Trigger "));
         Serial.println(i);
-        aJsonObject *msg = aJson.createObject();
-        msg = triggers[i].json(msg);
-        aJson.print(msg, &serial_stream);
-        aJson.deleteItem(msg);
+        triggers[i].json(&Serial);
         Serial.println("");
 #endif
 
@@ -331,7 +329,8 @@ void worker(){
     snprintf(lcd_msg, 17, "Water Temp %d.%dC", onewire_temp1.peek() / 10, abs(onewire_temp1.peek() % 10));
     lcd_publish(lcd_msg);
 
-    snprintf(lcd_msg, 17, "Uptime %ds", (int) millis() / 1000);
+    int uptime = millis() / 60000;
+    snprintf(lcd_msg, 17, "Uptime %d", uptime);
     lcd_publish(lcd_msg);
 
     lcd_tick();
@@ -459,9 +458,7 @@ int senddata(EthernetClient client, char * request, char * clientline){
             found = true;
             send_headers(client, request, 30);
             aJsonStream eth_stream(&client);
-            aJsonObject *msg = outputs.json();
-            aJson.print(msg, &eth_stream);
-            aJson.deleteItem(msg);
+            outputs.json(&client);
             return 1;
         }
         for (int i = 0; i < LOGGERS; i++) {
@@ -496,16 +493,16 @@ int senddata(EthernetClient client, char * request, char * clientline){
     send_headers(client, request, 600);
 
     // client.println(getContentType(request));
-    File dataFile = SD.open(request, FILE_READ);
+    sd_file = SD.open(request, FILE_READ);
     // abuse clientline as sd buffer
     int remain = 0;
-    while ((remain = dataFile.available())) {
+    while ((remain = sd_file.available())) {
         remain = min(remain, BUFSIZE -1);
-        dataFile.read(clientline, remain);
+        sd_file.read(clientline, remain);
         clientline[remain] = 0;
         client.write(clientline);
     };
-    dataFile.close();
+    sd_file.close();
     return 1;
 }
 

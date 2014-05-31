@@ -128,26 +128,25 @@ void Logger::timed_log(int value) {
     //write to card
     char dirname[40];
     char filename[13];
-    File msg;
     if (l1_idx % 5 == 0 || log_every_time) {
         // l1 - write every 5 min
         dirname_l1(dirname);
         sprintf(filename, "%02d.jso", hour());
-        file_for_write(dirname, filename, &msg);
-        l1.printjson(&msg);
-        msg.close();
+        file_for_write(dirname, filename, &sd_file);
+        l1.printjson(&sd_file);
+        sd_file.close();
         // l2
         dirname_l2(dirname);
         sprintf(filename, "%02d.jso", day());
-        file_for_write(dirname, filename, &msg);
-        l2.printjson(&msg);
-        msg.close();
+        file_for_write(dirname, filename, &sd_file);
+        l2.printjson(&sd_file);
+        sd_file.close();
         // l3
         dirname_l3(dirname);
         sprintf(filename, "%02d.jso", month());
-        file_for_write(dirname, filename, &msg);
-        l3.printjson(&msg);
-        msg.close();
+        file_for_write(dirname, filename, &sd_file);
+        l3.printjson(&sd_file);
+        sd_file.close();
     }
 }
 

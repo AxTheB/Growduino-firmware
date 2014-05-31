@@ -147,67 +147,66 @@ void Config::load(aJsonObject * json){
 
 int Config::save(){
     char buffer[20];
-    File cnfdata;
-    file_for_write("", "config.jso", &cnfdata);
+    file_for_write("", "config.jso", &sd_file);
 
-    cnfdata.print("{");
+    sd_file.print(F("{"));
 
-    cnfdata.print("\"use_dhcp\":");
-    cnfdata.print(use_dhcp);
-    cnfdata.print(",");
+    sd_file.print(F("\"use_dhcp\":"));
+    sd_file.print(use_dhcp);
+    sd_file.print(F(","));
 
     mac_ntoa(mac, buffer);
-    cnfdata.print("\"mac\":\"");
-    cnfdata.print(buffer);
-    cnfdata.print("\",");
+    sd_file.print(F("\"mac\":\""));
+    sd_file.print(buffer);
+    sd_file.print(F("\","));
 
     inet_ntoa(ip, buffer);
-    cnfdata.print("\"ip\":\"");
-    cnfdata.print(buffer);
-    cnfdata.print("\",");
+    sd_file.print(F("\"ip\":\""));
+    sd_file.print(buffer);
+    sd_file.print(F("\","));
 
     inet_ntoa(netmask, buffer);
-    cnfdata.print("\"netmask\":\"");
-    cnfdata.print(buffer);
-    cnfdata.print("\",");
+    sd_file.print(F("\"netmask\":\""));
+    sd_file.print(buffer);
+    sd_file.print(F("\","));
 
     inet_ntoa(gateway, buffer);
-    cnfdata.print("\"gateway\":\"");
-    cnfdata.print(buffer);
-    cnfdata.print("\",");
+    sd_file.print(F("\"gateway\":\""));
+    sd_file.print(buffer);
+    sd_file.print(F("\","));
 
     inet_ntoa(ntp, buffer);
-    cnfdata.print("\"ntp\":\"");
-    cnfdata.print(buffer);
-    cnfdata.print("\",");
+    sd_file.print(F("\"ntp\":\""));
+    sd_file.print(buffer);
+    sd_file.print(F("\","));
 
     inet_ntoa(smtp, buffer);
-    cnfdata.print("\"smtp\":\"");
-    cnfdata.print(buffer);
-    cnfdata.print("\",");
+    sd_file.print(F("\"smtp\":\""));
+    sd_file.print(buffer);
+    sd_file.print(F("\","));
 
-    cnfdata.print("\"mail_from\":\"");
-    cnfdata.print(mail_from);
-    cnfdata.print("\",");
+    sd_file.print(F("\"mail_from\":\""));
+    sd_file.print(mail_from);
+    sd_file.print(F("\","));
 
-    cnfdata.print("\"sys_name\":\"");
-    cnfdata.print(sys_name);
-    cnfdata.print("\",");
+    sd_file.print(F("\"sys_name\":\""));
+    sd_file.print(sys_name);
+    sd_file.print(F("\","));
 
-    cnfdata.print("\"smtp_port\":\"");
-    cnfdata.print(smtp_port);
-    cnfdata.print("\",");
+    sd_file.print(F("\"smtp_port\":\""));
+    sd_file.print(smtp_port);
+    sd_file.print(F("\","));
 
-    cnfdata.print("\"time_zone\":\"");
-    cnfdata.print(time_zone);
-    cnfdata.print("\",");
+    sd_file.print(F("\"time_zone\":\""));
+    sd_file.print(time_zone);
+    sd_file.print(F("\","));
 
-    cnfdata.print("\"ups_trigger_level\":\"");
-    cnfdata.print(ups_trigger_level);
-    cnfdata.print("\"");
+    sd_file.print(F("\"ups_trigger_level\":\""));
+    sd_file.print(ups_trigger_level);
+    sd_file.print(F("\""));
 
-    cnfdata.print("}");
-    cnfdata.close();
+    sd_file.print(F("}"));
+    sd_file.close();
     return 1;
 }
 

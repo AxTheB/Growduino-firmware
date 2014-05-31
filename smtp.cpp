@@ -12,8 +12,6 @@ EthernetClient eth_client;
 extern Config config;
 
 int send_mail(char * dest, char * subject, char * body){
-    byte thisByte = 0;
-    byte respCode;
     byte smtp[4] = { config.smtp[0], config.smtp[1], config.smtp[2], config.smtp[3] };
     if(eth_client.connect(smtp, 25)) {
         Serial.println(F("SMTP connect"));

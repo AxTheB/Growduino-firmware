@@ -89,6 +89,7 @@
 
 extern int ether;
 void pFreeRam();
+extern File sd_file;
 
 #define NONE -1
 #define S_ON 1

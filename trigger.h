@@ -22,14 +22,15 @@ class Trigger {
         void init();
         void load(aJsonObject *msg, Logger * loggers[], int index);
         int tick();
-        aJsonObject * json(aJsonObject *cnfdata);
+        //aJsonObject * json(aJsonObject *cnfdata);
+        void json(Stream * cnfdata);
         void set_default_state();
 
     private:
         Logger * _logger;
 };
 
-int trigger_load(Trigger triggers[], Logger * loggers[], aJsonObject * cfile, int trgno);
+void trigger_load(Trigger triggers[], Logger * loggers[], aJsonObject * cfile, int trgno);
 int triggers_load(Trigger triggers[], Logger * loggers[]);
-int triggers_save(Trigger triggers[]);
-int trigger_save(Trigger triggers[], int idx);
+void triggers_save(Trigger triggers[]);
+void trigger_save(Trigger triggers[], int idx);

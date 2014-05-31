@@ -109,6 +109,7 @@ void Trigger::load(aJsonObject *msg, Logger * loggers[], int index){
     outputs.revive(output, idx);
 }
 
+/*
 aJsonObject * Trigger::json(aJsonObject *cnfdata){
     //exports settings as aJson object into msg
 
@@ -132,6 +133,46 @@ aJsonObject * Trigger::json(aJsonObject *cnfdata){
     aJson.addNumberToObject(cnfdata, "output", output);
 
     return cnfdata;
+}
+*/
+
+void Trigger::json(Stream * cnfdata){
+    //exports settings as aJson object into msg
+
+    char val_buf[6];
+
+    cnfdata->print(F("{"));
+
+    cnfdata->print(F("\"t_since\":"));
+    cnfdata->print(t_since);
+    cnfdata->print(F(","));
+    cnfdata->print(F("\"t_until\":"));
+    cnfdata->print(t_until);
+    cnfdata->print(F(","));
+
+    sprintf(val_buf, "%c%d", on_cmp, on_value);
+
+    cnfdata->print(F("\"on_value\":\""));
+    cnfdata->print(val_buf);
+    cnfdata->print(F("\","));
+
+    if (important) {
+        sprintf(val_buf, "%c%d!", off_cmp, off_value);
+    } else {
+        sprintf(val_buf, "%c%d", off_cmp, off_value);
+    }
+
+    cnfdata->print(F("\"off_value\":\""));
+    cnfdata->print(val_buf);
+    cnfdata->print(F("\","));
+
+    cnfdata->print(F("\"sensor\":"));
+    cnfdata->print(sensor);
+    cnfdata->print(F(","));
+
+    cnfdata->print(F("\"output\":"));
+    cnfdata->print(output);
+    cnfdata->print(F("}"));
 }
 
 void Trigger::set_default_state(){
@@ -240,7 +281,7 @@ int Trigger::tick(){
                 Serial.print(F("output state "));
                 Serial.println(outputs.hw_get(output));
 #endif
-                if ((outputs.hw_get(output) == 0) && (outputs.uptime(output) >= on_value * 60)) {
+                if ((outputs.hw_get(output) == 0) && (outputs.uptime(output) >= (time_t) (on_value * 60) - 1)) {
                     if (important) {
                         outputs.revive(output, idx);
                     } else {
@@ -305,11 +346,11 @@ int Trigger::tick(){
 #ifdef DEBUG_TRIGGERS
                 Serial.print(F("output uptime "));
                 Serial.println(outputs.uptime(output));
-                Serial.print(F("output state "));
+                Serial.print(F(" output state "));
                 Serial.println(outputs.get(output));
 #endif
 
-                if ((outputs.hw_get(output) == 1) && (outputs.uptime(output) >= off_value * 60)) {
+                if ((outputs.hw_get(output) == 1) && (outputs.uptime(output) >= (time_t) (off_value * 60) - 1)) {
                     if (important) {
                         outputs.kill(output, idx);
                     } else {
@@ -317,11 +358,22 @@ int Trigger::tick(){
                         state = S_OFF;
                     }
 #ifdef DEBUG_TRIGGERS
-                    Serial.println(F("Hit on T"));
+                    Serial.print(F("Hit on T: state: "));
+                    Serial.print(outputs.hw_get(output));
+                    Serial.print(F(" uptime: "));
+                    Serial.print(outputs.uptime(output));
+                    Serial.print(F(" off value:"));
+                    Serial.println(off_value * 60);
 #endif
                 } else {
 #ifdef DEBUG_TRIGGERS
-                    Serial.println(F("Miss on T"));
+                    Serial.print(F("Miss on T: state: "));
+                    Serial.print(outputs.hw_get(output));
+                    Serial.print(F(" uptime: "));
+                    Serial.print(outputs.uptime(output));
+                    Serial.print(F(" off value:"));
+                    Serial.println(off_value * 60);
+
 #endif
                 }
                 break;
@@ -335,9 +387,10 @@ int Trigger::tick(){
 #endif
         return false;
     }
+    return true;
 }
 
-int trigger_load(Trigger triggers[], Logger * loggers[], aJsonObject * cfile, int trgno) {
+void trigger_load(Trigger triggers[], Logger * loggers[], aJsonObject * cfile, int trgno) {
     triggers[trgno].load(cfile, loggers, trgno);
 }
 
@@ -356,7 +409,7 @@ int triggers_load(Trigger triggers[], Logger * loggers[]){
     return TRIGGERS;
 }
 
-int triggers_save(Trigger triggers[]){
+void triggers_save(Trigger triggers[]){
     Serial.println(F("Save trigers"));
     for (int i=0; i < TRIGGERS; i++) {
         trigger_save(triggers, i);
@@ -366,20 +419,19 @@ int triggers_save(Trigger triggers[]){
 #endif
 }
 
-int trigger_save(Trigger triggers[], int idx){
+void trigger_save(Trigger triggers[], int idx){
     char fname[] = "XX.jso";
 
     sprintf(fname, "%i.jso", idx);
-    aJsonObject *msg = aJson.createObject();
+    file_for_write("/triggers", fname, &sd_file);
 #ifdef DEBUG_TRIGGERS
     Serial.print(F("Preparing json "));
     Serial.println(idx, DEC);
 #endif
-    triggers[idx].json(msg);
+    triggers[idx].json(&sd_file);
 #ifdef DEBUG_TRIGGERS
     Serial.println(F("saving"));
 #endif
-    file_write("/triggers", fname, msg);
-    aJson.deleteItem(msg);
+    sd_file.close();
 }
 

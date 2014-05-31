@@ -231,11 +231,6 @@ void Output::log(){
             log_file_index++;
         }
         save();
-        aJsonObject *msg;
-        msg = json();
-
-        aJson.deleteItem(msg);
-
     }
 
 char * Output::file_name(char * filename){
@@ -303,32 +298,30 @@ void Output::load(){
     }
 }
 
-aJsonObject * Output::json(){
-    aJsonObject *msg = aJson.createObject();
-    msg = json(msg);
-    return msg;
-}
+void Output::json(Stream * msg){
+    msg->print(F("{"));
+    msg->print("\"name\":\"");
+    msg->print(name);
+    msg->print("\",");
 
-aJsonObject * Output::json(aJsonObject *msg){
-    char valname[] = "1390173000";
-    aJson.addItemToObject(msg, "name", aJson.createItem(name));
-    aJsonObject * values = aJson.createObject();
+    msg->print("\"state\":{");
     for (int i = 0; i < log_index; i++) {
-        sprintf(valname, "%ld", log_times[i]);
-        aJson.addNumberToObject(values, valname, log_states[i]);
+        if (i > 0) msg->print(F(","));
+        msg->print(F("\""));
+        msg->print(log_times[i]);
+        msg->print(F("\":"));
+        msg->print(log_states[i]);
     }
-    aJson.addItemToObject(msg, "state", values);
-    return msg;
+    msg->print(F("}}"));
 }
 
 int Output::save(){
     char dirname[64];
     char filename[13];
-    aJsonObject *msg = aJson.createObject();
-    msg = json(msg);
     dir_name(dirname);
     file_name(filename);
-    file_write(dirname, filename, msg);
-    aJson.deleteItem(msg);
+    file_for_write(dirname, filename, &sd_file);
+    json(&sd_file);
+    sd_file.close();
     return 1;
 }
