@@ -146,7 +146,7 @@ void RingBuffer::printjson(Stream * output, bool full){
 #ifdef DEBUG_RB_DATA
     Serial.println(F("Debug: printjson"));
 #endif
-    output->print("\"");
+    output->print("{\"");
     output->print(buf_name);
     output->print("\":[");
     if (full) {
@@ -177,7 +177,7 @@ void RingBuffer::printjson(Stream * output, bool full){
             output->print(buffer[j], DEC);
         }
     }
-    output->print("]");
+    output->print("]}");
 #ifdef DEBUG_RB_DATA
     Serial.println(F("Debug: printjson done"));
 #endif
