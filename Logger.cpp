@@ -133,19 +133,25 @@ void Logger::timed_log(int value) {
         dirname_l1(dirname);
         sprintf(filename, "%02d.jso", hour());
         file_for_write(dirname, filename, &sd_file);
+        sd_file.print(F("{"));
         l1.printjson(&sd_file);
+        sd_file.print(F("}"));
         sd_file.close();
         // l2
         dirname_l2(dirname);
         sprintf(filename, "%02d.jso", day());
         file_for_write(dirname, filename, &sd_file);
+        sd_file.print(F("{"));
         l2.printjson(&sd_file);
+        sd_file.print(F("}"));
         sd_file.close();
         // l3
         dirname_l3(dirname);
         sprintf(filename, "%02d.jso", month());
         file_for_write(dirname, filename, &sd_file);
+        sd_file.print(F("{"));
         l3.printjson(&sd_file);
+        sd_file.print(F("}"));
         sd_file.close();
     }
 }
