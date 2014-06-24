@@ -17,6 +17,7 @@ class Alert {
         void json(Stream * cnfdata);
         int send_message();
         int process_alert(int trigger_state);
+        void trash_strings();
 };
 
 void alerts_save(Alert alerts[]);

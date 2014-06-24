@@ -63,11 +63,13 @@
 
 
 #ifdef DEBUG
-#define DEBUG_OUTPUT 1
+//#define DEBUG_OUTPUT 1
 //#define DEBUG_SDCARD 1
-#define DEBUG_RB_DATA 1
-#define DEBUG_TRIGGERS 1
-#define DEBUG_HTTP 1
+//#define DEBUG_RB_DATA 1
+//#define DEBUG_TRIGGERS 1
+#define DEBUG_ALERTS 1
+//#define DEBUG_HTTP 1
+#define DEBUG_SMTP 1
 #endif
 
 // How many output chages do we keep in memory

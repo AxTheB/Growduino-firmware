@@ -14,20 +14,9 @@ Alert::Alert(){
 
 void Alert::init(){
     trigger = NONE;
-    if (on_message != NULL) {
-        free(on_message);
-        on_message = NULL;
-    }
-    if (off_message != NULL) {
-        free(off_message);
-        off_message = NULL;
-    }
     last_state = NONE;
     idx = NONE;
-    if (target != NULL) {
-        free(target);
-        target = NULL;
-    }
+    trash_strings();
 }
 
 void Alert::load(aJsonObject *msg, int index){
@@ -35,7 +24,7 @@ void Alert::load(aJsonObject *msg, int index){
     //extract the trigger from ajson using
     //aJsonObject* msg = aJson.getObjectItem(root, "trigger");
 
-    init();
+    //init();
     idx = index;
     int json_strlen;
 
@@ -80,12 +69,13 @@ void Alert::load(aJsonObject *msg, int index){
 }
 
 int Alert::process_alert(int trigger_state){
+
     if (last_state != trigger_state) {
 
-#ifdef DEBUG_TRIGGERS
+#ifdef DEBUG_ALERTS
         Serial.print(F("Alarm - triger "));
         Serial.print(trigger);
-        Serial.print(F(" changed state"));
+        Serial.print(F(" changed state to: "));
         Serial.println(trigger_state);
 #endif
         last_state = trigger_state;
@@ -96,13 +86,26 @@ int Alert::process_alert(int trigger_state){
 
 
 int Alert::send_message() {
-#ifdef DEBUG_TRIGGERS
-        Serial.print(F("Alarm target "));
-        Serial.print(target);
+        Serial.println(last_state);
+    if (target == NULL) {
+        //load config from sd
+        char fname[] = "XX.jso";
+
+        sprintf(fname, "%i.jso", idx);
+        aJsonObject * cfile = file_read("/alerts", fname);
+        if (cfile != NULL) {
+            load(cfile, idx);
+        }
+        json(&Serial);
+        Serial.println(last_state);
+    }
+#ifdef DEBUG_ALERTS
+    Serial.print(F("Alarm target "));
+    Serial.println(target);
 #endif
 
     if (strchr(target, '@') != NULL) {
-#ifdef DEBUG_TRIGGERS
+#ifdef DEBUG_ALERTS
         Serial.print(F("Sending mail"));
 #endif
         //send mail
@@ -110,10 +113,17 @@ int Alert::send_message() {
         char subject[32];
         char * body;
         char * line_end;
+        Serial.println(last_state);
         if (last_state == S_OFF) {
             body = off_message;
+#ifdef DEBUG_ALERTS
+        Serial.print(F("Sending off message"));
+#endif
         } else {
             body = on_message;
+#ifdef DEBUG_ALERTS
+        Serial.print(F("Sending on message"));
+#endif
         }
         size = 32;
         line_end = strchrnul(body, '\r');
@@ -122,13 +132,18 @@ int Alert::send_message() {
         if ((line_end - body) <  size) size = line_end - body;
 
         strlcpy(subject, body, size);  // copy first line of body to subject
+        pFreeRam();
         send_mail(target, subject, body);
+        pFreeRam();
+        trash_strings();
         return 0;
     }
+    trash_strings();
     return 1;
 }
 
 int Alert::tick() {
+
     if (last_state == NONE) {
         if (trigger == -2)
             last_state = ups_level < config.ups_trigger_level;
@@ -159,9 +174,25 @@ void Alert::json(Stream * cnfdata){
     cnfdata->print(F("}"));
 }
 
+void Alert::trash_strings(){
+    if (on_message != NULL) {
+        free(on_message);
+        on_message = NULL;
+    }
+    if (off_message != NULL) {
+        free(off_message);
+        off_message = NULL;
+    }
+    if (target != NULL) {
+        free(target);
+        target = NULL;
+    }
+}
+
 void alert_load(aJsonObject * cfile, int alert_no) {
     alerts[alert_no].load(cfile, alert_no);
 }
+
 
 void alert_save(Alert alerts[], int idx){
     char fname[] = "XX.jso";
@@ -169,28 +200,31 @@ void alert_save(Alert alerts[], int idx){
     sprintf(fname, "%i.jso", idx);
     file_for_write("/alerts", fname, &sd_file);
 
-#ifdef DEBUG_TRIGGERS
+#ifdef DEBUG_ALERTS
     Serial.print(F("Preparing json "));
     Serial.println(idx, DEC);
 #endif
     alerts[idx].json(&sd_file);
-#ifdef DEBUG_TRIGGERS
+#ifdef DEBUG_ALERTS
     Serial.println(F("saving"));
 #endif
     sd_file.close();
+    alerts[idx].trash_strings();
 }
 
+/*
 void alerts_save(Alert alerts[]){
-#ifdef DEBUG_TRIGGERS
+#ifdef DEBUG_ALERTS
         Serial.println(F("Save alerts"));
 #endif
         for (int i=0; i < ALERTS; i++) {
             alert_save(alerts, i);
         }
-#ifdef DEBUG_TRIGGERS
+#ifdef DEBUG_ALERTS
                 Serial.println(F("Saved."));
 #endif
 }
+*/
 
 int alerts_load(Alert alerts[]){
     char fname[] = "XX.jso";
@@ -202,6 +236,7 @@ int alerts_load(Alert alerts[]){
         if (cfile != NULL) {
             alert_load(cfile, i);
             aJson.deleteItem(cfile);
+            alert_save(alerts, i);
         }
     }
     return ALERTS;

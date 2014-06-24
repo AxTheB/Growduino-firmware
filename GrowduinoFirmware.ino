@@ -185,16 +185,10 @@ void setup(void) {
     Serial.println(freeRam());
     triggers_load(triggers, loggers);
     Serial.println(freeRam());
-    triggers_save(triggers);
-    Serial.println(freeRam());
 
     // load alerts
     Serial.println(F("Loading alerts"));
     alerts_load(alerts);
-    Serial.println(freeRam());
-    alerts_save(alerts);
-    Serial.println(freeRam());
-
 
     #ifdef USE_GSM
     lcd_print_immediate(F("Starting GSM..."));
@@ -299,10 +293,12 @@ void worker(){
     }
     // tick alerts
     for(int i=0; i < ALERTS; i++) {
-#ifdef DEBUG_TRIGGERS
+#ifdef DEBUG_ALERTS
         Serial.print(F("Alert "));
         Serial.println(i);
         alerts[i].json(&Serial);
+        Serial.print(F(" "));
+        Serial.print(alerts[i].last_state);
         Serial.println("");
 #endif
 

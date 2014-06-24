@@ -14,23 +14,31 @@ extern Config config;
 int send_mail(char * dest, char * subject, char * body){
     byte smtp[4] = { config.smtp[0], config.smtp[1], config.smtp[2], config.smtp[3] };
     if(eth_client.connect(smtp, 25)) {
+#ifdef DEBUG_SMTP
         Serial.println(F("SMTP connect"));
         Serial.println(config.smtp);
+#endif
         lcd_publish(F("SMTP connect"));
     } else {
+#ifdef DEBUG_SMTP
         Serial.println(F("connection failed"));
+#endif
         lcd_publish(F("SMTP fail"));
         return 0;
     }
 
     if(!eRcv()) return 0;
+#ifdef DEBUG_SMTP
     Serial.println(F("Sending helo"));
+#endif
 
     eth_client.print(F("helo "));
     eth_client.println(config.sys_name);
 
     if(!eRcv()) return 0;
+#ifdef DEBUG_SMTP
     Serial.println(F("Sending From"));
+#endif
 
     // change to your email address (sender)
     eth_client.print(F("MAIL From: <"));
@@ -40,19 +48,25 @@ int send_mail(char * dest, char * subject, char * body){
     if(!eRcv()) return 0;
 
     // change to recipient address
+#ifdef DEBUG_SMTP
     Serial.println(F("Sending To"));
+#endif
     eth_client.print(F("RCPT To: <"));
     eth_client.print(dest);
     eth_client.println(F(">"));
 
     if(!eRcv()) return 0;
 
+#ifdef DEBUG_SMTP
     Serial.println(F("Sending DATA"));
+#endif
     eth_client.println(F("DATA"));
 
     if(!eRcv()) return 0;
 
+#ifdef DEBUG_SMTP
     Serial.println(F("Sending email"));
+#endif
 
     // change to recipient address
     eth_client.print(F("To: <"));
@@ -73,11 +87,17 @@ int send_mail(char * dest, char * subject, char * body){
 
     eth_client.println(body);
 
+#ifdef DEBUG_SMTP
+    Serial.println(body);
+#endif
+
     eth_client.println(F("."));
 
     if(!eRcv()) return 0;
 
+#ifdef DEBUG_SMTP
     Serial.println(F("Sending QUIT"));
+#endif
     eth_client.println(F("QUIT"));
 
     if(!eRcv()) return 0;
