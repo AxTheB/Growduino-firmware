@@ -69,7 +69,6 @@ void Alert::load(aJsonObject *msg, int index){
 }
 
 int Alert::process_alert(int trigger_state){
-
     if (last_state != trigger_state) {
 
 #ifdef DEBUG_ALERTS
@@ -84,7 +83,6 @@ int Alert::process_alert(int trigger_state){
     return last_state;
 }
 
-
 int Alert::send_message() {
         Serial.println(last_state);
     if (target == NULL) {
@@ -97,6 +95,7 @@ int Alert::send_message() {
             load(cfile, idx);
         }
         json(&Serial);
+        aJson.deleteItem(cfile);
         Serial.println(last_state);
     }
 #ifdef DEBUG_ALERTS
@@ -143,7 +142,6 @@ int Alert::send_message() {
 }
 
 int Alert::tick() {
-
     if (last_state == NONE) {
         if (trigger == -2)
             last_state = ups_level < config.ups_trigger_level;
