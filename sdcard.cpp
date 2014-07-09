@@ -70,12 +70,16 @@ int file_for_write(const char * dirname, const char * filename, File * dataFile)
 
 void file_passthru(const char * dirname, const char * filename, Stream * input) {
     File dataFile;
-    char buf[60];
+    char buf[128];
     int res = file_for_write(dirname, filename, &dataFile);
 
+    #ifdef WATCHDOG
+    wdt_reset();
+    #endif
 #ifdef DEBUG_SDCARD
-    Serial.print(F("."));
+    Serial.println(F("file_passthru"));
 #endif
+    digitalWrite(13, 1);
     if (res != -1) {
         Serial.print(F("saving data to disk"));
         int remain = 0;
@@ -95,7 +99,7 @@ void file_passthru(const char * dirname, const char * filename, Stream * input) 
         Serial.println(filename);
     }
 #ifdef DEBUG_SDCARD
-    Serial.println(F("."));
+    Serial.println(F(";"));
 #endif
     digitalWrite(13, 0);
 }
@@ -105,7 +109,7 @@ void file_write(const char * dirname, const char * filename, aJsonObject * data)
     File dataFile;
     int res = file_for_write(dirname, filename, &dataFile);
 #ifdef DEBUG_SDCARD
-    Serial.print(F("."));
+    Serial.println(F("file_write"));
 #endif
     if (res != -1) {
         aJsonStream sd_stream(&dataFile);
@@ -122,7 +126,7 @@ void file_write(const char * dirname, const char * filename, aJsonObject * data)
         Serial.println(filename);
     }
 #ifdef DEBUG_SDCARD
-    Serial.println(F("."));
+    Serial.println(F(";"));
 #endif
     digitalWrite(13, 0);
 }
