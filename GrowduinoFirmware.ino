@@ -20,7 +20,6 @@
 
 #include <avr/pgmspace.h>
 
-//#include <LiquidCrystal.h>
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
 
@@ -34,7 +33,6 @@ GSM gsm;
 
 int gsm_init_done = 0;
 
-//LiquidCrystal lcd(LCD_RESET, LCD_ENABLE, LCD_D1, LCD_D2, LCD_D3, LCD_D4);
 Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 
 int ether = 1;
@@ -75,8 +73,6 @@ Config config;
 Output outputs;
 
 aJsonStream serial_stream(&Serial);
-
-//LiquidCrystal lcd(8,9,4,5,6,7);
 
 EthernetServer server(80);
 
@@ -598,12 +594,20 @@ void pageServe(EthernetClient client){
             alert_save(alerts, alert_no);
             aJson.deleteItem(data);
         }
+#ifdef DEBUG_HTTP
+    Serial.println(F("POST request dealt with"));
+#endif
     }
 
+
+
     // give the web browser time to receive the data
-    delay(1);
+    delay(5);
     // close the connection:
     client.stop();
+#ifdef DEBUG_HTTP
+    Serial.println(F("eth client stopped"));
+#endif
 }
 
 void loop(void){
