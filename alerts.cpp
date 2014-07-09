@@ -144,13 +144,13 @@ int Alert::send_message() {
 int Alert::tick() {
     if (last_state == NONE) {
         if (trigger == -2)
-            last_state = ups_level < config.ups_trigger_level;
+            last_state = (ups_level > config.ups_trigger_level);
         else
             last_state = triggers[trigger].state;
         return NONE;
     }
     if (trigger == -2) {
-        last_state = process_alert(ups_level < config.ups_trigger_level);
+        last_state = process_alert(ups_level > config.ups_trigger_level);
     } else {
         last_state = process_alert(triggers[trigger].state);
     }
