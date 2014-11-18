@@ -39,10 +39,11 @@ private:
     unsigned char sensor_state;
 #if TRIGGERS < 17
     int state[OUTPUTS];
+    int hw_state[OUTPUTS];
 #else
     long state[OUTPUTS];
+    long hw_state[OUTPUTS];
 #endif
-    int hw_state[OUTPUTS];
     time_t ctimes[OUTPUTS];
     int broken[OUTPUTS];
     int log_states[LOGSIZE];
