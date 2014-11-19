@@ -92,7 +92,7 @@ int Output::bitget(int value, int bit){
     return out;
 }
 
-int Output::bitset(int value, int bit){
+ long Output::bitset(int value, int bit){
     // set bit %bit% in %value% and return new value
 #ifdef DEBUG_OUTPUT
     Serial.print(F("Setting "));
@@ -108,7 +108,7 @@ int Output::bitset(int value, int bit){
     return value;
 }
 
-int Output::bitclr(int value, int bit){
+long Output::bitclr(int value, int bit){
     // clear %bit% in %value% and return new value
 #ifdef DEBUG_OUTPUT
     Serial.print(F("Clearing "));

@@ -37,15 +37,10 @@ public:
 
 private:
     unsigned char sensor_state;
-#if TRIGGERS < 17
-    int state[OUTPUTS];
-    int hw_state[OUTPUTS];
-#else
     long state[OUTPUTS];
-    long hw_state[OUTPUTS];
-#endif
+    long broken[OUTPUTS];
+    int hw_state[OUTPUTS];
     time_t ctimes[OUTPUTS];
-    int broken[OUTPUTS];
     int log_states[LOGSIZE];
     time_t log_times[LOGSIZE];
     int log_index;
@@ -53,7 +48,7 @@ private:
 
     int pack_states();
     int bitget(int value, int slot);
-    int bitset(int value, int slot);
-    int bitclr(int value, int slot);
+    long bitset(int value, int slot);
+    long bitclr(int value, int slot);
 };
 
