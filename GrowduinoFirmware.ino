@@ -141,7 +141,7 @@ void setup(void) {
     pinMode(53,OUTPUT);
     digitalWrite(53,HIGH);
     sdcard_init();
-    char index[] = "/INDEX.HTM";
+    char index[] = "/index.htm";
     if (SD.exists(index)) {
         lcd_print_immediate(F("SD init OK"));
     } else {
@@ -307,6 +307,8 @@ void worker(){
     }
 
     outputs.log();
+
+    // Send things to lcd
     lcd_flush();
     char lcd_msg[18];
     snprintf(lcd_msg, 17, "Air Temp %d.%dC", dht22_temp.peek() / 10, abs(dht22_temp.peek() % 10));

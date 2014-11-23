@@ -38,7 +38,7 @@
 #define ALARM_STR_MAXSIZE 32
 
 // max. 32
-#define TRIGGERS 16
+#define TRIGGERS 32
 
 #define ALERTS 7
 
@@ -48,19 +48,11 @@
 
 #define DEBUG 1
 
-#define LCD_RESET 36
-#define LCD_ENABLE 37
-#define LCD_D1 38
-#define LCD_D2 39
-#define LCD_D3 40
-#define LCD_D4 41
-
-#define LCD_BUFFER_LINES 5
+#define LCD_BUFFER_LINES 6
 
 #define GSM_ENABLE 6
 
 #define UPS_READ_PIN 8
-
 
 #ifdef DEBUG
 //#define DEBUG_OUTPUT 1
