@@ -1,41 +1,19 @@
 #include "GrowduinoFirmware.h"
 #include "RingBuffer.h"
 
-RingBuffer::RingBuffer(int size, const char * name) {
-    init(size, name);
-}
-
-RingBuffer::RingBuffer(){
-    RingBuffer(0, "nul");
-}
-
-void RingBuffer::init(int size, const char * name){
-    //Prepare RR buffer and clean it so we can start graphing immediatelly
-    buf_len = size;
-    strlcpy(buf_name, name, 4);
-    if (size > 0) {
-        buffer = (int*) malloc(sizeof(int) * (size));
-    } else {
-        buffer = NULL;
-    }
-    index = -1;  // points to last logged value
-    last_average = MINVALUE;
-
-    cleanup();  // fill log with MINVALuEs
-}
-
-void RingBuffer::cleanup(int start=0, int end=-1) {
+void buffer_cleanup(int * buffer, int buf_len, int start, int end) {
     //fills parts of buffer with minvalue so we can put gaps in graph.
+    
+    //int buf_len = sizeof(&buffer)/sizeof(int);
 
     if (start !=0 || end != -1) {  //Do not write to Serial on initial cleanup, as its not initialised yet
 #ifdef DEBUG_RB_DATA
-        Serial.print(F("Cleanup "));
-        Serial.print(buf_name);
-        Serial.print(F(" "));
+        Serial.print(F("Cleanup:"));
         Serial.print(start);
-        Serial.print(F(" "));
+        Serial.print(F(" - "));
         Serial.print(end);
-        Serial.println(F(";"));
+        Serial.print(F(", size:"));
+        Serial.println(buf_len);
 #endif
     }
 
@@ -47,7 +25,7 @@ void RingBuffer::cleanup(int start=0, int end=-1) {
         end = buf_len;
     }
     if(start > end) {  // when cleanup is over the end
-        cleanup(start, buf_len);
+        buffer_cleanup(buffer, buf_len, start, buf_len);
         start = 0;
     }
     for (int buf_idx = start; buf_idx < end; buf_idx ++) {
@@ -55,11 +33,7 @@ void RingBuffer::cleanup(int start=0, int end=-1) {
     }
 }
 
-void RingBuffer::cleanup(){
-    RingBuffer::cleanup(0, -1);
-}
-
-void RingBuffer::load(aJsonObject * data){
+int buffer_load(int * buffer, char * buf_name, aJsonObject * data){
     aJsonObject * buff;
     aJsonObject * data_item;
     int i,i_end;
@@ -88,61 +62,39 @@ void RingBuffer::load(aJsonObject * data){
             item = atoi(dValue);
 
             buffer[i] = item;
-            index = i;
             free(dValue);
         }
+        i_end--;
     }
 #ifdef DEBUG_RB_DATA
     Serial.print(F("Loaded buffer "));
     Serial.print(buf_name);
     Serial.print(F(". Stored "));
     Serial.print(i_end);
-    Serial.print(F(" values, index is now "));
-    Serial.print(index);
-    Serial.println(F("."));
+    Serial.println(F(" values."));
 #endif
+    return i_end;
 }
 
-int RingBuffer::avg(){
+int buffer_avg(int * buffer, int buf_len){
     int count = 0;
     long sum = 0;
-    for (i=0; i < buf_len; i++) {
+    //int buf_len = sizeof(&buffer)/sizeof(int);
+    for (int i=0; i < buf_len; i++) {
         if (buffer[i] != MINVALUE){
             count++;
             sum += buffer[i];
         }
     }
-    last_average = sum / count;
-    return last_average;
+    int average = sum / count;
+    return average;
 }
 
-int RingBuffer::get_last_avg(){
-    int toret = last_average;
-    last_average = MINVALUE;
-    return toret;
-}
-
-/*
-aJsonObject* RingBuffer::json(){
-    aJsonObject *msg = aJson.createObject();
-    msg = json(msg);
-    return msg;
-}
-
-aJsonObject* RingBuffer::json(aJsonObject *msg) {
-    aJsonObject *json = aJson.createIntArray(buffer, index + 1);
-    aJson.addItemToObject(msg, buf_name, json);
-
-    return msg;
-}
-*/
-
-void RingBuffer::printjson(Stream * output){
-    printjson(output, true);
-}
-
-void RingBuffer::printjson(Stream * output, bool full){
+void buffer_printjson(int * buffer, int buf_len, char * buf_name, int index, bool full, Stream * output){
+    // dump json of buffer into stream
     int buf_idx;
+    //int buf_len = sizeof(&buffer)/sizeof(int);
+
 #ifdef DEBUG_RB_DATA
     Serial.println(F("Debug: printjson"));
 #endif
@@ -183,37 +135,32 @@ void RingBuffer::printjson(Stream * output, bool full){
 #endif
 }
 
-bool RingBuffer::store(int value, int slot){
+bool buffer_store(int * buffer, int buf_len, int value, int new_position, int old_position){
+    // store 'value' into 'buffer' at 'old_position' position. Clean values between 'old_position' and last stored postition ('new_position')
 #ifdef DEBUG_RB_DATA
     Serial.print(F("Storing "));
     Serial.print(value);
-    Serial.print(F(" into "));
-    Serial.print(buf_name);
-    Serial.print(F(", slot "));
-    Serial.print(slot);
-    Serial.print(F(" with index "));
-    Serial.println(index);
+    Serial.print(F(", new_position "));
+    Serial.print(new_position);
+    Serial.print(F(" with old_position "));
+    Serial.println(old_position);
 #endif
+    //int buf_len = sizeof(&buffer)/sizeof(int);
     //stay inside buffer
     //this allows us to log sequence longer than buffer, for example using
     //ordinary timestamp or day-seconds
-    while (slot >= buf_len){
-        slot = slot % buf_len;
+    while (new_position >= buf_len){
+        new_position = new_position % buf_len;
     }
 
     //purge skipped values. Do not purge if we advanced by one or if we write
     //to the same place again
     //(needed for recalculating average for last day and month value)
-    if (index != slot - 1 && index != slot){
-        cleanup(index + 1, slot);
+    if (old_position != new_position - 1 && old_position != new_position){
+        buffer_cleanup(buffer, buf_len, old_position + 1, new_position);
     }
 
-    //recalculate index on turn around
-    if (index > slot) {
-        avg();
-    }
-
-    buffer[slot] = value;
-    index = slot;
+    buffer[new_position] = value;
+    old_position = new_position;
     return true;
 }

@@ -4,30 +4,17 @@
 
 int log_every_time = true;
 
-Logger::Logger(){
-    setup(true);
-}
-
 Logger::Logger(const char * logger_name){
-    setup(true);
+    setup();
     strncpy(name, logger_name, 8);
     name[8]='\0';
 }
 
-void Logger::setup(bool timed){
-    if (timed) {
+void Logger::setup(){
         //prepare buffers
-        l1.init(60, "min");
-        l2.init(24, "h");
-        l3.init(31, "day");
-    } else {
-        l1.init(10, "l1");
-        l2.init(10, "l2");
-        l3.init(10, "l3");
-        l1_idx = -1;
-        l2_idx = -1;
-        l3_idx = -1;
-    }
+        buffer_cleanup(buf_min, 60, 0, -1);
+        buffer_cleanup(buf_h, 24, 0, -1);
+        buffer_cleanup(buf_day, 31, 0, -1);
 }
 
 void Logger::load() {
@@ -40,37 +27,37 @@ void Logger::load() {
     sprintf(filename, "%02d.jso", hour());
     data = file_read(dirname, filename);
     if (data) {
-        l1.load(data);
+        //buffer_load(int * buffer, char * buf_name, aJsonObject * data);
+        idx_min = buffer_load(buf_min, "min", data);
         aJson.deleteItem(data);
     } else {
-        Serial.println(F("l1 fail"));
+        Serial.println(F("Minute data load failure"));
     }
-
 
     dirname_l2(dirname);
     sprintf(filename, "%02d.jso", day());
     data = file_read(dirname, filename);
     if (data) {
-        l2.load(data);
+        idx_h = buffer_load(buf_h, "h", data);
         aJson.deleteItem(data);
     } else {
-        Serial.println(F("l2 fail"));
+        Serial.println(F("Hourly data load failure"));
     }
 
     dirname_l3(dirname);
     sprintf(filename, "%02d.jso", month());
     data = file_read(dirname, filename);
     if (data) {
-        l3.load(data);
+        idx_day = buffer_load(buf_day, "day", data);
         aJson.deleteItem(data);
     } else {
-        Serial.println(F("l3 fail"));
+        Serial.println(F("Daily data load failure"));
     }
 }
 
 bool Logger::available() {
     // for timed logging, return false if we already logged this minute
-    if ( l1_idx == minute() && l2_idx == hour() && l3_idx == day()-1) {
+    if ( idx_min == minute() && idx_h == hour() && idx_day == day()-1) {
         return false;
     }
     return true;
@@ -118,23 +105,29 @@ void Logger::timed_log(int value) {
 
     time = now();
 
-    l1_idx = minute();
-    l2_idx = hour();
-    l3_idx = day() - 1;
-    l1.store(value, l1_idx);
-    l2.store(l1.avg(), l2_idx);
-    l3.store(l2.avg(), l3_idx);
+    idx_min_new = minute();
+    idx_h_new = hour();
+    idx_day_new = day() - 1;
+
+    //here we store the data into buffers
+    buffer_store(buf_min, 60, value, idx_min_new, idx_min);
+    buffer_store(buf_h, 24, buffer_avg(buf_min, 60), idx_h_new, idx_h);
+    buffer_store(buf_day, 31, buffer_avg(buf_h, 24), idx_day_new, idx_day);
+    idx_min = idx_min_new;
+    idx_h = idx_h_new;
+    idx_day = idx_day_new;
 
     //write to card
     char dirname[40];
     char filename[13];
-    if (l1_idx % 5 == 0 || log_every_time) {
+    if (idx_min % 5 == 0 || log_every_time) {
         // l1 - write every 5 min
         dirname_l1(dirname);
         sprintf(filename, "%02d.jso", hour());
         file_for_write(dirname, filename, &sd_file);
         sd_file.print(F("{"));
-        l1.printjson(&sd_file, false);
+        // void buffer_printjson(int * buffer, char * buf_name, int index, bool full, Stream * output);
+        buffer_printjson(buf_min, 60, "min", idx_min, false, &sd_file);
         sd_file.print(F("}"));
         sd_file.close();
         // l2
@@ -142,7 +135,7 @@ void Logger::timed_log(int value) {
         sprintf(filename, "%02d.jso", day());
         file_for_write(dirname, filename, &sd_file);
         sd_file.print(F("{"));
-        l2.printjson(&sd_file, false);
+        buffer_printjson(buf_h, 24, "h", idx_h, false, &sd_file);
         sd_file.print(F("}"));
         sd_file.close();
         // l3
@@ -150,31 +143,21 @@ void Logger::timed_log(int value) {
         sprintf(filename, "%02d.jso", month());
         file_for_write(dirname, filename, &sd_file);
         sd_file.print(F("{"));
-        l3.printjson(&sd_file, false);
+        buffer_printjson(buf_day, 31, "day", idx_day, false, &sd_file);
         sd_file.print(F("}"));
         sd_file.close();
     }
 }
 
-/*
-aJsonObject * Logger::json(){
-    // create json with this roation only
-    aJsonObject *msg = aJson.createObject();
-    msg = l1.json(msg);
-    msg = l2.json(msg);
-    msg = l3.json(msg);
-    return msg;
-}
-*/
-
 void Logger::printjson(Stream * output){
     output->print("{\"name\":\"");
     output->print(name);
     output->print("\",");
-    l1.printjson(output);
+    buffer_printjson(buf_min, 60, "min", idx_min, true, output);
     output->print("}");
 }
 
+/*
 void Logger::log(int value) {
     //zapise do l1 bufferu, pripadne buffery otoci.
     peekval = value;
@@ -191,6 +174,7 @@ void Logger::log(int value) {
         }
     }
 }
+*/
 
 int Logger::peek() {
     return peekval;

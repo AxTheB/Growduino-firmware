@@ -4,17 +4,15 @@
 class Logger
 {
     public:
-        Logger();
-        Logger(bool timed);
+        char name[9];  //name, like "Temp1" or "Light"
+
         Logger(const char * logger_name);
-        void log(int value);
+        //void log(int value);
         void timed_log(int value);
-        void setup(bool timed);
+        void setup();
         bool available();
         aJsonObject * json();
         void printjson(Stream * output);
-        RingBuffer l1, l2, l3;
-        char name[9];  //name, like "Temp1" or "Light"
         char* dirname_l1(char *dirname);
         char* dirname_l2(char *dirname);
         char* dirname_l3(char *dirname);
@@ -24,8 +22,15 @@ class Logger
         int peek();
 
     private:
+        int buf_min[60];
+
+        int buf_h[24];
+
+        int buf_day[31];
+
+        int idx_min, idx_h, idx_day; // postiton of last save
+        int idx_min_new, idx_h_new, idx_day_new; // postiton of new data
         bool timed;
-        int l1_idx, l2_idx, l3_idx;
         int peekval;
 
 };
