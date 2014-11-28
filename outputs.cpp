@@ -87,6 +87,7 @@ time_t Output::uptime(int slot){
 
 int Output::bitget(int value, int bit){
     // check if given bitfield %value% has bit %bit% set
+    if (bit > 31) return 0;
     int out;
     out = !!(value & ( 1 << bit));
     return out;
@@ -94,6 +95,7 @@ int Output::bitget(int value, int bit){
 
  long Output::bitset(int value, int bit){
     // set bit %bit% in %value% and return new value
+    if (bit > 31) return 0;
 #ifdef DEBUG_OUTPUT
     Serial.print(F("Setting "));
     Serial.print(value, DEC);
@@ -110,6 +112,7 @@ int Output::bitget(int value, int bit){
 
 long Output::bitclr(int value, int bit){
     // clear %bit% in %value% and return new value
+    if (bit > 31) return 0;
 #ifdef DEBUG_OUTPUT
     Serial.print(F("Clearing "));
     Serial.print(value, DEC);

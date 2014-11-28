@@ -107,6 +107,7 @@ aJsonObject * status(){
     }
     aJson.addItemToObject(msg, "sensor_list", logger_list);
     aJson.addItemToObject(msg, "triggers", aJson.createItem(TRIGGERS));
+    aJson.addItemToObject(msg, "alerts", aJson.createItem(ALERTS));
     aJson.addItemToObject(msg, "triggers_log_size", aJson.createItem(LOGSIZE));
     sprintf(buffer, "%ld", millis() / 1000);
     aJson.addItemToObject(msg, "uptime", aJson.createItem(buffer));
@@ -184,7 +185,7 @@ void setup(void) {
 
     // load alerts
     Serial.println(F("Loading alerts"));
-    alerts_load(alerts);
+    alerts_load();
 
     #ifdef USE_GSM
     lcd_print_immediate(F("Starting GSM..."));
@@ -292,13 +293,12 @@ void worker(){
 #ifdef DEBUG_ALERTS
         Serial.print(F("Alert "));
         Serial.println(i);
-        alerts[i].json(&Serial);
         Serial.print(F(" "));
         Serial.print(alerts[i].last_state);
         Serial.println("");
 #endif
 
-        alerts[i].tick();
+        alert_tick(i);
     }
 
     // move relays
@@ -592,8 +592,8 @@ void pageServe(EthernetClient client){
         } else if (alert_no > -1) {
             aJsonStream eth_stream(&client);
             aJsonObject * data = aJson.parse(&eth_stream);
-            alert_load(data, alert_no);
-            alert_save(alerts, alert_no);
+            alert_load_target(alert_no, data);
+            alert_passthru(alert_no, &client);
             aJson.deleteItem(data);
         }
 #ifdef DEBUG_HTTP

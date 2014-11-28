@@ -1,53 +1,38 @@
 #include "GrowduinoFirmware.h"
+#include <string.h>
 extern Alert alerts[];
 extern Output outputs;
 extern Trigger triggers[];
 extern int ups_level;
 extern Config config;
 
-Alert::Alert(){
-    on_message = NULL;
-    off_message = NULL;
-    target = NULL;
-    init();
+void alert_load_target(int idx, aJsonObject *msg){
+    //nahraje z jsonu jen cislo triggeru, ktery se ma hlidat
+    aJsonObject * cnfobj = aJson.getObjectItem(msg, "trigger");
+    if (cnfobj && cnfobj->type == aJson_Int) {
+        alerts[idx].trigger = cnfobj->valueint;
+    } else {
+        alerts[idx].trigger = NONE;
+    }
+    alerts[idx].last_state = NONE;
 }
 
-void Alert::init(){
-    trigger = NONE;
-    last_state = NONE;
-    idx = NONE;
-    trash_strings();
-}
-
-void Alert::load(aJsonObject *msg, int index){
-    //Init new Alert from aJSON
-    //extract the trigger from ajson using
-    //aJsonObject* msg = aJson.getObjectItem(root, "trigger");
-
-    //init();
-    idx = index;
+void alert_load(int idx, aJsonObject *msg, char * on_message, char * off_message, char * target){
+    //nahraje z jsonu vsechny data
     int json_strlen;
 
     aJsonObject * cnfobj = aJson.getObjectItem(msg, "on_message");
     if (cnfobj->type == aJson_String)  {
         json_strlen = strnlen(cnfobj->valuestring, ALARM_STR_MAXSIZE);
-        on_message = (char *) malloc(json_strlen + 1);
-        if (on_message == NULL) {
-            Serial.println(F("OOM on alert load (on_message)"));
-        } else {
-            strlcpy(on_message, cnfobj->valuestring, json_strlen +1);
-        }
+        json_strlen = max(json_strlen, ALERT_MSG_LEN-1);
+        strlcpy(on_message, cnfobj->valuestring, json_strlen +1);
     }
 
     cnfobj = aJson.getObjectItem(msg, "off_message");
     if (cnfobj->type == aJson_String)  {
         json_strlen = strnlen(cnfobj->valuestring, ALARM_STR_MAXSIZE);
-        off_message = (char *) malloc(json_strlen + 1);
-        if (off_message == NULL) {
-            Serial.println(F("OOM on alert load (off_message)"));
-        } else {
-            strlcpy(off_message, cnfobj->valuestring, json_strlen +1);
-        }
+        json_strlen = max(json_strlen, ALERT_MSG_LEN-1);
+        strlcpy(off_message, cnfobj->valuestring, json_strlen +1);
     }
 
     cnfobj = aJson.getObjectItem(msg, "target");
@@ -64,65 +49,68 @@ void Alert::load(aJsonObject *msg, int index){
 
     cnfobj = aJson.getObjectItem(msg, "trigger");
     if (cnfobj && cnfobj->type == aJson_Int) {
-        trigger = cnfobj->valueint;
+        alerts[idx].trigger = cnfobj->valueint;
+    } else {
+        alerts[idx].trigger = NONE;
     }
+    alerts[idx].last_state = NONE;
 }
 
-int Alert::process_alert(int trigger_state){
-    if (last_state != trigger_state) {
-
-#ifdef DEBUG_ALERTS
-        Serial.print(F("Alarm - triger "));
-        Serial.print(trigger);
-        Serial.print(F(" changed state to: "));
+int process_alert(int idx, int trigger_state){
+    //pokud se zmenil prislusny trigger, posli alert
+    if (alerts[idx].last_state != trigger_state) {
+    #ifdef DEBUG_ALERTS
+        Serial.print(F("Alarm ("));
+        Serial.print(idx);
+        Serial.print(F(") changed state to: "));
         Serial.println(trigger_state);
-#endif
-        last_state = trigger_state;
-        send_message();
+    #endif
+        alerts[idx].last_state = trigger_state;
+        alert_send_message(idx);
     }
-    return last_state;
+    return alerts[idx].last_state;
 }
 
-int Alert::send_message() {
-        Serial.println(last_state);
-    if (target == NULL) {
-        //load config from sd
-        char fname[] = "XX.jso";
+int alert_send_message(int idx) {
+    // send the alert message
+    char target[ALERT_TARGET_LEN];
+    char on_message[ALERT_MSG_LEN];
+    char off_message[ALERT_MSG_LEN];
+    //load config from sd
+    char fname[] = "XX.jso";
 
-        sprintf(fname, "%i.jso", idx);
-        aJsonObject * cfile = file_read("/alerts", fname);
-        if (cfile != NULL) {
-            load(cfile, idx);
-        }
-        json(&Serial);
-        aJson.deleteItem(cfile);
-        Serial.println(last_state);
-    }
-#ifdef DEBUG_ALERTS
+    sprintf(fname, "%i.jso", idx);
+    aJsonObject * cfile = file_read("/alerts", fname);
+    alert_load(idx, cfile, on_message, off_message, target);
+
+    aJson.deleteItem(cfile);
+    Serial.println(alerts[idx].last_state);
+
+    #ifdef DEBUG_ALERTS
     Serial.print(F("Alarm target "));
     Serial.println(target);
-#endif
+    #endif
 
     if (strchr(target, '@') != NULL) {
-#ifdef DEBUG_ALERTS
+    #ifdef DEBUG_ALERTS
         Serial.print(F("Sending mail"));
-#endif
+    #endif
         //send mail
         int size;
         char subject[32];
         char * body;
         char * line_end;
-        Serial.println(last_state);
-        if (last_state == S_OFF) {
+        Serial.println(alerts[idx].last_state);
+        if (alerts[idx].last_state == S_OFF) {
             body = off_message;
-#ifdef DEBUG_ALERTS
-        Serial.print(F("Sending off message"));
-#endif
+            #ifdef DEBUG_ALERTS
+            Serial.print(F("Sending off message"));
+            #endif
         } else {
             body = on_message;
-#ifdef DEBUG_ALERTS
-        Serial.print(F("Sending on message"));
-#endif
+            #ifdef DEBUG_ALERTS
+            Serial.print(F("Sending on message"));
+            #endif
         }
         size = 32;
         line_end = strchrnul(body, '\r');
@@ -134,30 +122,28 @@ int Alert::send_message() {
         pFreeRam();
         send_mail(target, subject, body);
         pFreeRam();
-        trash_strings();
         return 0;
     }
-    trash_strings();
     return 1;
 }
 
-int Alert::tick() {
-    if (last_state == NONE) {
-        if (trigger == -2)
-            last_state = (ups_level > config.ups_trigger_level);
+int alert_tick(int idx) {
+    if (alerts[idx].last_state == NONE) {
+        if (alerts[idx].trigger == -2)
+            alerts[idx].last_state = (ups_level > config.ups_trigger_level);
         else
-            last_state = triggers[trigger].state;
+            alerts[idx].last_state = triggers[idx].state;
         return NONE;
     }
-    if (trigger == -2) {
-        last_state = process_alert(ups_level > config.ups_trigger_level);
+    if (alerts[idx].trigger == -2) {
+        alerts[idx].last_state = process_alert(idx, ups_level > config.ups_trigger_level);
     } else {
-        last_state = process_alert(triggers[trigger].state);
+        alerts[idx].last_state = process_alert(idx, triggers[idx].state);
     }
-    return last_state;
+    return alerts[idx].last_state;
 }
 
-void Alert::json(Stream * cnfdata){
+void alert_json(int idx, Stream * cnfdata, char * on_message, char * off_message, char * target){
     //writes object data to stream
 
     cnfdata->print(F("{"));
@@ -168,31 +154,16 @@ void Alert::json(Stream * cnfdata){
     cnfdata->print(F("\", \"target\":\""));
     cnfdata->print(target);
     cnfdata->print(F("\", \"trigger\":"));
-    cnfdata->print(trigger, DEC);
+    cnfdata->print(alerts[idx].trigger, DEC);
     cnfdata->print(F("}"));
 }
 
-void Alert::trash_strings(){
-    if (on_message != NULL) {
-        free(on_message);
-        on_message = NULL;
-    }
-    if (off_message != NULL) {
-        free(off_message);
-        off_message = NULL;
-    }
-    if (target != NULL) {
-        free(target);
-        target = NULL;
-    }
-}
-
+/*
 void alert_load(aJsonObject * cfile, int alert_no) {
     alerts[alert_no].load(cfile, alert_no);
 }
 
-
-void alert_save(Alert alerts[], int idx){
+void alert_save(int idx, aJsonObject *msg, char * on_message, char * off_message, char * target){
     char fname[] = "XX.jso";
 
     sprintf(fname, "%i.jso", idx);
@@ -209,32 +180,28 @@ void alert_save(Alert alerts[], int idx){
     sd_file.close();
     alerts[idx].trash_strings();
 }
-
-/*
-void alerts_save(Alert alerts[]){
-#ifdef DEBUG_ALERTS
-        Serial.println(F("Save alerts"));
-#endif
-        for (int i=0; i < ALERTS; i++) {
-            alert_save(alerts, i);
-        }
-#ifdef DEBUG_ALERTS
-                Serial.println(F("Saved."));
-#endif
-}
 */
 
-int alerts_load(Alert alerts[]){
+void alert_passthru(int idx, Stream * source_stream){
+    char fname[] = "XX.jso";
+
+    sprintf(fname, "%i.jso", idx);
+    file_passthru("/alerts", fname, source_stream);
+}
+
+int alerts_load(){
+    // on restart, load all alerts.
+    char target[ALERT_TARGET_LEN];
+    char on_message[ALERT_MSG_LEN];
+    char off_message[ALERT_MSG_LEN];
     char fname[] = "XX.jso";
 
     for (int i=0; i < ALERTS; i++) {
-        alerts[i].idx = i;
         sprintf(fname, "%i.jso", i);
         aJsonObject * cfile = file_read("/alerts", fname);
         if (cfile != NULL) {
-            alert_load(cfile, i);
+            alert_load(i, cfile, on_message, off_message, target);
             aJson.deleteItem(cfile);
-            alert_save(alerts, i);
         }
     }
     return ALERTS;

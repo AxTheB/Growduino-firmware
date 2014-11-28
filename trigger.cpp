@@ -1,6 +1,6 @@
 #include "GrowduinoFirmware.h"
 
-#include "trigger.h"
+iinclude "trigger.h"
 
 #include "outputs.h"
 extern Output outputs;

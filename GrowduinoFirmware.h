@@ -42,6 +42,10 @@
 
 #define ALERTS 7
 
+
+#define ALERT_MSG_LEN 64
+#define ALERT_TARGET_LEN 32
+
 #define OUTPUTS 8
 
 #define LOGGERS 6
