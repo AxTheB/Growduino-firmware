@@ -3,9 +3,7 @@
 
 #include <aJSON.h>
 
-class Trigger {
-    public:
-
+struct Trigger {
         int t_since;
         int t_until;
         int on_value;
@@ -15,22 +13,18 @@ class Trigger {
         int important;
         int sensor;
         int output;
-        int idx;
         int state;
-
-        Trigger();
-        void init();
-        void load(aJsonObject *msg, Logger * loggers[], int index);
-        int tick();
-        //aJsonObject * json(aJsonObject *cnfdata);
-        void json(Stream * cnfdata);
-        void set_default_state();
-
-    private:
         Logger * _logger;
 };
 
-void trigger_load(Trigger triggers[], Logger * loggers[], aJsonObject * cfile, int trgno);
+        void trigger_init(int idx);
+        void load(int idx, aJsonObject *msg, Logger * loggers[]);
+        int trigger_tick(int idx);
+        void trigger_json(int idx, Stream * cnfdata);
+        void trigger_set_default_state(int idx);
+
+//void trigger_load(Trigger triggers[], Logger * loggers[], aJsonObject * cfile, int trgno);
+void trigger_load(int idx, aJsonObject *msg, Logger * loggers[]);
 int triggers_load(Trigger triggers[], Logger * loggers[]);
 void triggers_save(Trigger triggers[]);
 void trigger_save(Trigger triggers[], int idx);

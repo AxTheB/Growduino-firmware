@@ -128,19 +128,21 @@ int alert_send_message(int idx) {
 }
 
 int alert_tick(int idx) {
-    if (alerts[idx].last_state == NONE) {
-        if (alerts[idx].trigger == -2)
-            alerts[idx].last_state = (ups_level > config.ups_trigger_level);
-        else
-            alerts[idx].last_state = triggers[idx].state;
-        return NONE;
+    if (alerts[idx].trigger != NONE) {
+        if (alerts[idx].last_state == NONE) {
+            if (alerts[idx].trigger == -2)
+                alerts[idx].last_state = (ups_level > config.ups_trigger_level);
+            else
+                alerts[idx].last_state = triggers[idx].state;
+            return NONE;
+        }
+        if (alerts[idx].trigger == -2) {
+            alerts[idx].last_state = process_alert(idx, ups_level > config.ups_trigger_level);
+        } else {
+            alerts[idx].last_state = process_alert(idx, triggers[alerts[idx].trigger].state);
+        }
+        return alerts[idx].last_state;
     }
-    if (alerts[idx].trigger == -2) {
-        alerts[idx].last_state = process_alert(idx, ups_level > config.ups_trigger_level);
-    } else {
-        alerts[idx].last_state = process_alert(idx, triggers[alerts[idx].trigger].state);
-    }
-    return alerts[idx].last_state;
 }
 
 void alert_json(int idx, Stream * cnfdata, char * on_message, char * off_message, char * target){

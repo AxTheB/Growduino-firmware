@@ -286,7 +286,7 @@ void worker(){
         Serial.println("");
 #endif
 
-        triggers[i].tick();
+        trigger_tick(i);
     }
     // tick alerts
     for(int i=0; i < ALERTS; i++) {
@@ -586,7 +586,7 @@ void pageServe(EthernetClient client){
         } else if (trg_no > -1) {
             aJsonStream eth_stream(&client);
             aJsonObject * data = aJson.parse(&eth_stream);
-            trigger_load(triggers, loggers, data, trg_no);
+            trigger_load(trg_no, data, loggers);
             trigger_save(triggers, trg_no);
             aJson.deleteItem(data);
         } else if (alert_no > -1) {
