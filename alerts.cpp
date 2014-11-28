@@ -138,7 +138,7 @@ int alert_tick(int idx) {
     if (alerts[idx].trigger == -2) {
         alerts[idx].last_state = process_alert(idx, ups_level > config.ups_trigger_level);
     } else {
-        alerts[idx].last_state = process_alert(idx, triggers[idx].state);
+        alerts[idx].last_state = process_alert(idx, triggers[alerts[idx].trigger].state);
     }
     return alerts[idx].last_state;
 }
@@ -157,30 +157,6 @@ void alert_json(int idx, Stream * cnfdata, char * on_message, char * off_message
     cnfdata->print(alerts[idx].trigger, DEC);
     cnfdata->print(F("}"));
 }
-
-/*
-void alert_load(aJsonObject * cfile, int alert_no) {
-    alerts[alert_no].load(cfile, alert_no);
-}
-
-void alert_save(int idx, aJsonObject *msg, char * on_message, char * off_message, char * target){
-    char fname[] = "XX.jso";
-
-    sprintf(fname, "%i.jso", idx);
-    file_for_write("/alerts", fname, &sd_file);
-
-#ifdef DEBUG_ALERTS
-    Serial.print(F("Preparing json "));
-    Serial.println(idx, DEC);
-#endif
-    alerts[idx].json(&sd_file);
-#ifdef DEBUG_ALERTS
-    Serial.println(F("saving"));
-#endif
-    sd_file.close();
-    alerts[idx].trash_strings();
-}
-*/
 
 void alert_passthru(int idx, Stream * source_stream){
     char fname[] = "XX.jso";
@@ -202,6 +178,8 @@ int alerts_load(){
         if (cfile != NULL) {
             alert_load(i, cfile, on_message, off_message, target);
             aJson.deleteItem(cfile);
+        } else {
+            alerts[i].trigger= NONE;
         }
     }
     return ALERTS;
