@@ -37,9 +37,8 @@
 
 #define ALARM_STR_MAXSIZE 32
 
-// max. 32
+// TRIGGERS - ALERTS must be 31 or lower, or random crashes occur. Really.
 #define TRIGGERS 32
-
 #define ALERTS 7
 
 
