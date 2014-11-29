@@ -282,7 +282,7 @@ void worker(){
 #ifdef DEBUG_TRIGGERS
         Serial.print(F("Trigger "));
         Serial.println(i);
-        triggers[i].json(&Serial);
+        trigger_json(i, &sd_file);
         Serial.println("");
 #endif
 
