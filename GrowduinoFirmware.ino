@@ -590,11 +590,12 @@ void pageServe(EthernetClient client){
             trigger_save(triggers, trg_no);
             aJson.deleteItem(data);
         } else if (alert_no > -1) {
-            aJsonStream eth_stream(&client);
-            aJsonObject * data = aJson.parse(&eth_stream);
-            alert_load_target(alert_no, data);
+            //aJsonStream eth_stream(&client);
+            //aJsonObject * data = aJson.parse(&eth_stream);
+            //alert_load_target(alert_no, data);
             alert_passthru(alert_no, &client);
-            aJson.deleteItem(data);
+            alerts_load();
+            //aJson.deleteItem(data);
         }
 #ifdef DEBUG_HTTP
     Serial.println(F("POST request dealt with"));

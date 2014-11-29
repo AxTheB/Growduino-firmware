@@ -38,13 +38,7 @@ void alert_load(int idx, aJsonObject *msg, char * on_message, char * off_message
     cnfobj = aJson.getObjectItem(msg, "target");
     if (cnfobj->type == aJson_String)  {
         json_strlen = strnlen(cnfobj->valuestring, ALARM_STR_MAXSIZE);
-        target = (char *) malloc(json_strlen + 1);
-        if (target == NULL) {
-            Serial.println(F("OOM on alert load (target)"));
-        } else {
-            strlcpy(target, cnfobj->valuestring, json_strlen +1);
-
-        }
+        strlcpy(target, cnfobj->valuestring, json_strlen +1);
     }
 
     cnfobj = aJson.getObjectItem(msg, "trigger");
@@ -143,6 +137,7 @@ int alert_tick(int idx) {
         }
         return alerts[idx].last_state;
     }
+    return NONE;
 }
 
 void alert_json(int idx, Stream * cnfdata, char * on_message, char * off_message, char * target){
@@ -181,7 +176,8 @@ int alerts_load(){
             alert_load(i, cfile, on_message, off_message, target);
             aJson.deleteItem(cfile);
         } else {
-            alerts[i].trigger= NONE;
+            alerts[i].trigger = NONE;
+            alerts[i].last_state = NONE;
         }
     }
     return ALERTS;

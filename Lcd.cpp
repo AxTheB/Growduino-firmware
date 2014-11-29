@@ -73,7 +73,7 @@ void lcd_flush() {
 }
 
 void lcd_tick() {
-    long currrun = millis() / 5000;
+    long currrun = millis() / 2000;
     if (currrun != lastrun) {
 
         lastrun = currrun;
