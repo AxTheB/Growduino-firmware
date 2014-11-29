@@ -281,30 +281,32 @@ void Output::load(){
 #ifdef DEBUG_OUTPUT
             Serial.println(F("json contains no related data"));
 #endif
-        }
+        } else {
 
-        data_item = buff->child;
-        int idx = 0;
-        time_t tstamp = 0;
-        int value = 0;
+            data_item = buff->child;
+            int idx = 0;
+            time_t tstamp = 0;
+            int value = 0;
 
-        while (data_item != NULL) {
-            Serial.println(F("Loading data item"));
-            Serial.print(F("Name: "));
-            Serial.println(data_item->name);
-            sscanf(data_item->name, "%lu", &tstamp);
-            Serial.print(F("iName: "));
-            Serial.println(tstamp);
-            value = data_item->valueint;
-            Serial.print(F("Value: "));
-            Serial.println(value);
-            Serial.println(F("----"));
-            log_times[idx] = tstamp;
-            log_states[idx] = value;
-            idx++;
-            data_item = data_item->next;
+            while (data_item != NULL) {
+                Serial.println(F("Loading data item"));
+                Serial.print(F("Name: "));
+                Serial.println(data_item->name);
+                sscanf(data_item->name, "%lu", &tstamp);
+                Serial.print(F("iName: "));
+                Serial.println(tstamp);
+                value = data_item->valueint;
+                Serial.print(F("Value: "));
+                Serial.println(value);
+                Serial.println(F("----"));
+                log_times[idx] = tstamp;
+                log_states[idx] = value;
+                idx++;
+                data_item = data_item->next;
+            }
+            log_index = idx;
         }
-        log_index = idx;
+        aJson.deleteItem(logfile);
     }
 }
 
