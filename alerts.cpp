@@ -6,8 +6,8 @@ extern Trigger triggers[];
 extern int ups_level;
 extern Config config;
 
-void alert_load_target(int idx, aJsonObject *msg){
-    //nahraje z jsonu jen cislo triggeru, ktery se ma hlidat
+void alert_load_trigger(int idx, aJsonObject *msg){
+    // load trigger number
     aJsonObject * cnfobj = aJson.getObjectItem(msg, "trigger");
     if (cnfobj && cnfobj->type == aJson_Int) {
         alerts[idx].trigger = cnfobj->valueint;
@@ -17,8 +17,8 @@ void alert_load_target(int idx, aJsonObject *msg){
     alerts[idx].last_state = NONE;
 }
 
-void alert_load(int idx, aJsonObject *msg, char * on_message, char * off_message, char * target){
-    //nahraje z jsonu vsechny data
+void alert_load(aJsonObject *msg, char * on_message, char * off_message, char * target){
+    // load strings from json
     int json_strlen;
 
     aJsonObject * cnfobj = aJson.getObjectItem(msg, "on_message");
@@ -40,14 +40,6 @@ void alert_load(int idx, aJsonObject *msg, char * on_message, char * off_message
         json_strlen = strnlen(cnfobj->valuestring, ALARM_STR_MAXSIZE);
         strlcpy(target, cnfobj->valuestring, json_strlen +1);
     }
-
-    cnfobj = aJson.getObjectItem(msg, "trigger");
-    if (cnfobj && cnfobj->type == aJson_Int) {
-        alerts[idx].trigger = cnfobj->valueint;
-    } else {
-        alerts[idx].trigger = NONE;
-    }
-    alerts[idx].last_state = NONE;
 }
 
 int process_alert(int idx, int trigger_state){
@@ -75,7 +67,7 @@ int alert_send_message(int idx) {
 
     sprintf(fname, "%i.jso", idx);
     aJsonObject * cfile = file_read("/alerts", fname);
-    alert_load(idx, cfile, on_message, off_message, target);
+    alert_load(cfile, on_message, off_message, target);
 
     aJson.deleteItem(cfile);
     Serial.println(alerts[idx].last_state);
@@ -94,18 +86,20 @@ int alert_send_message(int idx) {
         char subject[32];
         char * body;
         char * line_end;
+        Serial.print(F("Last state: "));
         Serial.println(alerts[idx].last_state);
         if (alerts[idx].last_state == S_OFF) {
             body = off_message;
             #ifdef DEBUG_ALERTS
-            Serial.print(F("Sending off message"));
+            Serial.println(F("Sending off message"));
             #endif
         } else {
             body = on_message;
             #ifdef DEBUG_ALERTS
-            Serial.print(F("Sending on message"));
+            Serial.println(F("Sending on message"));
             #endif
         }
+        Serial.println(body);
         size = 32;
         line_end = strchrnul(body, '\r');
         if ((line_end - body) <  size) size = line_end - body;
@@ -164,16 +158,16 @@ void alert_passthru(int idx, Stream * source_stream){
 
 int alerts_load(){
     // on restart, load all alerts.
-    char target[ALERT_TARGET_LEN];
-    char on_message[ALERT_MSG_LEN];
-    char off_message[ALERT_MSG_LEN];
+    //char target[ALERT_TARGET_LEN];
+    //char on_message[ALERT_MSG_LEN];
+    //char off_message[ALERT_MSG_LEN];
     char fname[] = "XX.jso";
 
     for (int i=0; i < ALERTS; i++) {
         sprintf(fname, "%i.jso", i);
         aJsonObject * cfile = file_read("/alerts", fname);
         if (cfile != NULL) {
-            alert_load(i, cfile, on_message, off_message, target);
+            alert_load_trigger(i, cfile);
             aJson.deleteItem(cfile);
         } else {
             alerts[i].trigger = NONE;

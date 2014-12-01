@@ -6,8 +6,8 @@ struct Alert {
         int last_state;
 };
 
-void alert_load_target(int idx, aJsonObject *msg);
-void alert_load(int idx, aJsonObject *msg, char * on_message, char * off_message, char * target);
+void alert_load_trigger(int idx, aJsonObject *msg);
+void alert_load(aJsonObject *msg, char * on_message, char * off_message, char * target);
 int process_alert(int idx, int trigger_state);
 int alert_send_message(int idx);
 int alert_tick(int idx);

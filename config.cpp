@@ -142,9 +142,6 @@ void Config::load(aJsonObject * json){
 
 }
 
-
-
-
 int Config::save(){
     char buffer[20];
     file_for_write("", "config.jso", &sd_file);
