@@ -155,10 +155,11 @@ void setup(void) {
         }
     }
     digitalWrite(13, LOW);
-    Serial.println(F("Inititalising Ethernet"));
+    // Serial.println(F("Inititalising Ethernet"));
     lcd_print_immediate(F("Starting Eth..."));
 
     // load config from sdcard
+    pFreeRam();
     aJsonObject * cfile = file_read("", "config.jso");
     if (cfile != NULL) {
         config.load(cfile);
@@ -166,7 +167,9 @@ void setup(void) {
     } else {
         lcd_print_immediate(F("E:Default cfg"));
     }
+    pFreeRam();
     config.save();
+    pFreeRam();
     if (config.use_dhcp == 1) {
         we_have_net = Ethernet.begin(config.mac);
     }
@@ -175,6 +178,7 @@ void setup(void) {
         Ethernet.begin(config.mac, config.ip, config.gateway, config.gateway, config.netmask);
     }
     server.begin();
+    pFreeRam();
     Serial.print(F("server is at "));
     Serial.println(Ethernet.localIP());
 
@@ -184,17 +188,20 @@ void setup(void) {
     Serial.println(freeRam());
 
     // load alerts
+    pFreeRam();
     Serial.println(F("Loading alerts"));
     alerts_load();
 
     #ifdef USE_GSM
+    pFreeRam();
     lcd_print_immediate(F("Starting GSM..."));
     //Serial3.begin(9600);
     gsm.TurnOn(9600);
     #endif
 
     // start real time clock
-    Serial.println(F("Initialising clock"));
+    pFreeRam();
+    //Serial.println(F("Initialising clock"));
     lcd_print_immediate(F("Starting clock"));
     daytime_init();
 
@@ -210,8 +217,11 @@ void setup(void) {
 
     //initialise outputs
     outputs.common_init();
-    Serial.println(F("invoking load"));
+    pFreeRam();
+    Serial.println(F("Loading output history"));
     outputs.load();
+    pFreeRam();
+    Serial.println(F("Relay setup"));
     for(i=0; i <8; i++) {
         pinMode(RELAY_START + i, OUTPUT);
         // outputs.set(i, 0);
@@ -223,6 +233,8 @@ void setup(void) {
     #endif
 
     // init temp/humidity logger
+    pFreeRam();
+    Serial.println(F("Reading DHT data"));
     myDHT22.readData();
     Serial.print(F("DHT22 Sensor - temp: "));
     Serial.print(myDHT22.getTemperatureCInt());
@@ -230,6 +242,9 @@ void setup(void) {
     Serial.println(myDHT22.getHumidityInt());
     Serial.print(F("Light sensor: "));
     Serial.println(analogRead(LIGHT_SENSOR_PIN));
+    pFreeRam();
+    lcd_flush();
+    lcd_print_immediate(F("Setup done"));
 }
 
 void worker(){
