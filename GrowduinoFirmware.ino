@@ -141,10 +141,15 @@ void setup(void) {
     digitalWrite(10,HIGH);
     pinMode(53,OUTPUT);
     digitalWrite(53,HIGH);
-    sdcard_init();
+    if (sdcard_init()) {
+        lcd_print_immediate(F("SD init OK"));
+    } else {
+        lcd_print_immediate(F("SD init failure"));
+    }
+
     char index[] = "/index.htm";
     if (SD.exists(index)) {
-        lcd_print_immediate(F("SD init OK"));
+        lcd_print_immediate(F("INDEX.HTM found OK"));
     } else {
         lcd_print_immediate(F("INDEX.HTM not found"));
         int q = 0;

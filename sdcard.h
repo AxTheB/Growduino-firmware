@@ -2,7 +2,7 @@
 #include <SD.h>
 #include <aJSON.h>
 
-void sdcard_init();
+bool sdcard_init();
 bool file_exists(const char * dirname);
 bool file_exists(const char * dirname, const char * filename);
 

@@ -5,9 +5,11 @@
 
 const int chipSelect = 4;
 
-void sdcard_init(){
+bool sdcard_init(){
+    bool ret;
     pinMode(53, OUTPUT);
-    SD.begin(chipSelect);
+    ret = SD.begin(chipSelect);
+    return ret;
 }
 
 bool file_exists(const char * dirname) {
