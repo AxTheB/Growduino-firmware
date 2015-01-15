@@ -60,7 +60,7 @@ void Config::load(aJsonObject * json){
         if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
             inet_aton(cnfobj->valuestring, netmask);
             Serial.print(F("netmask "));
-            inet_ntoa(ip, debug_out);
+            inet_ntoa(netmask, debug_out);
             Serial.println(debug_out);
         }
 
