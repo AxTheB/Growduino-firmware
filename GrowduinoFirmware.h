@@ -53,7 +53,10 @@
 
 #define LCD_BUFFER_LINES 6
 
-#define GSM_ENABLE 6
+#define MEGA 1
+
+//#define USE_GSM 1
+//#define GSM_ENABLE 6
 
 #define UPS_READ_PIN 8
 
