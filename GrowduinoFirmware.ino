@@ -1,6 +1,8 @@
+
+
 #include "GrowduinoFirmware.h"
 
-#include <DHT22.h>
+#include <dht.h>
 
 #include <Wire.h>
 #include <Time.h>
@@ -38,7 +40,7 @@ Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 int ether = 1;
 
 // DHT22 temp and humidity sensor. Treated as main temp and humidity source
-DHT22 myDHT22(DHT22_PIN);
+dht DHT;
 
 // OneWire
 OneWire ds(ONEWIRE_PIN);
@@ -239,30 +241,39 @@ void setup(void) {
 
     // init temp/humidity logger
     pFreeRam();
-    Serial.println(F("Reading DHT data"));
-    myDHT22.readData();
-    Serial.print(F("DHT22 Sensor - temp: "));
-    Serial.print(myDHT22.getTemperatureCInt());
-    Serial.print(F(" humidity: "));
-    Serial.println(myDHT22.getHumidityInt());
-    Serial.print(F("Light sensor: "));
-    Serial.println(analogRead(LIGHT_SENSOR_PIN));
-    pFreeRam();
     lcd_flush();
     lcd_print_immediate(F("Setup done"));
 }
 
 void worker(){
     // Here the sensors are read, files written and so on. Once per minute
-    #ifdef DEBUG
+#ifdef DEBUG
     Serial.print(F("Uptime: "));
     Serial.println(millis() / 1000);
-    #endif
+#endif
     digitalWrite(13, HIGH);
     //read sensors and store data
-    myDHT22.readData();
-    dht22_temp.timed_log(myDHT22.getTemperatureCInt());
-    dht22_humidity.timed_log(myDHT22.getHumidityInt());
+    //myDHT22.readData();
+    int chk = DHT.read22(DHT22_PIN);
+    switch (chk) {
+        case DHTLIB_OK:
+            break;
+        case DHTLIB_ERROR_CHECKSUM:
+            Serial.println(F("DHT Checksum error"));
+            break;
+        case DHTLIB_ERROR_TIMEOUT:
+            Serial.println(F("DHT Time out error"));
+            break;
+        default:
+            Serial.println(F("Unknown error"));
+            break;
+    }
+    int temp = (int) lround(10 * DHT.temperature);
+    dht22_temp.timed_log(temp);
+
+    int hum = (int) lround(10 * DHT.humidity);
+    dht22_humidity.timed_log(hum);
+
     light_sensor.timed_log(map(analogRead(LIGHT_SENSOR_PIN), 0, 1024, 0, 1000));
     light_sensor2.timed_log(map(analogRead(LIGHT_SENSOR_PIN-1), 0, 1024, 0, 1000));
     ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
@@ -270,15 +281,15 @@ void worker(){
     onewire_temp1.timed_log(ds_read(ds, temp1_addr));
     //onewire_temp2.timed_log(ds_read(ds, temp2_addr));
 
-    #ifdef DEBUG_LOGGERS
+#ifdef DEBUG_LOGGERS
     //  int numLogers = sizeof(loggers) / sizeof(Logger *);
     // Serial.print(F("# of loggers: "));
     // Serial.println(numLogers, DEC);
 
     for(int i=0; i < LOGGERS; i++) {
-        #ifdef WATCHDOG
+#ifdef WATCHDOG
         wdt_reset();
-        #endif
+#endif
         Serial.print(loggers[i]->name);
         Serial.print(F(": "));
         aJsonObject *msg = loggers[i]->json();
@@ -286,7 +297,7 @@ void worker(){
         aJson.deleteItem(msg);
         Serial.println();
     }
-    #endif
+#endif
     ups_level = analogRead(UPS_READ_PIN);
 
 #ifdef DEBUG_OUTPUT
@@ -349,7 +360,7 @@ void worker(){
 
     lcd_tick();
 
-    #ifdef USE_GSM
+#ifdef USE_GSM
     int gsm_reg;
     gsm_reg = gsm.CheckRegistration();
     switch (gsm_reg){
@@ -370,7 +381,7 @@ void worker(){
             lcd_publish("GSM busy");
             break;
     }
-    #endif
+#endif
 
     digitalWrite(13, LOW);
 }
