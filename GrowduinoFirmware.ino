@@ -45,7 +45,8 @@ dht DHT;
 // OneWire
 OneWire ds(ONEWIRE_PIN);
 byte temp1_addr[8];
-//byte temp2_addr[8];
+OneWire ds2(ONEWIRE_PIN2);
+byte temp2_addr[8];
 
 //profiling
 unsigned long t_loop_start;
@@ -69,7 +70,7 @@ int ups_level;
 Logger ultrasound = Logger("Usnd");
 
 Logger onewire_temp1 = Logger("Temp2");
-// Logger onewire_temp2 = Logger("Temp3");
+Logger onewire_temp2 = Logger("Temp3");
 
 Config config;
 Output outputs;
@@ -78,7 +79,7 @@ aJsonStream serial_stream(&Serial);
 
 EthernetServer server(80);
 
-Logger * loggers[LOGGERS] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultrasound, &onewire_temp1, &light_sensor2};
+Logger * loggers[LOGGERS] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultrasound, &onewire_temp1, &light_sensor2, &onewire_temp2};
 
 Trigger triggers[TRIGGERS];
 Alert alerts[ALERTS];
@@ -215,7 +216,9 @@ void setup(void) {
     // find ds temp sensor addresses
     ds.reset_search();
     ds.search(temp1_addr);
-    //  ds.search(temp2_addr);
+
+    ds2.reset_search();
+    ds2.search(temp2_addr);
 
     //load data from sd card
     for(i=0; i <LOGGERS; i++){
@@ -279,7 +282,7 @@ void worker(){
     ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
 
     onewire_temp1.timed_log(ds_read(ds, temp1_addr));
-    //onewire_temp2.timed_log(ds_read(ds, temp2_addr));
+    onewire_temp2.timed_log(ds_read(ds2, temp2_addr));
 
 #ifdef DEBUG_LOGGERS
     //  int numLogers = sizeof(loggers) / sizeof(Logger *);

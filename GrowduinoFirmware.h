@@ -28,6 +28,8 @@
 
 #define DHT22_PIN 23
 #define ONEWIRE_PIN 22
+#define ONEWIRE_PIN2 24
+
 #define RELAY_START 25
 
 #define USOUND_TRG 34
