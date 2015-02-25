@@ -2,9 +2,9 @@
 
 #include <OneWire.h>
 
-byte addr[8];
+//byte addr[8];
 byte data[12];
-byte present = 0;
+//byte present = 0;
 byte type_s;
 int celsius;
 
@@ -19,7 +19,7 @@ int ds_read(OneWire ds, byte * addr){
     ds.select(addr);
     ds.write(0x44, 1);        // start conversion, with parasite power on at the end
     delay(1000);
-    present = ds.reset();
+    ds.reset();
     ds.select(addr);
     ds.write(0xBE);
     for (int i = 0; i < 9; i++) {           // we need 9 bytes

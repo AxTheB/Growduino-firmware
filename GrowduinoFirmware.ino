@@ -43,7 +43,7 @@ int ether = 1;
 dht DHT;
 
 // OneWire
-OneWire ds(ONEWIRE_PIN);
+OneWire ds1(ONEWIRE_PIN);
 byte temp1_addr[8];
 OneWire ds2(ONEWIRE_PIN2);
 byte temp2_addr[8];
@@ -214,11 +214,19 @@ void setup(void) {
     daytime_init();
 
     // find ds temp sensor addresses
-    ds.reset_search();
-    ds.search(temp1_addr);
+    ds1.reset_search();
+    delay(10);
+    int res = ds1.search(temp1_addr);
+    if (res == 0) {
+        lcd_print_immediate(F("DS1 not found"));
+    }
 
     ds2.reset_search();
-    ds2.search(temp2_addr);
+    delay(10);
+    res = ds2.search(temp2_addr);
+    if (res == 0) {
+        lcd_print_immediate(F("DS2 not found"));
+    }
 
     //load data from sd card
     for(i=0; i <LOGGERS; i++){
@@ -281,7 +289,7 @@ void worker(){
     light_sensor2.timed_log(map(analogRead(LIGHT_SENSOR_PIN-1), 0, 1024, 0, 1000));
     ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
 
-    onewire_temp1.timed_log(ds_read(ds, temp1_addr));
+    onewire_temp1.timed_log(ds_read(ds1, temp1_addr));
     onewire_temp2.timed_log(ds_read(ds2, temp2_addr));
 
 #ifdef DEBUG_LOGGERS
