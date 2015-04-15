@@ -1,19 +1,33 @@
 #include "GrowduinoFirmware.h"
 //#include <LiquidCrystal.h>
 
+#ifdef DISPLAY_2004
+
+#include <LiquidCrystal_I2C.h>
+extern LiquidCrystal_I2C lcd;
+
+#else 
+
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
-
-//extern LiquidCrystal lcd;
 extern Adafruit_RGBLCDShield lcd;
+
+#endif
+
 
 char lcd_lines[LCD_BUFFER_LINES][17];
 int lcd_last_printed_line, inserted_lines;
 long lastrun;
 
 void lcd_setup(){
+#ifdef DISPLAY_2004
+    lcd.init();
+    lcd.backlight();
+#else 
     lcd.begin(16,2);
     lcd.setBacklight(0x07);
+#endif
+
     lcd_flush();
     lcd_publish(F("Initialising LCD"));
     lcd_tick();
@@ -79,15 +93,18 @@ void lcd_tick() {
 
         lastrun = currrun;
         lcd.clear();
-        lcd.print(lcd_lines[lcd_last_printed_line]);
+        
+        int lines_to_print = min(LCD_DISPLAY_LINES, inserted_lines);
+        Serial.print(F("Lines to print: "));
+        Serial.print(lines_to_print);
+        
+        for (int i=0; i < lines_to_print; i++) {
 
-        if (inserted_lines > 1) {
+            lcd.setCursor(0, i);
+            lcd.print(lcd_lines[lcd_last_printed_line]);
             lcd_last_printed_line += 1;
             if (lcd_last_printed_line >= inserted_lines)
-                lcd_last_printed_line = 0;
-            lcd.setCursor(0, 1);
-            lcd.print(lcd_lines[lcd_last_printed_line]);
+                lcd_last_printed_line = 0;   
         }
-    } else {
     }
 }

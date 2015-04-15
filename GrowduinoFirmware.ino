@@ -22,8 +22,18 @@
 
 #include <avr/pgmspace.h>
 
+#ifdef DISPLAY2004
+
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27,20,4);
+
+#else
+
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
+Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
+
+#endif
 
 // #define USE_GSM 1
 
@@ -35,7 +45,6 @@ GSM gsm;
 
 int gsm_init_done = 0;
 
-Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 
 int ether = 1;
 
