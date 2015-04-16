@@ -94,5 +94,6 @@ void pFreeRam();
 extern File sd_file;
 
 #define NONE -1
-#define S_ON 1
-#define S_OFF 0
+#define STATE_ON 1
+#define STATE_OFF 0
+#define STATE_ON_ALWAYS 2

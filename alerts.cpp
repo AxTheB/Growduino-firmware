@@ -88,7 +88,7 @@ int alert_send_message(int idx) {
         char * line_end;
         Serial.print(F("Last state: "));
         Serial.println(alerts[idx].last_state);
-        if (alerts[idx].last_state == S_OFF) {
+        if (alerts[idx].last_state == STATE_OFF) {
             body = off_message;
             #ifdef DEBUG_ALERTS
             Serial.println(F("Sending off message"));

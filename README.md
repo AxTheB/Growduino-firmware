@@ -121,6 +121,7 @@ Trigger configuration
     - ultrasound
     - Dallas one wire devices
  - outputs are indexed from zero too
+ - "active" is three state variable, where 0 = off, 1 = on (check t_since and t_until), 2 = aways on.
 
 Ex. 1: Switch on output 7 when temperature falls to 25 degrees C, switch it back off when it climbs over 30C
 
@@ -132,6 +133,7 @@ Ex. 1: Switch on output 7 when temperature falls to 25 degrees C, switch it back
         "off_value":">300",
         "sensor":1,
         "output":7,
+        "active":1
     }
 ```
 
@@ -145,6 +147,7 @@ Ex. 2: Never turn on output 5 if the temperature is bellow 10C:
         "off_value":"<100!",
         "sensor":1,
         "output":5,
+        "active":1
     }
 ```
 
@@ -158,6 +161,21 @@ Ex. 3: During the night (since 8pm to 6am), when the output 4 was idle for 10 mi
         "off_value":"T5",
         "sensor":-1,
         "output":4,
+        "active":1
+    }
+```
+
+Ex. 3.1: Force the Ex. 3 trigger to tun all the time. This allows you to run the trigger while keeping information about user-defined times
+
+```json
+    {
+        "t_since":1200,
+        "t_until":360,
+        "on_value":"T10",
+        "off_value":"T5",
+        "sensor":-1,
+        "output":4,
+        "active":2
     }
 ```
 
@@ -171,6 +189,7 @@ Ex. 4: During day, when humidity exceeds 55% run output 3 for 5 minutes
         "off_value":"T5",
         "sensor":0,
         "output":3,
+        "active":1
     }
 ```
 
