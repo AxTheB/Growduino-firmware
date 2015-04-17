@@ -24,22 +24,38 @@ int trigger_tick(int idx){
     if (active == STATE_ON) {
 
         if (triggers[idx].t_since == -1) {
+#ifdef DEBUG_TRIGGERS
             Serial.println(F("All day trigger"));
+#endif
             time_ok = 1;
         }
         if (triggers[idx].t_since <= l_daymin && triggers[idx].t_until > l_daymin) {
+#ifdef DEBUG_TRIGGERS
             Serial.println(F("Hit normal trigger"));
+#endif
             time_ok = 1;
         }
         if ((triggers[idx].t_since > triggers[idx].t_until) && (triggers[idx].t_since <= l_daymin || triggers[idx].t_until > l_daymin)) {
+#ifdef DEBUG_TRIGGERS
             Serial.println(F("Hit overnight trigger"));
+#endif
             time_ok = 1;
         }
     }
 
-    if (time_ok == 1 or active == STATE_ON_ALWAYS) {
+    if (active == STATE_ON_ALWAYS) {
+        if (triggers[idx].important) {
+            outputs.revive(triggers[idx].output, idx);
+        } else {
+            triggers[idx].state = STATE_ON;
+            outputs.set(triggers[idx].output, 1, idx);
+        }
 #ifdef DEBUG_TRIGGERS
-        Serial.print(F("time ok or forced: "));
+        Serial.println(F("Forced on"));
+#endif
+    } else if (time_ok == 1) {
+#ifdef DEBUG_TRIGGERS
+        Serial.print(F("time ok: "));
         Serial.println(l_daymin);
 #endif
         if (triggers[idx]._logger == NULL || triggers[idx].sensor == NONE) {  // if there is no logger defined use minvalue (for unconditional time triggers)

@@ -165,20 +165,6 @@ Ex. 3: During the night (since 8pm to 6am), when the output 4 was idle for 10 mi
     }
 ```
 
-Ex. 3.1: Force the Ex. 3 trigger to tun all the time. This allows you to run the trigger while keeping information about user-defined times
-
-```json
-    {
-        "t_since":1200,
-        "t_until":360,
-        "on_value":"T10",
-        "off_value":"T5",
-        "sensor":-1,
-        "output":4,
-        "active":2
-    }
-```
-
 Ex. 4: During day, when humidity exceeds 55% run output 3 for 5 minutes
 
 ```json
@@ -190,6 +176,20 @@ Ex. 4: During day, when humidity exceeds 55% run output 3 for 5 minutes
         "sensor":0,
         "output":3,
         "active":1
+    }
+```
+
+Ex. 5: Force the Ex. 3 trigger to be "on" all the time. This allows you to turn output on while keeping user-defined values.
+
+```json
+    {
+        "t_since":1200,
+        "t_until":360,
+        "on_value":"T10",
+        "off_value":"T5",
+        "sensor":-1,
+        "output":4,
+        "active":2
     }
 ```
 
