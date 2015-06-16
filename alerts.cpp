@@ -118,17 +118,40 @@ int alert_send_message(int idx) {
 int alert_tick(int idx) {
     if (alerts[idx].trigger != NONE) {
         if (alerts[idx].last_state == NONE) {
-            if (alerts[idx].trigger == -2)
+#ifdef DEBUG_ALERTS
+                Serial.print(F("Unknown last state - "));
+#endif
+
+            if (alerts[idx].trigger == -2) {
+#ifdef DEBUG_ALERTS
+                Serial.print(F("storing state: ups check"));
+#endif
                 alerts[idx].last_state = (ups_level < config.ups_trigger_level);
-            else
-                alerts[idx].last_state = triggers[idx].state;
+            } else {
+#ifdef DEBUG_ALERTS
+                Serial.print(F("storing state: sensor "));
+                Serial.print(idx);
+#endif
+                alerts[idx].last_state = triggers[alerts[idx].trigger].state;
+            }
             return NONE;
+#ifdef DEBUG_ALERTS
+            Serial.println(F(" (no operation)"));
+#endif
         }
         if (alerts[idx].trigger == -2) {
+#ifdef DEBUG_ALERTS
+            Serial.print(F("Processing alert"));
+#endif
             alerts[idx].last_state = process_alert(idx, ups_level < config.ups_trigger_level);
         } else {
             alerts[idx].last_state = process_alert(idx, triggers[alerts[idx].trigger].state);
         }
+#ifdef DEBUG_ALERTS
+                    Serial.println(F("State is now "));
+                    Serial.println(alerts[idx].last_state);
+#endif
+
         return alerts[idx].last_state;
     }
     return NONE;

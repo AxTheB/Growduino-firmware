@@ -334,8 +334,8 @@ void worker(){
     for(int i=0; i < ALERTS; i++) {
 #ifdef DEBUG_ALERTS
         Serial.print(F("Alert "));
-        Serial.println(i);
-        Serial.print(F(" "));
+        Serial.print(i);
+        Serial.print(F(" last state "));
         Serial.print(alerts[i].last_state);
         Serial.println("");
 #endif

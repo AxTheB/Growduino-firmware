@@ -121,7 +121,7 @@ Trigger configuration
     - ultrasound
     - Dallas one wire devices
  - outputs are indexed from zero too
- - "active" is three state variable, where 0 = off, 1 = on (check t_since and t_until), 2 = aways on.
+ - "active" is three state variable, where 0 = off, 1 = on (check trigger conditions), 2 = aways on.
 
 Ex. 1: Switch on output 7 when temperature falls to 25 degrees C, switch it back off when it climbs over 30C
 
