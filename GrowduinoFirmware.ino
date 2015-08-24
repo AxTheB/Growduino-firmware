@@ -60,8 +60,6 @@ Logger dht22_humidity = Logger("Humidity");
 
 File sd_file;
 
-// light sensor on analog A15
-#define LIGHT_SENSOR_PIN 15
 Logger light_sensor = Logger("Light1");
 Logger light_sensor2 = Logger("Light2");
 
@@ -285,8 +283,8 @@ void worker(){
     int hum = (int) lround(10 * DHT.humidity);
     dht22_humidity.timed_log(hum);
 
-    light_sensor.timed_log(map(analogRead(LIGHT_SENSOR_PIN), 0, 1024, 0, 1000));
-    light_sensor2.timed_log(map(analogRead(LIGHT_SENSOR_PIN-1), 0, 1024, 0, 1000));
+    light_sensor.timed_log(map(analogRead(LIGHT_SENSOR_PIN_1), 0, 1024, 0, 1000));
+    light_sensor2.timed_log(map(analogRead(LIGHT_SENSOR_PIN_2), 0, 1024, 0, 1000));
     ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
 
     onewire_temp1.timed_log(ds_read(ds1, temp1_addr));
@@ -309,7 +307,7 @@ void worker(){
         Serial.println();
     }
 #endif
-    ups_level = analogRead(UPS_READ_PIN);
+    ups_level = analogRead(LIGHT_SENSOR_PIN_UPS);
 
 #ifdef DEBUG_OUTPUT
     pFreeRam();

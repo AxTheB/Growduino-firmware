@@ -26,14 +26,20 @@
 #define GET 1
 #define POST 2
 
-#define DHT22_PIN 23
-#define ONEWIRE_PIN 22
+// light sensor on analog A1
+#define LIGHT_SENSOR_PIN_1 8
+#define LIGHT_SENSOR_PIN_2 9
+#define LIGHT_SENSOR_PIN_UPS 10
+
+#define DHT22_PIN 22
+#define ONEWIRE_PIN 23
 #define ONEWIRE_PIN2 24
+#define USOUND_TRG 25
+#define USOUND_ECHO 26
 
-#define RELAY_START 25
 
-#define USOUND_TRG 34
-#define USOUND_ECHO 35
+#define RELAY_START 34
+
 
 #define BUFSIZE 256
 
@@ -47,7 +53,7 @@
 #define ALERT_MSG_LEN 64
 #define ALERT_TARGET_LEN 32
 
-#define OUTPUTS 8
+#define OUTPUTS 12
 
 #define LOGGERS 7
 
@@ -59,8 +65,6 @@
 
 //#define USE_GSM 1
 //#define GSM_ENABLE 6
-
-#define UPS_READ_PIN 8
 
 #ifdef DEBUG
 #define DEBUG_OUTPUT 1
