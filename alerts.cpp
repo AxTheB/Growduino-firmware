@@ -88,7 +88,7 @@ int alert_send_message(int idx) {
         char * line_end;
         Serial.print(F("Last state: "));
         Serial.println(alerts[idx].last_state);
-        if (alerts[idx].last_state == S_OFF) {
+        if (alerts[idx].last_state == STATE_OFF) {
             body = off_message;
             #ifdef DEBUG_ALERTS
             Serial.println(F("Sending off message"));
@@ -116,21 +116,52 @@ int alert_send_message(int idx) {
 }
 
 int alert_tick(int idx) {
-    if (alerts[idx].trigger != NONE) {
-        if (alerts[idx].last_state == NONE) {
-            if (alerts[idx].trigger == -2)
-                alerts[idx].last_state = (ups_level > config.ups_trigger_level);
-            else
-                alerts[idx].last_state = triggers[idx].state;
+
+    Alert alert;
+    alert = alerts[idx];
+
+    if (alert.trigger != NONE) {
+        if (alert.last_state == NONE) {
+#ifdef DEBUG_ALERTS
+                Serial.print(F("Unknown last state - "));
+#endif
+
+            if (alert.trigger == -2) {
+#ifdef DEBUG_ALERTS
+                Serial.print(F("storing state: ups check"));
+#endif
+                alert.last_state = (ups_level < config.ups_trigger_level);
+            } else {
+#ifdef DEBUG_ALERTS
+                Serial.print(F("storing state: sensor "));
+                Serial.print(idx);
+#endif
+                alert.last_state = triggers[alert.trigger].state;
+            }
             return NONE;
+#ifdef DEBUG_ALERTS
+            Serial.println(F(" (no operation)"));
+#endif
         }
-        if (alerts[idx].trigger == -2) {
-            alerts[idx].last_state = process_alert(idx, ups_level > config.ups_trigger_level);
+        if (alert.trigger == -2) {
+#ifdef DEBUG_ALERTS
+            Serial.print(F("Processing alert"));
+#endif
+            alert.last_state = process_alert(idx, ups_level < config.ups_trigger_level);
         } else {
-            alerts[idx].last_state = process_alert(idx, triggers[alerts[idx].trigger].state);
+            alert.last_state = process_alert(idx, triggers[alert.trigger].state);
         }
-        return alerts[idx].last_state;
+#ifdef DEBUG_ALERTS
+                    Serial.println(F("State is now "));
+                    Serial.println(alert.last_state);
+#endif
+
+        return alert.last_state;
     }
+#ifdef DEBUG_ALERTS
+                Serial.println(F("Alert has no trigger"));
+#endif
+
     return NONE;
 }
 

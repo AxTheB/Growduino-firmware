@@ -4,6 +4,7 @@
 #include <aJSON.h>
 
 struct Trigger {
+        int active;
         int t_since;
         int t_until;
         int on_value;
