@@ -240,6 +240,10 @@ void Output::log(){
             log_index = 0;
             log_file_index++;
         }
+        if (daymin() < last_save_daymin) {
+            log_file_index = 0;
+        }
+        last_save_daymin = daymin();
         save();
     }
 
@@ -260,6 +264,7 @@ void Output::load(){
     char dirname[50];
     aJsonObject * buff;
     aJsonObject * data_item;
+    last_save_daymin = daymin();
 
     file_name(filename);
     dir_name(dirname);

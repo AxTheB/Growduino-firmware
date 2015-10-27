@@ -45,6 +45,7 @@ private:
     time_t log_times[LOGSIZE];
     int log_index;
     int log_file_index;
+    int last_save_daymin;
 
     int pack_states();
     int bitget(int value, int slot);
