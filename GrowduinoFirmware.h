@@ -30,6 +30,8 @@
 #define LIGHT_SENSOR_PIN_1 8
 #define LIGHT_SENSOR_PIN_2 9
 #define LIGHT_SENSOR_PIN_UPS 10
+#define PH_SENSOR_PIN 11
+#define CO2_SENSOR_PIN 12
 
 #define DHT22_PIN 22
 #define ONEWIRE_PIN 23
@@ -65,8 +67,11 @@
 
 #ifdef DISPLAY_2004
 #define LCD_DISPLAY_LINES 4
+#define LCD_DISPLAY_LEN 20
+
 #else
 #define LCD_DISPLAY_LINES 2
+#define LCD_DISPLAY_LEN 16
 #endif
 
 

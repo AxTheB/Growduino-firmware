@@ -1,5 +1,3 @@
-
-
 #include "GrowduinoFirmware.h"
 
 #include <dht.h>
@@ -22,29 +20,22 @@
 
 #include <avr/pgmspace.h>
 
-#ifdef DISPLAY2004
+#ifdef DISPLAY_2004
 
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27,20,4);
-
 #else
 
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
 Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
-
 #endif
-
-// #define USE_GSM 1
 
 #ifdef USE_GSM
 #include <GSM_Shield.h>
 GSM gsm;
-#endif
-
-
 int gsm_init_done = 0;
-
+#endif
 
 int ether = 1;
 
@@ -247,7 +238,7 @@ void setup(void) {
     outputs.load();
     pFreeRam();
     Serial.println(F("Relay setup"));
-    for(i=0; i <8; i++) {
+    for(i=0; i < OUTPUTS; i++) {
         pinMode(RELAY_START + i, OUTPUT);
         // outputs.set(i, 0);
     }
@@ -294,6 +285,7 @@ void worker(){
 
     light_sensor.timed_log(map(analogRead(LIGHT_SENSOR_PIN_1), 0, 1024, 0, 1000));
     light_sensor2.timed_log(map(analogRead(LIGHT_SENSOR_PIN_2), 0, 1024, 0, 1000));
+
     ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
 
     onewire_temp1.timed_log(ds_read(ds1, temp1_addr));

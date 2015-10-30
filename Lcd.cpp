@@ -15,7 +15,7 @@ extern Adafruit_RGBLCDShield lcd;
 #endif
 
 
-char lcd_lines[LCD_BUFFER_LINES][17];
+char lcd_lines[LCD_BUFFER_LINES][LCD_DISPLAY_LEN+1];
 int lcd_last_printed_line, inserted_lines;
 long lastrun;
 
@@ -39,7 +39,7 @@ void lcd_publish(char * msg) {
     Serial.print("lcd_publish: ");
     Serial.println(msg);
     if (inserted_lines < LCD_BUFFER_LINES) {
-        strlcpy((char * ) lcd_lines[inserted_lines], msg, 17);
+        strlcpy((char * ) lcd_lines[inserted_lines], msg, LCD_DISPLAY_LEN+1);
         inserted_lines += 1;
         lastrun = -1;
     } else {
@@ -52,7 +52,7 @@ void lcd_publish(const __FlashStringHelper * msg) {
     Serial.print("lcd_publish: ");
     Serial.println(msg);
     if (inserted_lines < LCD_BUFFER_LINES) {
-        strlcpy_P((char * ) lcd_lines[inserted_lines], (char *) msg, 17);
+        strlcpy_P((char * ) lcd_lines[inserted_lines], (char *) msg, LCD_DISPLAY_LEN+1);
         inserted_lines += 1;
         lastrun = -1;
     } else {
@@ -63,12 +63,12 @@ void lcd_publish(const __FlashStringHelper * msg) {
 void lcd_print_immediate(const __FlashStringHelper * msg) {
     // injects msg from flash just after buffer start and displays it
     if (inserted_lines > 1) {
-        strlcpy((char * ) lcd_lines[0], lcd_lines[inserted_lines - 1],17);
+        strlcpy((char * ) lcd_lines[0], lcd_lines[inserted_lines - 1],LCD_DISPLAY_LEN+1);
         inserted_lines = 2;
     } else {
         inserted_lines += 1;
     }
-    strlcpy_P((char * ) lcd_lines[inserted_lines - 1], (char *) msg, 17);
+    strlcpy_P((char * ) lcd_lines[inserted_lines - 1], (char *) msg, LCD_DISPLAY_LEN+1);
     Serial.println(lcd_lines[inserted_lines - 1]);
     lastrun = -1;
     lcd_last_printed_line = 0;
