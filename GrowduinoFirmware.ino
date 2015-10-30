@@ -238,7 +238,7 @@ void setup(void) {
     outputs.load();
     pFreeRam();
     Serial.println(F("Relay setup"));
-    for(i=0; i <8; i++) {
+    for(i=0; i < OUTPUTS; i++) {
         pinMode(RELAY_START + i, OUTPUT);
         // outputs.set(i, 0);
     }
@@ -342,7 +342,7 @@ void worker(){
     }
 
     // move relays
-    for(int i=0; i <8; i++) {
+    for(int i=0; i < OUTPUTS; i++) {
         outputs.hw_update(i);
     }
 

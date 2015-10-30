@@ -1,4 +1,4 @@
-#include "GrowduinoFirmware.h"
+
 
 #include "outputs.h"
 #include "daytime.h"
@@ -181,6 +181,7 @@ int Output::hw_update(int slot){
 #endif
         time_t t_now = utc_now();
         digitalWrite(RELAY_START + slot, wanted);
+        delay(100);
         hw_state[slot] = wanted;
         log();
         ctimes[slot] = t_now;
