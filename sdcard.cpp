@@ -8,7 +8,8 @@ const int chipSelect = 4;
 bool sdcard_init(){
     bool ret;
     pinMode(53, OUTPUT);
-    ret = SD.begin(chipSelect);
+    pinMode(chipSelect, OUTPUT);
+    ret = SD.begin(4);
     return ret;
 }
 

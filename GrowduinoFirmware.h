@@ -75,6 +75,18 @@
 
 #define LCD_BUFFER_LINES 6
 
+#define DISPLAY_2004
+
+#ifdef DISPLAY_2004
+#define LCD_DISPLAY_LINES 4
+#define LCD_DISPLAY_LEN 20
+
+#else
+#define LCD_DISPLAY_LINES 2
+#define LCD_DISPLAY_LEN 16
+#endif
+
+
 #define MEGA 1
 
 //#define USE_GSM 1

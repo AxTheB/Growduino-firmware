@@ -1,19 +1,33 @@
 #include "GrowduinoFirmware.h"
 //#include <LiquidCrystal.h>
 
+#ifdef DISPLAY_2004
+
+#include <LiquidCrystal_I2C.h>
+extern LiquidCrystal_I2C lcd;
+
+#else 
+
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
-
-//extern LiquidCrystal lcd;
 extern Adafruit_RGBLCDShield lcd;
 
-char lcd_lines[LCD_BUFFER_LINES][17];
+#endif
+
+
+char lcd_lines[LCD_BUFFER_LINES][LCD_DISPLAY_LEN+1];
 int lcd_last_printed_line, inserted_lines;
 long lastrun;
 
 void lcd_setup(){
+#ifdef DISPLAY_2004
+    lcd.init();
+    lcd.backlight();
+#else 
     lcd.begin(16,2);
     lcd.setBacklight(0x07);
+#endif
+
     lcd_flush();
     lcd_publish(F("Initialising LCD"));
     lcd_tick();
@@ -25,7 +39,7 @@ void lcd_publish(char * msg) {
     Serial.print("lcd_publish: ");
     Serial.println(msg);
     if (inserted_lines < LCD_BUFFER_LINES) {
-        strlcpy((char * ) lcd_lines[inserted_lines], msg, 17);
+        strlcpy((char * ) lcd_lines[inserted_lines], msg, LCD_DISPLAY_LEN+1);
         inserted_lines += 1;
         lastrun = -1;
     } else {
@@ -38,7 +52,7 @@ void lcd_publish(const __FlashStringHelper * msg) {
     Serial.print("lcd_publish: ");
     Serial.println(msg);
     if (inserted_lines < LCD_BUFFER_LINES) {
-        strlcpy_P((char * ) lcd_lines[inserted_lines], (char *) msg, 17);
+        strlcpy_P((char * ) lcd_lines[inserted_lines], (char *) msg, LCD_DISPLAY_LEN+1);
         inserted_lines += 1;
         lastrun = -1;
     } else {
@@ -49,12 +63,12 @@ void lcd_publish(const __FlashStringHelper * msg) {
 void lcd_print_immediate(const __FlashStringHelper * msg) {
     // injects msg from flash just after buffer start and displays it
     if (inserted_lines > 1) {
-        strlcpy((char * ) lcd_lines[0], lcd_lines[inserted_lines - 1],17);
+        strlcpy((char * ) lcd_lines[0], lcd_lines[inserted_lines - 1],LCD_DISPLAY_LEN+1);
         inserted_lines = 2;
     } else {
         inserted_lines += 1;
     }
-    strlcpy_P((char * ) lcd_lines[inserted_lines - 1], (char *) msg, 17);
+    strlcpy_P((char * ) lcd_lines[inserted_lines - 1], (char *) msg, LCD_DISPLAY_LEN+1);
     Serial.println(lcd_lines[inserted_lines - 1]);
     lastrun = -1;
     lcd_last_printed_line = 0;
@@ -79,15 +93,18 @@ void lcd_tick() {
 
         lastrun = currrun;
         lcd.clear();
-        lcd.print(lcd_lines[lcd_last_printed_line]);
+        
+        int lines_to_print = min(LCD_DISPLAY_LINES, inserted_lines);
+        Serial.print(F("Lines to print: "));
+        Serial.print(lines_to_print);
+        
+        for (int i=0; i < lines_to_print; i++) {
 
-        if (inserted_lines > 1) {
+            lcd.setCursor(0, i);
+            lcd.print(lcd_lines[lcd_last_printed_line]);
             lcd_last_printed_line += 1;
             if (lcd_last_printed_line >= inserted_lines)
-                lcd_last_printed_line = 0;
-            lcd.setCursor(0, 1);
-            lcd.print(lcd_lines[lcd_last_printed_line]);
+                lcd_last_printed_line = 0;   
         }
-    } else {
     }
 }
