@@ -30,6 +30,16 @@
 #define LIGHT_SENSOR_PIN_1 8
 #define LIGHT_SENSOR_PIN_2 9
 #define LIGHT_SENSOR_PIN_UPS 10
+#define PH_DATA 11
+
+#define USE_CO2_SENSOR 1
+
+#ifdef USE_CO2_SENSOR
+// calibrate this. Will be saved to config file, so it can be adjusted
+#define CO2_400 4.535
+#define CO2_40k 3.206
+#endif
+#define CO2_DATA 12
 
 #define DHT22_PIN 22
 #define ONEWIRE_PIN 23
@@ -48,6 +58,10 @@
 // TRIGGERS - ALERTS must be 31 or lower, or random crashes occur. Really.
 #define TRIGGERS 42
 #define ALERTS 12
+
+
+#define ANALOG_READ_AVG_TIMES 3
+#define ANALOG_READ_AVG_DELAY 10
 
 
 #define ALERT_MSG_LEN 64
@@ -93,9 +107,14 @@
 #include "alerts.h"
 #include "smtp.h"
 
+#ifdef USE_CO2_SENSOR
+#include "co2.h"
+#endif
+
 extern int ether;
 void pFreeRam();
 extern File sd_file;
+int analogReadAvg(int pin);
 
 #define NONE -1
 #define STATE_ON 1

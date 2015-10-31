@@ -20,6 +20,10 @@ Config::Config(){
     smtp_port = 25;
     time_zone = 2;
     ups_trigger_level = 255;
+#ifdef USE_CO2_SENSOR
+    co2_400 = CO2_400;
+    co2_4k = CO2_40k;
+#endif
 }
 
 void Config::load(aJsonObject * json){

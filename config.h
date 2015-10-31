@@ -1,4 +1,5 @@
 #pragma once
+#include "GrowduinoFirmware.h"
 
 #include <Ethernet.h>
 #include <aJSON.h>
@@ -16,6 +17,10 @@ class Config
         char * mac_ntoa(byte addr[], char * dest);
         int time_zone;
         int ups_trigger_level;
+#ifdef USE_CO2_SENSOR
+        int co2_400;
+        int co2_4k;
+#endif
 
         int use_dhcp;
         byte mac[6];

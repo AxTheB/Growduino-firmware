@@ -1,5 +1,3 @@
-
-
 #include "GrowduinoFirmware.h"
 
 #include <dht.h>
@@ -65,10 +63,11 @@ Logger light_sensor2 = Logger("Light2");
 
 int ups_level;
 
-Logger ultrasound = Logger("Usnd");
+//Logger ultrasound = Logger("Usnd");
 
 Logger onewire_temp1 = Logger("Temp2");
 Logger onewire_temp2 = Logger("Temp3");
+Logger co2 = Logger("CO2");
 
 Config config;
 Output outputs;
@@ -77,10 +76,19 @@ aJsonStream serial_stream(&Serial);
 
 EthernetServer server(80);
 
-Logger * loggers[LOGGERS] = {&dht22_humidity, &dht22_temp, &light_sensor, &ultrasound, &onewire_temp1, &light_sensor2, &onewire_temp2};
+Logger * loggers[LOGGERS] = {&dht22_humidity, &dht22_temp, &light_sensor, &onewire_temp1, &light_sensor2, &onewire_temp2, &co2};
 
 Trigger triggers[TRIGGERS];
 Alert alerts[ALERTS];
+
+int analogReadAvg(int pin) {
+    long data = 0L;
+    for (int i=0; i < ANALOG_READ_AVG_TIMES; i++) {
+        data += analogRead(pin);
+        delay(ANALOG_READ_AVG_DELAY);
+    }
+    return (int) data / ANALOG_READ_AVG_TIMES;
+}
 
 int freeRam () {
   extern int __heap_start, *__brkval;
@@ -283,9 +291,10 @@ void worker(){
     int hum = (int) lround(10 * DHT.humidity);
     dht22_humidity.timed_log(hum);
 
-    light_sensor.timed_log(map(analogRead(LIGHT_SENSOR_PIN_1), 0, 1024, 0, 1000));
-    light_sensor2.timed_log(map(analogRead(LIGHT_SENSOR_PIN_2), 0, 1024, 0, 1000));
-    ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
+    light_sensor.timed_log(map(analogReadAvg(LIGHT_SENSOR_PIN_1), 0, 1024, 0, 1000));
+    light_sensor2.timed_log(map(analogReadAvg(LIGHT_SENSOR_PIN_2), 0, 1024, 0, 1000));
+    //ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
+    co2.timed_log(CO2_read());
 
     onewire_temp1.timed_log(ds_read(ds1, temp1_addr));
     onewire_temp2.timed_log(ds_read(ds2, temp2_addr));
@@ -307,7 +316,7 @@ void worker(){
         Serial.println();
     }
 #endif
-    ups_level = analogRead(LIGHT_SENSOR_PIN_UPS);
+    ups_level = analogReadAvg(LIGHT_SENSOR_PIN_UPS);
 
 #ifdef DEBUG_OUTPUT
     pFreeRam();
@@ -357,8 +366,9 @@ void worker(){
     snprintf(lcd_msg, 17, "Humidity %d.%d%%", dht22_humidity.peek() / 10, abs(dht22_humidity.peek() % 10));
     lcd_publish(lcd_msg);
 
-    snprintf(lcd_msg, 17, "Water Lvl %dcm", ultrasound.peek());
+    snprintf(lcd_msg, 17, "CO2 %d", co2.peek());
     lcd_publish(lcd_msg);
+
 
     snprintf(lcd_msg, 17, "Water Temp %d.%dC", onewire_temp1.peek() / 10, abs(onewire_temp1.peek() % 10));
     lcd_publish(lcd_msg);
