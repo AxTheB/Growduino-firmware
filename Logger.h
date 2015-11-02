@@ -26,7 +26,7 @@ class Logger
 
         int buf_h[24];
 
-        int buf_day[1];
+        int buf_day[31];
 
         int idx_min, idx_h, idx_day; // postiton of last save
         int idx_min_new, idx_h_new, idx_day_new; // postiton of new data

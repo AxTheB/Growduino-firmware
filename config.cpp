@@ -22,7 +22,11 @@ Config::Config(){
     ups_trigger_level = 255;
 #ifdef USE_CO2_SENSOR
     co2_400 = CO2_400;
-    co2_4k = CO2_40k;
+    co2_40k = CO2_40k;
+#endif
+#ifdef USE_CO2_SENSOR
+    ph_3 = PH_3;
+    ph_7 = PH_7;
 #endif
 }
 
@@ -144,6 +148,37 @@ void Config::load(aJsonObject * json){
         ups_trigger_level = 255;
     }
 
+#ifdef USE_CO2_SENSOR
+    cnfobj = aJson.getObjectItem(json, "co2_400");
+    if (cnfobj) {
+        sscanf(cnfobj->valuestring, "%d", &co2_400);
+    } else {
+        co2_400 = CO2_400;
+    }
+
+    cnfobj = aJson.getObjectItem(json, "co2_40k");
+    if (cnfobj) {
+        sscanf(cnfobj->valuestring, "%d", &co2_40k);
+    } else {
+        co2_40k = CO2_40k;
+    }
+#endif
+
+#ifdef USE_PH_SENSOR
+    cnfobj = aJson.getObjectItem(json, "ph_3");
+    if (cnfobj) {
+        sscanf(cnfobj->valuestring, "%d", &ph_3);
+    } else {
+        ph_3 = PH_3;
+    }
+
+    cnfobj = aJson.getObjectItem(json, "ph_7");
+    if (cnfobj) {
+        sscanf(cnfobj->valuestring, "%d", &ph_7);
+    } else {
+        ph_7 = PH_7;
+    }
+#endif
 }
 
 int Config::save(){
