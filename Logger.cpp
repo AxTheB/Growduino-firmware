@@ -11,14 +11,12 @@ Logger::Logger(const char * logger_name){
 }
 
 void Logger::setup(){
-        //prepare buffers
+        //prepare buffer
         buffer_cleanup(buf_min, 60, 0, -1);
-        buffer_cleanup(buf_h, 24, 0, -1);
-        buffer_cleanup(buf_day, 31, 0, -1);
 }
 
 void Logger::load() {
-    Serial.println(F("Recovering state"));
+    Serial.println(F("Loading buffer data"));
     char dirname[64];
     char filename[13];
     aJsonObject * data;
@@ -33,7 +31,7 @@ void Logger::load() {
     } else {
         Serial.println(F("Minute data load failure"));
     }
-
+/*
     dirname_l2(dirname);
     sprintf(filename, "%02d.jso", day());
     data = file_read(dirname, filename);
@@ -53,6 +51,7 @@ void Logger::load() {
     } else {
         Serial.println(F("Daily data load failure"));
     }
+*/
 }
 
 bool Logger::available() {

@@ -1,6 +1,9 @@
 #pragma once
 #include "RingBuffer.h"
 
+        int buf_h[24];
+        int buf_day[31];
+
 class Logger
 {
     public:
@@ -24,12 +27,8 @@ class Logger
     private:
         int buf_min[60];
 
-        int buf_h[24];
-
-        int buf_day[1];
-
-        int idx_min, idx_h, idx_day; // postiton of last save
-        int idx_min_new, idx_h_new, idx_day_new; // postiton of new data
+        int idx_min; // postiton of last save
+        int idx_min_new; // postiton of new data
         bool timed;
         int peekval;
 
