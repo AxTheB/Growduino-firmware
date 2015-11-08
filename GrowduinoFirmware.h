@@ -34,7 +34,7 @@
 #define USE_PH_SENSOR 1
 #ifdef USE_PH_SENSOR
 // calibrate this. Will be saved to config file, so it can be adjusted
-#define PH_3 30
+#define PH_4 40
 #define PH_7 200
 #endif
 #define PH_DATA 11
@@ -82,7 +82,7 @@
 
 #define LCD_BUFFER_LINES 6
 
-#define DISPLAY_2004
+#define DISPLAY_2004 1
 
 #ifdef DISPLAY_2004
 #define LCD_DISPLAY_LINES 4

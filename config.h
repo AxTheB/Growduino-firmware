@@ -22,7 +22,7 @@ class Config
         int co2_40k;
 #endif
 #ifdef USE_PH_SENSOR
-        int ph_3;
+        int ph_4;
         int ph_7;
 #endif
 

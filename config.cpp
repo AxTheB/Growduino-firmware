@@ -25,7 +25,7 @@ Config::Config(){
     co2_40k = CO2_40k;
 #endif
 #ifdef USE_CO2_SENSOR
-    ph_3 = PH_3;
+    ph_4 = PH_4;
     ph_7 = PH_7;
 #endif
 }
@@ -165,11 +165,11 @@ void Config::load(aJsonObject * json){
 #endif
 
 #ifdef USE_PH_SENSOR
-    cnfobj = aJson.getObjectItem(json, "ph_3");
+    cnfobj = aJson.getObjectItem(json, "ph_4");
     if (cnfobj) {
-        sscanf(cnfobj->valuestring, "%d", &ph_3);
+        sscanf(cnfobj->valuestring, "%d", &ph_4);
     } else {
-        ph_3 = PH_3;
+        ph_4 = PH_4;
     }
 
     cnfobj = aJson.getObjectItem(json, "ph_7");
@@ -239,7 +239,29 @@ int Config::save(){
 
     sd_file.print(F("\"ups_trigger_level\":\""));
     sd_file.print(ups_trigger_level);
+    sd_file.print(F("\","));
+
+#ifdef USE_CO2_SENSOR
+    sd_file.print(F("\"co2_400\":\""));
+    sd_file.print(co2_400);
+    sd_file.print(F("\","));
+
+    sd_file.print(F("\"co2_40k\":\""));
+    sd_file.print(co2_40k);
+    sd_file.print(F("\","));
+#endif
+
+#ifdef USE_PH_SENSOR
+    sd_file.print(F("\"ph_4\":\""));
+    sd_file.print(ph_4);
+    sd_file.print(F("\","));
+
+    sd_file.print(F("\"ph_7\":\""));
+    sd_file.print(ph_7);
     sd_file.print(F("\""));
+
+
+#endif
 
     sd_file.print(F("}"));
     sd_file.close();
