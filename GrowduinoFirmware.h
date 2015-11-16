@@ -26,10 +26,17 @@
 #define GET 1
 #define POST 2
 
-// light sensor on analog A1
+// light sensor on analog A8
 #define LIGHT_SENSOR_PIN_1 8
 #define LIGHT_SENSOR_PIN_2 9
 #define LIGHT_SENSOR_PIN_UPS 10
+
+#define USE_PH_SENSOR 1
+#ifdef USE_PH_SENSOR
+// calibrate this. Will be saved to config file, so it can be adjusted
+#define PH_4 40
+#define PH_7 200
+#endif
 #define PH_DATA 11
 
 #define USE_CO2_SENSOR 1
@@ -75,7 +82,7 @@
 
 #define LCD_BUFFER_LINES 6
 
-#define DISPLAY_2004
+#define DISPLAY_2004 1
 
 #ifdef DISPLAY_2004
 #define LCD_DISPLAY_LINES 4
@@ -88,9 +95,6 @@
 
 
 #define MEGA 1
-
-//#define USE_GSM 1
-//#define GSM_ENABLE 6
 
 #ifdef DEBUG
 #define DEBUG_OUTPUT 1

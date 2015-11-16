@@ -31,12 +31,6 @@ LiquidCrystal_I2C lcd(0x27,20,4);
 Adafruit_RGBLCDShield lcd = Adafruit_RGBLCDShield();
 #endif
 
-#ifdef USE_GSM
-#include <GSM_Shield.h>
-GSM gsm;
-int gsm_init_done = 0;
-#endif
-
 int ether = 1;
 
 // DHT22 temp and humidity sensor. Treated as main temp and humidity source
@@ -172,7 +166,7 @@ void setup(void) {
     }
     digitalWrite(13, LOW);
     // Serial.println(F("Inititalising Ethernet"));
-    lcd_print_immediate(F("Starting Eth..."));
+    lcd_print_immediate(F("Loading config..."));
 
     // load config from sdcard
     pFreeRam();
@@ -186,6 +180,7 @@ void setup(void) {
     pFreeRam();
     config.save();
     pFreeRam();
+    lcd_print_immediate(F("Starting eth..."));
     if (config.use_dhcp == 1) {
         we_have_net = Ethernet.begin(config.mac);
     }
@@ -207,13 +202,6 @@ void setup(void) {
     pFreeRam();
     Serial.println(F("Loading alerts"));
     alerts_load();
-
-    #ifdef USE_GSM
-    pFreeRam();
-    lcd_print_immediate(F("Starting GSM..."));
-    //Serial3.begin(9600);
-    gsm.TurnOn(9600);
-    #endif
 
     // start real time clock
     pFreeRam();
@@ -380,29 +368,6 @@ void worker(){
     lcd_publish(lcd_msg);
 
     lcd_tick();
-
-#ifdef USE_GSM
-    int gsm_reg;
-    gsm_reg = gsm.CheckRegistration();
-    switch (gsm_reg){
-        case REG_NOT_REGISTERED:
-            lcd_publish("GSM not registered");
-            break;
-        case REG_REGISTERED:
-            lcd_publish("GSM registered");
-            if (gsm_init_done == 0) {
-                Serial3.println("AT+CLTS=1\r");
-                Serial3.println("AT+CENG=3\r");
-            }
-            break;
-        case REG_NO_RESPONSE:
-            lcd_publish("GSM no response");
-            break;
-        case REG_COMM_LINE_BUSY:
-            lcd_publish("GSM busy");
-            break;
-    }
-#endif
 
     digitalWrite(13, LOW);
 }

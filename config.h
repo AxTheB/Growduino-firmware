@@ -19,7 +19,11 @@ class Config
         int ups_trigger_level;
 #ifdef USE_CO2_SENSOR
         int co2_400;
-        int co2_4k;
+        int co2_40k;
+#endif
+#ifdef USE_PH_SENSOR
+        int ph_4;
+        int ph_7;
 #endif
 
         int use_dhcp;
