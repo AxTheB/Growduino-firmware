@@ -4,6 +4,9 @@
 
 int log_every_time = true;
 
+int buf_h[24];
+int buf_day[31];
+
 Logger::Logger(const char * logger_name){
     setup();
     strncpy(name, logger_name, 8);
@@ -34,6 +37,10 @@ void Logger::load() {
 }
 
 void Logger::load_all(){
+    char dirname[64];
+    char filename[13];
+    aJsonObject * data;
+
     buffer_cleanup(buf_h, 24, 0, -1);
     buffer_cleanup(buf_day, 31, 0, -1);
     Serial.println(F("Loading day/month data"));

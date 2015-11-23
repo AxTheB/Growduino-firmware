@@ -1,8 +1,6 @@
 #pragma once
 #include "RingBuffer.h"
 
-int buf_h[24];
-int buf_day[31];
 
 class Logger
 {
@@ -20,6 +18,7 @@ class Logger
         char* dirname_l2(char *dirname);
         char* dirname_l3(char *dirname);
         void load();
+        void load_all();
         bool match(const char * request);
         time_t time;  // from Time.h, included by GrowduinoFirmware.h
         int peek();
