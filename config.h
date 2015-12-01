@@ -18,14 +18,17 @@ class Config
         int time_zone;
         int ups_trigger_level;
 #ifdef USE_CO2_SENSOR
-        int co2_400;
-        int co2_40k;
+        float co2_400;
+        float co2_40k;
 #endif
 #ifdef USE_PH_SENSOR
         int ph_4;
         int ph_7;
 #endif
-
+#ifdef USE_EC_SENSOR
+        int ec_low_ion;
+        int ec_high_ion;
+#endif
         int use_dhcp;
         byte mac[6];
         IPAddress ip;

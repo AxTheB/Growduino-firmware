@@ -24,9 +24,13 @@ Config::Config(){
     co2_400 = CO2_400;
     co2_40k = CO2_40k;
 #endif
-#ifdef USE_CO2_SENSOR
+#ifdef USE_PH_SENSOR
     ph_4 = PH_4;
     ph_7 = PH_7;
+#endif
+#ifdef USE_EC_SENSOR
+    ec_low_ion = EC_LOW_ION;
+    ec_high_ion = EC_HIGH_ION;
 #endif
 }
 
@@ -151,14 +155,14 @@ void Config::load(aJsonObject * json){
 #ifdef USE_CO2_SENSOR
     cnfobj = aJson.getObjectItem(json, "co2_400");
     if (cnfobj) {
-        sscanf(cnfobj->valuestring, "%d", &co2_400);
+        sscanf(cnfobj->valuestring, "%f", &co2_400);
     } else {
         co2_400 = CO2_400;
     }
 
     cnfobj = aJson.getObjectItem(json, "co2_40k");
     if (cnfobj) {
-        sscanf(cnfobj->valuestring, "%d", &co2_40k);
+        sscanf(cnfobj->valuestring, "%f", &co2_40k);
     } else {
         co2_40k = CO2_40k;
     }
@@ -177,6 +181,22 @@ void Config::load(aJsonObject * json){
         sscanf(cnfobj->valuestring, "%d", &ph_7);
     } else {
         ph_7 = PH_7;
+    }
+#endif
+
+#ifdef USE_EC_SENSOR
+    cnfobj = aJson.getObjectItem(json, "ec_low_ion");
+    if (cnfobj) {
+        sscanf(cnfobj->valuestring, "%d", &ec_low_ion);
+    } else {
+        ec_low_ion = EC_LOW_ION;
+    }
+
+    cnfobj = aJson.getObjectItem(json, "ec_high_ion");
+    if (cnfobj) {
+        sscanf(cnfobj->valuestring, "%d", &ec_high_ion);
+    } else {
+        ec_high_ion = EC_HIGH_ION;
     }
 #endif
 }

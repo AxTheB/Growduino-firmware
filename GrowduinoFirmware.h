@@ -39,12 +39,24 @@
 #endif
 #define PH_DATA 11
 
+
+#define USE_EC_SENSOR 1
+#ifdef USE_EC_SENSOR
+// calibrate this. Will be saved to config file, so it can be adjusted
+#define EC_LOW_ION 500
+#define EC_HIGH_ION 200
+#endif
+#define EC_ENABLE 27
+#define EC_DATA 28
+#define EC_SAMPLE_TIMES 5
+
+
 #define USE_CO2_SENSOR 1
 
 #ifdef USE_CO2_SENSOR
-// calibrate this. Will be saved to config file, so it can be adjusted
-#define CO2_400 4.535
-#define CO2_40k 3.206
+// calibrate this. Will be saved to config file, so it can be adjusted. 
+#define CO2_400 4.535  //not an integer
+#define CO2_40k 3.206  //not an integer
 #endif
 #define CO2_DATA 12
 
@@ -76,13 +88,13 @@
 
 #define OUTPUTS 12
 
-#define LOGGERS 7
+#define LOGGERS 10
 
 #define DEBUG 1
 
 #define LCD_BUFFER_LINES 6
 
-#define DISPLAY_2004 1
+//#define DISPLAY_2004 1
 
 #ifdef DISPLAY_2004
 #define LCD_DISPLAY_LINES 4
@@ -122,6 +134,14 @@
 #include "Lcd.h"
 #include "alerts.h"
 #include "smtp.h"
+
+#ifdef USE_PH_SENSOR
+#include "phmeter.h"
+#endif
+
+#ifdef USE_EC_SENSOR
+#include "ec.h"
+#endif
 
 #ifdef USE_CO2_SENSOR
 #include "co2.h"

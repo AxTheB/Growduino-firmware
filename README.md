@@ -220,3 +220,8 @@ Sends message to remote person when trigger chages state
 ```
  - target may be phone number for SMS or mail address (TODO)
  - when one of the messages is empty or missing then nothing is sent on corresponding trigger change
+
+Calibration
+-----------
+
+Calibration of EC sensor is done at 20C, by calibration solution with known conductivity 1.278 and 2.8mS. 

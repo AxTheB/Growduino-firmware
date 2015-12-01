@@ -1,1 +1,1 @@
-int PHread();
+int PH_read();

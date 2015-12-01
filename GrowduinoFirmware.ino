@@ -59,10 +59,13 @@ Logger light_sensor2 = Logger("Light2");
 
 int ups_level;
 
-//Logger ultrasound = Logger("Usnd");
+Logger ultrasound = Logger("Usnd");
 
 Logger onewire_temp1 = Logger("Temp2");
 Logger onewire_temp2 = Logger("Temp3");
+
+Logger ec = Logger("EC");
+Logger ph = Logger("pH");
 Logger co2 = Logger("CO2");
 
 Config config;
@@ -72,7 +75,18 @@ aJsonStream serial_stream(&Serial);
 
 EthernetServer server(80);
 
-Logger * loggers[LOGGERS] = {&dht22_humidity, &dht22_temp, &light_sensor, &onewire_temp1, &light_sensor2, &onewire_temp2, &co2};
+Logger * loggers[LOGGERS+1] = {
+    &dht22_humidity,
+    &dht22_temp,
+    &light_sensor,
+    &ultrasound,
+    &onewire_temp1,
+    &light_sensor2,
+    &onewire_temp2,
+    &ec,
+    &ph,
+    &co2
+    };
 
 Trigger triggers[TRIGGERS];
 Alert alerts[ALERTS];
@@ -240,13 +254,13 @@ void setup(void) {
         pinMode(RELAY_START + i, OUTPUT);
         // outputs.set(i, 0);
     }
+    outputs.log();
     //outputs.load();
 
     #ifdef WATCHDOG
     wdt_enable(WDTO_8S);
     #endif
 
-    // init temp/humidity logger
     pFreeRam();
     lcd_flush();
     lcd_print_immediate(F("Setup done"));
@@ -283,7 +297,9 @@ void worker(){
 
     light_sensor.timed_log(map(analogReadAvg(LIGHT_SENSOR_PIN_1), 0, 1024, 0, 1000));
     light_sensor2.timed_log(map(analogReadAvg(LIGHT_SENSOR_PIN_2), 0, 1024, 0, 1000));
-    //ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
+    ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
+    ec.timed_log(ec_read());
+    ph.timed_log(PH_read());
     co2.timed_log(CO2_read());
 
     onewire_temp1.timed_log(ds_read(ds1, temp1_addr));
@@ -353,15 +369,20 @@ void worker(){
     snprintf(lcd_msg, 17, "Air Temp %d.%dC", dht22_temp.peek() / 10, abs(dht22_temp.peek() % 10));
     lcd_publish(lcd_msg);
 
-    snprintf(lcd_msg, 17, "Humidity %d.%d%%", dht22_humidity.peek() / 10, abs(dht22_humidity.peek() % 10));
-    lcd_publish(lcd_msg);
+    //snprintf(lcd_msg, 17, "Humidity %d.%d%%", dht22_humidity.peek() / 10, abs(dht22_humidity.peek() % 10));
+    //lcd_publish(lcd_msg);
 
     snprintf(lcd_msg, 17, "CO2 %d", co2.peek());
     lcd_publish(lcd_msg);
 
-
-    snprintf(lcd_msg, 17, "Water Temp %d.%dC", onewire_temp1.peek() / 10, abs(onewire_temp1.peek() % 10));
+    snprintf(lcd_msg, 17, "pH %d", ph.peek());
     lcd_publish(lcd_msg);
+
+    snprintf(lcd_msg, 17, "EC %d", ec.peek());
+    lcd_publish(lcd_msg);
+
+    //snprintf(lcd_msg, 17, "Water Temp %d.%dC", onewire_temp1.peek() / 10, abs(onewire_temp1.peek() % 10));
+    //lcd_publish(lcd_msg);
 
     int uptime = millis() / 60000;
     snprintf(lcd_msg, 17, "Uptime %d", uptime);
