@@ -238,6 +238,7 @@ void Output::log(){
         log_times[log_index] = utc_now();
         log_index++;
         if (log_index >= LOGSIZE) {
+            initial = new_initial;
             log_index = 0;
             log_file_index++;
         }
@@ -281,6 +282,14 @@ void Output::load(){
 
     if (file_exists(dirname, filename)){ // Restore data
         aJsonObject * logfile = file_read(dirname, filename);
+
+        aJsonObject* cnfobj = aJson.getObjectItem(logfile, "initial");
+        if (cnfobj) {
+            sscanf(cnfobj->valuestring, "%d", &initial);
+        } else {
+            initial = 0;
+        }
+
         buff = aJson.getObjectItem(logfile, "state");
 
         if (!buff) {
@@ -295,16 +304,22 @@ void Output::load(){
             int value = 0;
 
             while (data_item != NULL) {
+#ifdef DEBUG_OUTPUT
                 Serial.println(F("Loading data item"));
                 Serial.print(F("Name: "));
                 Serial.println(data_item->name);
+#endif
                 sscanf(data_item->name, "%lu", &tstamp);
+#ifdef DEBUG_OUTPUT
                 Serial.print(F("iName: "));
                 Serial.println(tstamp);
+#endif
                 value = data_item->valueint;
+#ifdef DEBUG_OUTPUT
                 Serial.print(F("Value: "));
                 Serial.println(value);
                 Serial.println(F("----"));
+#endif
                 log_times[idx] = tstamp;
                 log_states[idx] = value;
                 idx++;
@@ -320,6 +335,9 @@ void Output::json(Stream * msg){
     msg->print(F("{"));
     msg->print("\"name\":\"");
     msg->print(name);
+    msg->print("\",");
+    msg->print("\"initial\":\"");
+    msg->print(initial);
     msg->print("\",");
 
     msg->print("\"state\":{");

@@ -43,6 +43,8 @@ private:
     time_t ctimes[OUTPUTS];
     int log_states[LOGSIZE];
     time_t log_times[LOGSIZE];
+    int initial;
+    int new_initial;
     int log_index;
     int log_file_index;
     int last_save_daymin;
