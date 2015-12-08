@@ -29,6 +29,8 @@ int ec_read(){
 
     for(unsigned int j=0; j<EC_SAMPLE_TIMES; j++){
         highPulseTime+=pulseIn(EC_DATA, HIGH);
+        if (j == 0 and highPulseTime == 0)
+            return MINVALUE;
         lowPulseTime+=pulseIn(EC_DATA, LOW);
     }
     lowPulseTime = lowPulseTime/EC_SAMPLE_TIMES;

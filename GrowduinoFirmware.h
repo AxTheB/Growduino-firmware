@@ -92,7 +92,7 @@
 
 #define DEBUG 1
 
-#define LCD_BUFFER_LINES 6
+#define LCD_BUFFER_LINES 9
 
 //#define DISPLAY_2004 1
 

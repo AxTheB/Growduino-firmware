@@ -369,20 +369,23 @@ void worker(){
     snprintf(lcd_msg, 17, "Air Temp %d.%dC", dht22_temp.peek() / 10, abs(dht22_temp.peek() % 10));
     lcd_publish(lcd_msg);
 
-    //snprintf(lcd_msg, 17, "Humidity %d.%d%%", dht22_humidity.peek() / 10, abs(dht22_humidity.peek() % 10));
-    //lcd_publish(lcd_msg);
+    snprintf(lcd_msg, 17, "Humidity %d.%d%%", dht22_humidity.peek() / 10, abs(dht22_humidity.peek() % 10));
+    lcd_publish(lcd_msg);
 
-    snprintf(lcd_msg, 17, "CO2 %d", co2.peek());
+    snprintf(lcd_msg, 17, "Water Temp %d.%dC", onewire_temp1.peek() / 10, abs(onewire_temp1.peek() % 10));
+    lcd_publish(lcd_msg);
+
+    snprintf(lcd_msg, 17, "Water Lvl %dcm", ultrasound.peek());
     lcd_publish(lcd_msg);
 
     snprintf(lcd_msg, 17, "pH %d", ph.peek());
     lcd_publish(lcd_msg);
 
-    snprintf(lcd_msg, 17, "EC %d", ec.peek());
+    snprintf(lcd_msg, 17, "CO2 %d", co2.peek());
     lcd_publish(lcd_msg);
 
-    //snprintf(lcd_msg, 17, "Water Temp %d.%dC", onewire_temp1.peek() / 10, abs(onewire_temp1.peek() % 10));
-    //lcd_publish(lcd_msg);
+    snprintf(lcd_msg, 17, "EC %d", ec.peek());
+    lcd_publish(lcd_msg);
 
     int uptime = millis() / 60000;
     snprintf(lcd_msg, 17, "Uptime %d", uptime);
