@@ -9,7 +9,12 @@ byte type_s;
 int celsius;
 
 int ds_read(OneWire ds, byte * addr){
+    if (!ds.search(addr)) {
+        ds.reset_search();
+        return MINVALUE;
+    }
 
+    ds.reset_search();
     if (addr[0] == 0) {
         type_s = 1;
     } else {
