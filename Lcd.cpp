@@ -61,6 +61,7 @@ void lcd_publish(const char * text, const char * format, int data, int divisor) 
             snprintf(lcd_msg, 17, format, text, data / divisor, abs(data % divisor));
         }
     }
+    lcd_publish(lcd_msg);
 }
 
 
