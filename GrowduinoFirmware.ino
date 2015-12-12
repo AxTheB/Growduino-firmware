@@ -290,9 +290,15 @@ void worker(){
             break;
     }
     int temp = (int) lround(10 * DHT.temperature);
+    if (temp == (10 * MINVALUE)) {
+        temp = MINVALUE;
+    }
     dht22_temp.timed_log(temp);
 
     int hum = (int) lround(10 * DHT.humidity);
+    if (hum == (10 * MINVALUE)) {
+        hum = MINVALUE;
+    }
     dht22_humidity.timed_log(hum);
 
     light_sensor.timed_log(map(analogReadAvg(LIGHT_SENSOR_PIN_1), 0, 1024, 0, 1000));
@@ -365,31 +371,16 @@ void worker(){
 
     // Send things to lcd
     lcd_flush();
-    char lcd_msg[18];
-    snprintf(lcd_msg, 17, "Air Temp %d.%dC", dht22_temp.peek() / 10, abs(dht22_temp.peek() % 10));
-    lcd_publish(lcd_msg);
 
-    snprintf(lcd_msg, 17, "Humidity %d.%d%%", dht22_humidity.peek() / 10, abs(dht22_humidity.peek() % 10));
-    lcd_publish(lcd_msg);
-
-    snprintf(lcd_msg, 17, "Water Temp %d.%dC", onewire_temp1.peek() / 10, abs(onewire_temp1.peek() % 10));
-    lcd_publish(lcd_msg);
-
-    snprintf(lcd_msg, 17, "Water Lvl %dcm", ultrasound.peek());
-    lcd_publish(lcd_msg);
-
-    snprintf(lcd_msg, 17, "pH %d", ph.peek());
-    lcd_publish(lcd_msg);
-
-    snprintf(lcd_msg, 17, "CO2 %d", co2.peek());
-    lcd_publish(lcd_msg);
-
-    snprintf(lcd_msg, 17, "EC %d", ec.peek());
-    lcd_publish(lcd_msg);
-
+    lcd_publish("Air Temp", "%s %d.%dC", dht22_temp.peek());
+    lcd_publish("Humidity", "%s %d.%d%%", dht22_humidity.peek());
+    lcd_publish("Water Temp", "%s %d.%dC", onewire_temp1.peek(), 10);
+    lcd_publish("Water Lvl", "%s %dcm", ultrasound.peek());
+    lcd_publish("pH", "%s %d", ph.peek());
+    lcd_publish("CO2", "%s %d", co2.peek());
+    lcd_publish("EC", "%s %d", ec.peek());
     int uptime = millis() / 60000;
-    snprintf(lcd_msg, 17, "Uptime %d", uptime);
-    lcd_publish(lcd_msg);
+    lcd_publish("Uptime", "%s %d", uptime);
 
     lcd_tick();
 
