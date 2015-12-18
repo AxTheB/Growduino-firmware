@@ -278,9 +278,17 @@ int Config::save(){
 
     sd_file.print(F("\"ph_7\":\""));
     sd_file.print(ph_7);
+    sd_file.print(F("\","));
+#endif
+
+#ifdef USE_EC_SENSOR
+    sd_file.print(F("\"ec_low_ion\":\""));
+    sd_file.print(ec_low_ion);
+    sd_file.print(F("\","));
+
+    sd_file.print(F("\"ec_high_ion\":\""));
+    sd_file.print(ec_high_ion);
     sd_file.print(F("\""));
-
-
 #endif
 
     sd_file.print(F("}"));
