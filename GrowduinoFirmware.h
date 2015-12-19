@@ -94,7 +94,7 @@
 
 #define LCD_BUFFER_LINES 9
 
-#define DISPLAY_2004 1
+//#define DISPLAY_2004 1
 
 #ifdef DISPLAY_2004
 #define LCD_DISPLAY_LINES 4
