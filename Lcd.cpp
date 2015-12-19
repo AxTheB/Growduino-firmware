@@ -60,6 +60,25 @@ void lcd_publish(const __FlashStringHelper * msg) {
     }
 }
 
+void lcd_publish(const char * text, const char * format, int data) {
+    lcd_publish(text, format, data, 0);
+}
+
+void lcd_publish(const char * text, const char * format, int data, int divisor) {
+    char lcd_msg[18];
+    if (data == MINVALUE) {
+        snprintf(lcd_msg, 17, "%s read error", text);
+    } else {
+        if (divisor == 0) {
+            snprintf(lcd_msg, 17, format, text, data);
+        } else {
+            snprintf(lcd_msg, 17, format, text, data / divisor, abs(data % divisor));
+        }
+    }
+    lcd_publish(lcd_msg);
+}
+
+
 void lcd_print_immediate(const __FlashStringHelper * msg) {
     // injects msg from flash just after buffer start and displays it
     if (inserted_lines > 1) {
