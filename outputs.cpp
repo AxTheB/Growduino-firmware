@@ -222,6 +222,9 @@ void Output::log(){
     packed_states = pack_states();
     if (log_index > 0) {
         if (log_states[last_rec] == packed_states){
+            if (daymin() > last_save_daymin) {
+                last_save_daymin = daymin();
+            }
 #ifdef DEBUG_OUTPUT
             Serial.println(F("Output log noop"));
 #endif
@@ -237,12 +240,13 @@ void Output::log(){
         log_states[log_index] = packed_states;
         log_times[log_index] = utc_now();
         log_index++;
-        if (log_index >= LOGSIZE) {
+        if (log_index >= LOGSIZE) { // switch logfile when full
             initial = new_initial;
             log_index = 0;
             log_file_index++;
         }
-        if (daymin() < last_save_daymin) {
+        if (daymin() < last_save_daymin) {  // switch logfile on day change
+            initial = new_initial;
             log_file_index = 0;
         }
         last_save_daymin = daymin();
