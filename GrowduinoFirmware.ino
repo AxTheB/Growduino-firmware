@@ -38,9 +38,7 @@ dht DHT;
 
 // OneWire
 OneWire ds1(ONEWIRE_PIN);
-byte temp1_addr[8];
 OneWire ds2(ONEWIRE_PIN2);
-byte temp2_addr[8];
 
 //profiling
 unsigned long t_loop_start;
@@ -223,21 +221,6 @@ void setup(void) {
     lcd_print_immediate(F("Starting clock"));
     daytime_init();
 
-    // find ds temp sensor addresses
-    ds1.reset_search();
-    delay(10);
-    int res = ds1.search(temp1_addr);
-    if (res == 0) {
-        lcd_print_immediate(F("DS1 not found"));
-    }
-
-    ds2.reset_search();
-    delay(10);
-    res = ds2.search(temp2_addr);
-    if (res == 0) {
-        lcd_print_immediate(F("DS2 not found"));
-    }
-
     //load data from sd card
     for(i=0; i <LOGGERS; i++){
         loggers[i]->load();
@@ -308,8 +291,8 @@ void worker(){
     ph.timed_log(PH_read());
     co2.timed_log(CO2_read());
 
-    onewire_temp1.timed_log(ds_read(ds1, temp1_addr));
-    onewire_temp2.timed_log(ds_read(ds2, temp2_addr));
+    onewire_temp1.timed_log(ds_read(ds1));
+    onewire_temp2.timed_log(ds_read(ds2));
 
 #ifdef DEBUG_LOGGERS
     //  int numLogers = sizeof(loggers) / sizeof(Logger *);
