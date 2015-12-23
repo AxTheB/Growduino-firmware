@@ -356,6 +356,8 @@ int Config::mac_aton(const char * MacAddr, byte (&macResult)[6]) {
 
 
 char * Config::mac_ntoa(byte addr[], char * dest) {
-    sprintf(dest, "%x:%x:%x:%x:%x:%x", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+    sprintf(dest, "%02x:%02x:%02x:%02x:%02x:%02x", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+
+
     return dest;
 }
