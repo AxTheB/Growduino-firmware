@@ -247,6 +247,7 @@ void Output::log(){
         }
         if (daymin() < last_save_daymin) {  // switch logfile on day change
             initial = new_initial;
+            log_index = 0;
             log_file_index = 0;
         }
         last_save_daymin = daymin();
