@@ -41,5 +41,12 @@ int ec_read(){
     ec = (int) 100 * (pulseTime * ec_a + ec_b);
 
 #endif
+
+#ifdef DEBUG_CALIB
+    if (ec != MINVALUE) {
+        Serial.print("EC pulse: ");
+        Serial.println(pulseTime);
+    }
+#endif
     return ec;
 }

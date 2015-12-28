@@ -278,9 +278,17 @@ int Config::save(){
 
     sd_file.print(F("\"ph_7\":\""));
     sd_file.print(ph_7);
+    sd_file.print(F("\","));
+#endif
+
+#ifdef USE_EC_SENSOR
+    sd_file.print(F("\"ec_low_ion\":\""));
+    sd_file.print(ec_low_ion);
+    sd_file.print(F("\","));
+
+    sd_file.print(F("\"ec_high_ion\":\""));
+    sd_file.print(ec_high_ion);
     sd_file.print(F("\""));
-
-
 #endif
 
     sd_file.print(F("}"));
@@ -348,6 +356,8 @@ int Config::mac_aton(const char * MacAddr, byte (&macResult)[6]) {
 
 
 char * Config::mac_ntoa(byte addr[], char * dest) {
-    sprintf(dest, "%x:%x:%x:%x:%x:%x", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+    sprintf(dest, "%02x:%02x:%02x:%02x:%02x:%02x", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
+
+
     return dest;
 }

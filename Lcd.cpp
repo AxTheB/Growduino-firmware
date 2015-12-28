@@ -1,19 +1,33 @@
 #include "GrowduinoFirmware.h"
 //#include <LiquidCrystal.h>
 
+#ifdef DISPLAY_2004
+
+#include <LiquidCrystal_I2C.h>
+extern LiquidCrystal_I2C lcd;
+
+#else
+
 #include <Adafruit_MCP23017.h>
 #include <Adafruit_RGBLCDShield.h>
-
-//extern LiquidCrystal lcd;
 extern Adafruit_RGBLCDShield lcd;
+
+#endif
+
 
 char lcd_lines[LCD_BUFFER_LINES][17];
 int lcd_last_printed_line, inserted_lines;
 long lastrun;
 
 void lcd_setup(){
+#ifdef DISPLAY_2004
+    lcd.init();
+    lcd.backlight();
+#else 
     lcd.begin(16,2);
     lcd.setBacklight(0x07);
+#endif
+
     lcd_flush();
     lcd_publish(F("Initialising LCD"));
     lcd_tick();
@@ -46,6 +60,25 @@ void lcd_publish(const __FlashStringHelper * msg) {
     }
 }
 
+void lcd_publish(const char * text, const char * format, int data) {
+    lcd_publish(text, format, data, 0);
+}
+
+void lcd_publish(const char * text, const char * format, int data, int divisor) {
+    char lcd_msg[18];
+    if (data == MINVALUE) {
+        snprintf(lcd_msg, 17, "%s read error", text);
+    } else {
+        if (divisor == 0) {
+            snprintf(lcd_msg, 17, format, text, data);
+        } else {
+            snprintf(lcd_msg, 17, format, text, data / divisor, abs(data % divisor));
+        }
+    }
+    lcd_publish(lcd_msg);
+}
+
+
 void lcd_print_immediate(const __FlashStringHelper * msg) {
     // injects msg from flash just after buffer start and displays it
     if (inserted_lines > 1) {
@@ -58,7 +91,7 @@ void lcd_print_immediate(const __FlashStringHelper * msg) {
     Serial.println(lcd_lines[inserted_lines - 1]);
     lastrun = -1;
     lcd_last_printed_line = 0;
-    
+
     lcd_tick();
 }
 
@@ -79,15 +112,20 @@ void lcd_tick() {
 
         lastrun = currrun;
         lcd.clear();
-        lcd.print(lcd_lines[lcd_last_printed_line]);
 
-        if (inserted_lines > 1) {
+        int lines_to_print = min(LCD_DISPLAY_LINES, inserted_lines);
+#ifdef DEBUG_LCD
+        Serial.print(F("Lines to print: "));
+        Serial.print(lines_to_print);
+#endif
+
+        for (int i=0; i < lines_to_print; i++) {
+
+            lcd.setCursor(0, i);
+            lcd.print(lcd_lines[lcd_last_printed_line]);
             lcd_last_printed_line += 1;
             if (lcd_last_printed_line >= inserted_lines)
                 lcd_last_printed_line = 0;
-            lcd.setCursor(0, 1);
-            lcd.print(lcd_lines[lcd_last_printed_line]);
         }
-    } else {
     }
 }

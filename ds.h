@@ -2,4 +2,4 @@
 
 #include <OneWire.h>
 
-int ds_read(OneWire ds, byte * addr);
+int ds_read(OneWire ds);
