@@ -361,7 +361,7 @@ void worker(){
     lcd_publish("Water Lvl", "%s %dcm", ultrasound.peek());
     lcd_publish("pH", "%s %d.%d", ph.peek(), 100);
     lcd_publish("CO2", "%s %d", co2.peek());
-    lcd_publish("EC", "%s %d", ec.peek());
+    lcd_publish("EC", "%s %d", ec.peek(), 100);
     int uptime = millis() / 60000;
     lcd_publish("Uptime", "%s %d", uptime);
 
