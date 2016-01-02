@@ -232,27 +232,28 @@ void Output::log(){
         }
     }
 #ifdef DEBUG_OUTPUT
-        Serial.print(F("Output logging. Index:"));
-        Serial.println(log_index);
-        Serial.print(F("packed states: "));
-        Serial.println(packed_states);
+    Serial.print(F("Output logging. Index:"));
+    Serial.println(log_index);
+    Serial.print(F("packed states: "));
+    Serial.println(packed_states);
 #endif
-        log_states[log_index] = packed_states;
-        log_times[log_index] = utc_now();
-        log_index++;
-        if (log_index >= LOGSIZE) { // switch logfile when full
-            initial = new_initial;
-            log_index = 0;
-            log_file_index++;
-        }
-        if (daymin() < last_save_daymin) {  // switch logfile on day change
-            initial = new_initial;
-            log_index = 0;
-            log_file_index = 0;
-        }
-        last_save_daymin = daymin();
-        save();
+    log_states[log_index] = packed_states;
+    log_times[log_index] = utc_now();
+    log_index++;
+    if (log_index >= LOGSIZE) { // switch logfile when full
+        initial = new_initial;
+        log_index = 0;
+        log_file_index++;
     }
+    if (daymin() < last_save_daymin) {  // switch logfile on day change
+        initial = new_initial;
+        log_index = 0;
+        log_file_index = 0;
+    }
+    last_save_daymin = daymin();
+    save();
+    new_initial = packed_states;
+}
 
 char * Output::file_name(char * filename){
     sprintf(filename, "%d.jso", log_file_index);
