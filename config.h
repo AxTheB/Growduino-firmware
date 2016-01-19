@@ -18,8 +18,8 @@ class Config
         int time_zone;
         int ups_trigger_level;
 #ifdef USE_CO2_SENSOR
-        float co2_400;
-        float co2_40k;
+        int co2_400;
+        int co2_40k;
 #endif
 #ifdef USE_PH_SENSOR
         int ph_4;

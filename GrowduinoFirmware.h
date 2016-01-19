@@ -55,8 +55,8 @@
 
 #ifdef USE_CO2_SENSOR
 // calibrate this. Will be saved to config file, so it can be adjusted. 
-#define CO2_400 4.535  //not an integer
-#define CO2_40k 3.206  //not an integer
+#define CO2_400 927
+#define CO2_40k 655
 #endif
 #define CO2_DATA 12
 

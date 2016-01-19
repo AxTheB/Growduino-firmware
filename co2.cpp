@@ -8,8 +8,8 @@ int CO2_read(){
     int co2 = MINVALUE;
 #ifdef USE_CO2_SENSOR
     // http://www.veetech.org.uk/Prototype_CO2_Monitor.htm
-    float v400ppm = config.co2_400;
-    float v40000ppm = config.co2_40k;
+    float v400ppm = (float) config.co2_400 / 204.6;
+    float v40000ppm = (float) config.co2_40k / 204.6;
     float deltavs = v400ppm - v40000ppm;
     float A = deltavs/(log10(400) - log10(40000));
     float B = log10(400);
@@ -26,9 +26,6 @@ int CO2_read(){
     if (co2 != MINVALUE){
         Serial.print("CO2 raw: ");
         Serial.print(raw_data);
-        Serial.print(" V: ");
-        Serial.println(voltage);
-
     }
 #endif
 

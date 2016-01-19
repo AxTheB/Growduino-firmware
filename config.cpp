@@ -155,14 +155,14 @@ void Config::load(aJsonObject * json){
 #ifdef USE_CO2_SENSOR
     cnfobj = aJson.getObjectItem(json, "co2_400");
     if (cnfobj) {
-        sscanf(cnfobj->valuestring, "%f", &co2_400);
+        sscanf(cnfobj->valuestring, "%d", &co2_400);
     } else {
         co2_400 = CO2_400;
     }
 
     cnfobj = aJson.getObjectItem(json, "co2_40k");
     if (cnfobj) {
-        sscanf(cnfobj->valuestring, "%f", &co2_40k);
+        sscanf(cnfobj->valuestring, "%d", &co2_40k);
     } else {
         co2_40k = CO2_40k;
     }
