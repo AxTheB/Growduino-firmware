@@ -37,7 +37,7 @@ void daytime_init(){
     unsigned int localPort = 8888;  // local port to listen for UDP packets
     Udp.begin(localPort);
     time_t ntptime = getNtpTime();
-    if (ntptime > 0) {
+    if (ntptime > 1400000000) {
         // get time from internets
         Serial.println(F("NTP has set the system time"));
         setSyncProvider(getNtpTime);
