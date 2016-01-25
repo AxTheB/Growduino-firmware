@@ -76,7 +76,7 @@
 
 // TRIGGERS - ALERTS must be 31 or lower, or random crashes occur. Really.
 #define TRIGGERS 42
-#define ALERTS 12
+#define ALERTS 18
 
 
 #define ANALOG_READ_AVG_TIMES 3
