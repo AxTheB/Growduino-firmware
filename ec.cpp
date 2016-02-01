@@ -48,5 +48,6 @@ int ec_read(){
         Serial.println(pulseTime);
     }
 #endif
+    digitalWrite(EC_ENABLE, LOW); // power down the sensor
     return ec;
 }

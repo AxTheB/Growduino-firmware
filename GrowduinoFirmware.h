@@ -43,12 +43,12 @@
 #define USE_EC_SENSOR 1
 #ifdef USE_EC_SENSOR
 // calibrate this. Will be saved to config file, so it can be adjusted
-#define EC_LOW_ION 500
-#define EC_HIGH_ION 200
+#define EC_LOW_ION 242
+#define EC_HIGH_ION 125
 #endif
 #define EC_ENABLE 27
 #define EC_DATA 28
-#define EC_SAMPLE_TIMES 5
+#define EC_SAMPLE_TIMES 100
 
 
 #define USE_CO2_SENSOR 1

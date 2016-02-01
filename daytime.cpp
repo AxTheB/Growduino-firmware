@@ -15,18 +15,19 @@ extern Config config;
 time_t time_now;
 EthernetUDP Udp;
 
+
+
 void daytime_init(){
-    tmElements_t tm;
-    if (RTC.read(tm)) {
+    if (RTC.chipPresent() && RTC.get() > 1400000000) {
         Serial.println(F("RTC: Ok."));
         setSyncProvider(RTC.get);   // the function to get the time from the RTC
         if (timeStatus() != timeSet)
             Serial.println(F("Unable to sync with the RTC"));
         else
-            Serial.println(F("RTC has set the system time")); 
+            Serial.println(F("RTC has set the system time"));
     } else {
         if (RTC.chipPresent()) {
-            Serial.println(F("The DS1307 is stopped."));
+            Serial.println(F("The DS1307 is stopped, set time from NTP"));
             Serial.println();
         } else {
             Serial.println(F("DS1307 read error!  Please check the circuitry."));
