@@ -1,3 +1,4 @@
+
 #include "GrowduinoFirmware.h"
 
 #include <dht.h>
@@ -225,6 +226,8 @@ void setup(void) {
     for(i=0; i <LOGGERS; i++){
         loggers[i]->load();
     }
+
+    ec_enable();
 
     //initialise outputs
     outputs.common_init();
