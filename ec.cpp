@@ -17,10 +17,11 @@ int ec_read(){
     long pulseTime;
     float ec_a, ec_b;
 
+
     float c_low = 1.278;
     float c_high = 4.523;
 
-    ec_a =  (c_high - c_low) / (config.ec_high_ion - config.ec_low_ion);
+    ec_a =  (c_high - c_low) / (1/config.ec_high_ion - 1/config.ec_low_ion);
     ec_b = c_low - ec_a * config.ec_low_ion;
 
 
@@ -36,9 +37,9 @@ int ec_read(){
     lowPulseTime = lowPulseTime/EC_SAMPLE_TIMES;
     highPulseTime = highPulseTime/EC_SAMPLE_TIMES;
 
-    pulseTime = (lowPulseTime + highPulseTime)/2;
+    pulseTime = (lowPulseTime + highPulseTime)/2 + 2;
 
-    ec = (int) 100 * (pulseTime * ec_a + ec_b);
+    ec = (int) 100 * (ec_a / pulseTime + ec_b);
 
 #endif
 
