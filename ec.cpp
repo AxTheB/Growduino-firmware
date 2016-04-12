@@ -21,8 +21,8 @@ int ec_read(){
     float c_low = 1.278;
     float c_high = 4.523;
 
-    ec_a =  (c_high - c_low) / (1/config.ec_high_ion - 1/config.ec_low_ion);
-    ec_b = c_low - ec_a * config.ec_low_ion;
+    ec_a =  (c_high - c_low) / (1/ (float) config.ec_high_ion - 1/ (float) config.ec_low_ion);
+    ec_b = c_low - ec_a / (float) config.ec_low_ion;
 
 
     digitalWrite(EC_ENABLE, HIGH); // power up the sensor
