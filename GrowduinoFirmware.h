@@ -79,7 +79,7 @@
 #define ALERTS 18
 
 
-#define ANALOG_READ_AVG_TIMES 3
+#define ANALOG_READ_AVG_TIMES 30
 #define ANALOG_READ_AVG_DELAY 10
 
 
