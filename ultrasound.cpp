@@ -51,6 +51,7 @@ long ultrasound_ping(int trigger, int echo) {
     long distance;
     distance = MINVALUE;
     for (int i = 0; (i < 5 && distance == MINVALUE) ; i++){
+        delay(10);
         distance = ultrasound_ping_inner(trigger, echo);
     }
     return distance;
