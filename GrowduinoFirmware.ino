@@ -458,14 +458,58 @@ void send_headers(EthernetClient client, char * request, int age) {
     client.println();
 }
 
+int get_raw_data(int idx, Stream * output) {
+    output->print("{\"raw_value\":\"");
+/*
+    1 dht22_humidity,
+    2 dht22_temp,
+    3 light_sensor,
+    4 ultrasound,
+    5 onewire_temp1,
+    6 light_sensor2,
+    7 onewire_temp2,
+    #8 ec,
+    9 ph,
+    10 co2
+    */
+    switch (idx) {
+        case 3:  // usnd
+            output->print(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
+            break;
+        case 7:  // ec
+            output->print(ec_calib_raw());
+            break;
+        default:
+            output->print("-1");
+    }
+    output->print("\"}");
+}
+
+int fn_extract_raw(char * request){
+    int sen = -1;
+    sscanf(request, "sensors/rawdata/%d.jso", &sen);
+    if (sen > LOGGERS) sen = -1;
+    return sen;
+}
+
 
 int senddata(EthernetClient client, char * request, char * clientline){
     // Send response
     bool found = false;
     Serial.print(F("Request: "));
     Serial.println(request);
+    int raw_no = fn_extract_raw(request);
     if (strncasecmp(request, "sensors", 7) == 0) {
         Serial.println(F("Sensor area"));
+        if (raw_no > -1) {
+            Serial.println("raw?");
+            get_raw_data(raw_no, &client);
+            return 1;
+        } else {
+            Serial.print(F("raw missed "));
+            Serial.println(fn_extract_raw(request));
+        }
+
         if (outputs.match(request)) {  // outputs
             found = true;
             send_headers(client, request, 30);
@@ -525,45 +569,11 @@ int fn_extract_trg(char * request){
     return trg;
 }
 
-int fn_extract_raw(char * request){
-    int sen = -1;
-    sscanf(request, "raw_data/%d.jso", &sen);
-    if (sen > LOGGERS) sen = -1;
-    return sen;
-}
-
 int fn_extract_alert(char * request){
     int alert = -1;
     sscanf(request, "alerts/%d.jso", &alert);
     if (alert >= ALERTS) alert = -1;
     return alert;
-}
-
-int get_raw_data(int idx, Stream * output) {
-    output->print("{\"raw_value\":\"");
-/*
-    1 dht22_humidity,
-    2 dht22_temp,
-    3 light_sensor,
-    4 ultrasound,
-    5 onewire_temp1,
-    6 light_sensor2,
-    7 onewire_temp2,
-    #8 ec,
-    9 ph,
-    10 co2
-    */
-    switch (idx) {
-        case 4:  // usnd
-            output->print(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
-            break;
-        case 8:  // ec
-            output->print(ec_calib_raw());
-            break;
-        default:
-            output->print("-1");
-    }
-    output->print("\"}");
 }
 
 void pageServe(EthernetClient client){
@@ -648,9 +658,6 @@ void pageServe(EthernetClient client){
             alert_passthru(alert_no, &client);
             alerts_load();
             //aJson.deleteItem(data);
-        } else if (strcasecmp(request, "raw_data") == 0){
-            int idx = fn_extract_raw(request);
-            get_raw_data(idx, &client);
         }
 #ifdef DEBUG_HTTP
     Serial.println(F("POST request dealt with"));
