@@ -31,6 +31,7 @@ Config::Config(){
 #ifdef USE_EC_SENSOR
     ec_low_ion = EC_LOW_ION;
     ec_high_ion = EC_HIGH_ION;
+    ec_offset = EC_OFFSET;
 #endif
 }
 
@@ -198,6 +199,13 @@ void Config::load(aJsonObject * json){
     } else {
         ec_high_ion = EC_HIGH_ION;
     }
+
+    cnfobj = aJson.getObjectItem(json, "ec_offset");
+    if (cnfobj) {
+        sscanf(cnfobj->valuestring, "%d", &ec_offset);
+    } else {
+        ec_offset = EC_OFFSET;
+    }
 #endif
 }
 
@@ -288,6 +296,10 @@ int Config::save(){
 
     sd_file.print(F("\"ec_high_ion\":\""));
     sd_file.print(ec_high_ion);
+    sd_file.print(F("\""));
+
+    sd_file.print(F("\"ec_offset\":\""));
+    sd_file.print(ec_offset);
     sd_file.print(F("\""));
 #endif
 

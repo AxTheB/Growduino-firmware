@@ -45,6 +45,7 @@
 // calibrate this. Will be saved to config file, so it can be adjusted
 #define EC_LOW_ION 242
 #define EC_HIGH_ION 125
+#define EC_OFFSET 0
 #endif
 #define EC_ENABLE 27
 #define EC_DATA 28

@@ -28,6 +28,7 @@ class Config
 #ifdef USE_EC_SENSOR
         int ec_low_ion;
         int ec_high_ion;
+        int ec_offset;
 #endif
         int use_dhcp;
         byte mac[6];

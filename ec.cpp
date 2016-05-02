@@ -27,7 +27,7 @@ long ec_read_raw(){
     lowPulseTime = lowPulseTime/EC_SAMPLE_TIMES;
     highPulseTime = highPulseTime/EC_SAMPLE_TIMES;
 
-    pulseTime = (lowPulseTime + highPulseTime)/2 + 2;
+    pulseTime = (lowPulseTime + highPulseTime)/2;
 
     digitalWrite(EC_ENABLE, LOW); // power down the sensor
 
@@ -51,13 +51,16 @@ int ec_read(){
 
     pulseTime = ec_read_raw();
 
-    ec = (int) 100 * (ec_a / pulseTime + ec_b);
+    ec = (int) 100 * (ec_a / (pulseTime + config.ec_offset) + ec_b);
+    if (pulseTime == MINVALUE) {
+        ec = MINVALUE;
+    }
 
 #endif
 
 #ifdef DEBUG_CALIB
     if (ec != MINVALUE) {
-        Serial.print("EC pulse: ");
+        Serial.print(F("EC pulse time: "));
         Serial.println(pulseTime);
     }
 #endif
