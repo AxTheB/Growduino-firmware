@@ -296,7 +296,7 @@ int Config::save(){
 
     sd_file.print(F("\"ec_high_ion\":\""));
     sd_file.print(ec_high_ion);
-    sd_file.print(F("\""));
+    sd_file.print(F("\","));
 
     sd_file.print(F("\"ec_offset\":\""));
     sd_file.print(ec_offset);
