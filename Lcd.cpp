@@ -72,7 +72,7 @@ void lcd_publish(const char * text, const char * format, int data, int divisor) 
         if (divisor == 0) {
             snprintf(lcd_msg, 17, format, text, data);
         } else {
-            snprintf(lcd_msg, 17, format, text, data / (float) divisor);
+            snprintf(lcd_msg, 17, format, text, data / divisor, abs(data % divisor));
         }
     }
     lcd_publish(lcd_msg);
@@ -111,13 +111,9 @@ void lcd_tick() {
     if (currrun != lastrun) {
 
         lastrun = currrun;
-        lcd.clear();
 
         int lines_to_print = min(LCD_DISPLAY_LINES, inserted_lines);
-#ifdef DEBUG_LCD
-        Serial.print(F("Lines to print: "));
-        Serial.print(lines_to_print);
-#endif
+        lcd.clear();
 
         for (int i=0; i < lines_to_print; i++) {
 

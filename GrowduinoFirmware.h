@@ -117,7 +117,7 @@
 #define DEBUG_ALERTS 1
 #define DEBUG_HTTP 1
 #define DEBUG_SMTP 1
-//#define DEBUG_LCD 1
+#define DEBUG_LCD 1
 #define DEBUG_CALIB 1
 #endif
 

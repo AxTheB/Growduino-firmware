@@ -43,11 +43,11 @@ int ec_read(){
 
     float c_low = 1.278;
     float c_high = 4.523;
+    float ec_high_ion = (float) (config.ec_high_ion + config.ec_offset);
+    float ec_low_ion = (float) (config.ec_low_ion + config.ec_offset);
 
-    ec_a =  (c_high - c_low) / (1/ (float) config.ec_high_ion - 1/ (float) config.ec_low_ion);
-    ec_b = c_low - ec_a / (float) config.ec_low_ion;
-
-
+    ec_a =  (c_high - c_low) / (1/ ec_high_ion - 1/ ec_low_ion);
+    ec_b = c_low - ec_a / (float) ec_low_ion;
 
     pulseTime = ec_read_raw();
 
@@ -95,5 +95,4 @@ long ec_calib_raw(){
         sum += rawdata[i];
     }
     return sum / (size-2);
-    
 }
