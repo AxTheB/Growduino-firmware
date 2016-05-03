@@ -362,9 +362,9 @@ void worker(){
     lcd_publish("Humidity", "%s %d.%d%%", dht22_humidity.peek(), 10);
     lcd_publish("Water Temp", "%s %d.%dC", onewire_temp1.peek(), 10);
     lcd_publish("Water Lvl", "%s %dcm", ultrasound.peek());
-    lcd_publish("pH", "%s %d.%d", ph.peek(), 100);
+    lcd_publish("pH", "%s %d.%.2d", ph.peek(), 100);
     lcd_publish("CO2", "%s %d", co2.peek());
-    lcd_publish("EC", "%s %d.%d", ec.peek(), 100);
+    lcd_publish("EC", "%s %d.%.2d", ec.peek(), 100);
     int uptime = millis() / 60000;
     lcd_publish("Uptime", "%s %d", uptime);
 
