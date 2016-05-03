@@ -89,7 +89,7 @@ long ec_calib_raw(){
     }
     qsort(rawdata, size, sizeof(long), compare);
 
-    long sum;
+    long sum = 0;
 
     for (int i=1;i<size-1; i++) {
         sum += rawdata[i];
