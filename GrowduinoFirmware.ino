@@ -479,6 +479,8 @@ int get_raw_data(int idx, Stream * output) {
         case 7:  // ec
             output->print(ec_calib_raw());
             break;
+        case 10:
+            output->print(CO2_read_raw());
         default:
             output->print("-1");
     }

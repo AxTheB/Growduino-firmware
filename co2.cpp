@@ -2,6 +2,12 @@
 #include "co2.h"
 extern Config config;
 
+int CO2_read_raw(){
+    int raw_data;
+    raw_data = analogReadAvg(CO2_DATA);
+    return raw_data;
+}
+
 int CO2_read(){
     int raw_data;
     float voltage;
@@ -14,7 +20,8 @@ int CO2_read(){
     float A = deltavs/(log10(400) - log10(40000));
     float B = log10(400);
 
-    raw_data = analogReadAvg(CO2_DATA);
+    raw_data = CO2_read_raw();
+
     voltage = raw_data / 204.6;
 
     float power = ((voltage - v400ppm)/A) + B;
