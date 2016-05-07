@@ -154,6 +154,7 @@ extern int ether;
 void pFreeRam();
 extern File sd_file;
 int analogReadAvg(int pin);
+void worker();
 
 #define NONE -1
 #define STATE_ON 1
