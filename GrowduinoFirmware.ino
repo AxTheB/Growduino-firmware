@@ -1,4 +1,3 @@
-
 #include "GrowduinoFirmware.h"
 
 #include <dht.h>
@@ -462,16 +461,16 @@ void send_headers(EthernetClient client, char * request, int age) {
 int get_raw_data(int idx, Stream * output) {
     output->print("{\"raw_value\":\"");
 /*
-    1 dht22_humidity,
-    2 dht22_temp,
-    3 light_sensor,
-    4 ultrasound,
-    5 onewire_temp1,
-    6 light_sensor2,
-    7 onewire_temp2,
-    #8 ec,
-    9 ph,
-    10 co2
+    "0":"Humidity"
+    "1":"Temp1"
+    "2":"Light1"
+    "3":"Usnd"
+    "4":"Temp2"
+    "5":"Light2"
+    "6":"Temp3"
+    "7":"EC"
+    "8":"pH"
+    "9":"CO2"
     */
     switch (idx) {
         case 3:  // usnd
@@ -480,10 +479,10 @@ int get_raw_data(int idx, Stream * output) {
         case 7:  // ec
             output->print(ec_calib_raw());
             break;
-        case 9: //pH
+        case 8: //pH
             output->print(PH_read_raw());
             break;
-        case 10:  //CO2
+        case 9:  //CO2
             output->print(CO2_read_raw());
             break;
         default:
