@@ -64,15 +64,17 @@ void lcd_publish(const char * text, const char * format, int data) {
     lcd_publish(text, format, data, 0);
 }
 
-void lcd_publish(const char * text, const char * format, int data, int divisor) {
+void lcd_publish(const char * text, const char * format, int data, float divisor) {
     char lcd_msg[18];
     if (data == MINVALUE) {
         snprintf(lcd_msg, 17, "%s read error", text);
     } else {
         if (divisor == 0) {
             snprintf(lcd_msg, 17, format, text, data);
+        } else if(divisor < 1) {
+            snprintf(lcd_msg, 17, format, text, (int) data / divisor);
         } else {
-            snprintf(lcd_msg, 17, format, text, data / divisor, abs(data % divisor));
+            snprintf(lcd_msg, 17, format, text, (int) data / divisor, abs(data % (int) divisor));
         }
     }
     lcd_publish(lcd_msg);

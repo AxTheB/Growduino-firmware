@@ -25,7 +25,7 @@ int CO2_read(){
     voltage = raw_data / 204.6;
 
     float power = ((voltage - v400ppm)/A) + B;
-    float co2ppm = pow(10,power);
+    float co2ppm = pow(10,power) / 10;
     co2 = (int) co2ppm;
 #endif
 
