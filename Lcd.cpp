@@ -72,9 +72,9 @@ void lcd_publish(const char * text, const char * format, int data, float divisor
         if (divisor == 0) {
             snprintf(lcd_msg, 17, format, text, data);
         } else if(divisor < 1) {
-            snprintf(lcd_msg, 17, format, text, (int) data / divisor);
+            snprintf(lcd_msg, 17, format, text, (int) (data / divisor));
         } else {
-            snprintf(lcd_msg, 17, format, text, (int) data / divisor, abs(data % (int) divisor));
+            snprintf(lcd_msg, 17, format, text, (int) (data / divisor), abs(data % (int) divisor));
         }
     }
     lcd_publish(lcd_msg);
