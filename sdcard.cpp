@@ -53,8 +53,10 @@ int file_for_write(const char * dirname, const char * filename, File * dataFile)
     strlcat(filepath, "/", 60);
     strlcat(filepath, filename, 60);
 
+#ifdef DEBUG_SDCARD
     Serial.print(F("Writing file "));
     Serial.println(filepath);
+#endif
 
     if (file_exists(filepath)) {
         SD.remove(filepath);
