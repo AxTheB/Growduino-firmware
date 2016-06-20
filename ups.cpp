@@ -5,7 +5,7 @@ int ups_init(){
     Serial3.begin(19200);
 }
 
-int ups_read(){
+int ups_read_inner(){
     char line[64];
     int state;
     int energy;
@@ -16,6 +16,11 @@ int ups_read(){
 
     counter = Serial3.readBytesUntil('\n', line, 64);
 
+    if (line[0] != 's') { // UPS stats start with 's'
+        // UPS error handling may come here
+        return MINVALUE;
+    }
+
     line[counter]='\0';
 #ifdef DEBUG_UPS
     Serial.println(line);
@@ -25,5 +30,15 @@ int ups_read(){
         energy = MINVALUE;
     }
     return energy;
+}
 
+int ups_read(){
+    int retval;
+    for (int i = 0; i < 4; i++) {
+        retval = ups_read_inner();
+        if (retval != MINVALUE) {
+            return retval;
+        }
+    }
+    return MINVALUE;
 }
