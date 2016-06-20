@@ -15,6 +15,9 @@ int CO2_read(){
     float B = log10(400);
 
     raw_data = analogReadAvg(CO2_DATA);
+    if (raw_data > ADC_CUTOFF) {
+        return MINVALUE;
+    }
     voltage = raw_data / 204.6;
 
     float power = ((voltage - v400ppm)/A) + B;
@@ -25,7 +28,7 @@ int CO2_read(){
 #ifdef DEBUG_CALIB
     if (co2 != MINVALUE){
         Serial.print("CO2 raw: ");
-        Serial.print(raw_data);
+        Serial.println(raw_data);
     }
 #endif
 

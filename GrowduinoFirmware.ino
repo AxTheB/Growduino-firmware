@@ -90,20 +90,71 @@ Logger * loggers[LOGGERS+1] = {
 Trigger triggers[TRIGGERS];
 Alert alerts[ALERTS];
 
+int prepareAnalogPin(int pin) {
+
+    //pull the pin high
+    pinMode(pin, INPUT);
+    digitalWrite(pin, HIGH);
+}
+
+
 int analogReadAvg(int pin) {
+
 
     // introduce delay between mux switch and actual reading
     analogRead(pin);
     delay(ANALOG_READ_AVG_DELAY);
     analogRead(pin);
 
-    long data = 0L;
+#ifdef DEBUG_CALIB
+    int minval, maxval;
+    minval = MINVALUE;
+    maxval = MINVALUE;
+    Serial.print("Analog read ");
+    Serial.println(pin);
+#endif
+    long dataSum = 0L;
+    int data;
     for (int i=0; i < ANALOG_READ_AVG_TIMES; i++) {
-        data += analogRead(pin);
+        data = analogRead(pin);
+        dataSum += data;
+#ifdef DEBUG_CALIB
+        Serial.println(data);
+        if (minval == MINVALUE || minval > data) {
+            minval = data;
+        }
+        if (maxval == MINVALUE || maxval < data) {
+            maxval = data;
+        }
+#endif
+
         delay(ANALOG_READ_AVG_DELAY);
     }
-    return (int) data / ANALOG_READ_AVG_TIMES;
+
+    int retval = (int) (dataSum / ANALOG_READ_AVG_TIMES);
+
+#ifdef DEBUG_CALIB
+    Serial.println("");
+    Serial.print("min: ");
+    Serial.print(minval);
+    Serial.print(" max: ");
+    Serial.print(maxval);
+    Serial.print(" avg: ");
+    Serial.println(retval);
+#endif
+
+    return retval;
 }
+
+int perThousand(int pin) {
+    int retval;
+    retval = analogReadAvg(pin);
+    if (retval > ADC_CUTOFF) {
+        return MINVALUE;
+    }
+    retval = map(retval, 0, 1024, 0, 1000);
+}
+
 
 int freeRam () {
   extern int __heap_start, *__brkval;
@@ -155,6 +206,10 @@ void setup(void) {
     Serial.println(F("Grow!"));
     lcd_setup();
     pFreeRam();
+
+    for (int i = 0; i < 16; i++) {
+        prepareAnalogPin(A0 + i);
+    }
 
     delay(1000);
 
@@ -293,8 +348,8 @@ void worker(){
     }
     dht22_humidity.timed_log(hum);
 
-    light_sensor.timed_log(map(analogReadAvg(LIGHT_SENSOR_PIN_1), 0, 1024, 0, 1000));
-    light_sensor2.timed_log(map(analogReadAvg(LIGHT_SENSOR_PIN_2), 0, 1024, 0, 1000));
+    light_sensor.timed_log(perThousand(LIGHT_SENSOR_PIN_1));
+    light_sensor2.timed_log(perThousand(LIGHT_SENSOR_PIN_2));
     ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
     ec.timed_log(ec_read());
     ph.timed_log(PH_read());
