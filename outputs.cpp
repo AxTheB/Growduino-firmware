@@ -40,16 +40,22 @@ int Output::hw_get(int slot){
 int Output::set(int slot, int val, int trigger){
     // update valute of %slot% 
     if (slot == -1 || slot >= OUTPUTS) {
+#ifdef DEBUG_OUTPUT
         Serial.println(F("set: nop"));
+#endif
         return 0;
     }
     if (val == 0) {
         state[slot] = bitclr(state[slot], trigger);
+#ifdef DEBUG_OUTPUT
         Serial.print(F("set: clr "));
+#endif
         Serial.print(slot);
     } else {
         state[slot] = bitset(state[slot], trigger);
+#ifdef DEBUG_OUTPUT
         Serial.print(F("set: set "));
+#endif
         Serial.print(slot);
     }
     return (state[slot] != 0);
