@@ -93,7 +93,7 @@
 
 #define DEBUG 1
 
-#define LCD_BUFFER_LINES 9
+#define LCD_BUFFER_LINES 10
 
 //#define DISPLAY_2004 1
 
@@ -110,15 +110,16 @@
 #define MEGA 1
 
 #ifdef DEBUG
-#define DEBUG_OUTPUT 1
-#define DEBUG_SDCARD 1
-#define DEBUG_RB_DATA 1
-#define DEBUG_TRIGGERS 1
-#define DEBUG_ALERTS 1
-#define DEBUG_HTTP 1
-#define DEBUG_SMTP 1
-#define DEBUG_LCD 1
-#define DEBUG_CALIB 1
+//#define DEBUG_OUTPUT 1
+//#define DEBUG_SDCARD 1
+//#define DEBUG_RB_DATA 1
+//#define DEBUG_TRIGGERS 1
+//#define DEBUG_ALERTS 1
+//#define DEBUG_HTTP 1
+//#define DEBUG_SMTP 1
+//#define DEBUG_LCD 1
+//#define DEBUG_CALIB 1
+#define DEBUG_UPS 1
 #endif
 
 // How many output chages do we keep in memory
@@ -137,6 +138,7 @@
 #include "Lcd.h"
 #include "alerts.h"
 #include "smtp.h"
+#include "ups.h"
 
 #ifdef USE_PH_SENSOR
 #include "phmeter.h"

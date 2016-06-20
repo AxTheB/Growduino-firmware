@@ -3,7 +3,7 @@
 extern Alert alerts[];
 extern Output outputs;
 extern Trigger triggers[];
-extern int ups_level;
+//extern int ups_level;
 extern Config config;
 
 void alert_load_trigger(int idx, aJsonObject *msg){
@@ -122,32 +122,35 @@ int alert_tick(int idx) {
 #ifdef DEBUG_ALERTS
             Serial.print(F("Unknown last state - "));
 #endif
-
+/*
             if (alerts[idx].trigger == -2) {
 #ifdef DEBUG_ALERTS
                 Serial.print(F("storing state: ups check"));
 #endif
                 alerts[idx].last_state = (ups_level < config.ups_trigger_level);
             } else {
+        */
 #ifdef DEBUG_ALERTS
-                Serial.print(F("storing state: sensor "));
-                Serial.print(idx);
+            Serial.print(F("storing state: sensor "));
+            Serial.print(idx);
 #endif
-                alerts[idx].last_state = triggers[alerts[idx].trigger].state;
-            }
-            return NONE;
+            alerts[idx].last_state = triggers[alerts[idx].trigger].state;
+            // }
 #ifdef DEBUG_ALERTS
             Serial.println(F(" (no operation)"));
 #endif
+            return NONE;
         }
+        /*
         if (alerts[idx].trigger == -2) {
 #ifdef DEBUG_ALERTS
             Serial.print(F("Processing alert"));
 #endif
             alerts[idx].last_state = process_alert(idx, ups_level < config.ups_trigger_level);
         } else {
-            alerts[idx].last_state = process_alert(idx, triggers[alerts[idx].trigger].state);
-        }
+        */
+        alerts[idx].last_state = process_alert(idx, triggers[alerts[idx].trigger].state);
+        //}
 #ifdef DEBUG_ALERTS
         Serial.println(F("State is now "));
         Serial.println(alerts[idx].last_state);

@@ -55,7 +55,7 @@ File sd_file;
 Logger light_sensor = Logger("Light1");
 Logger light_sensor2 = Logger("Light2");
 
-int ups_level;
+Logger battery = Logger("Battery");
 
 Logger ultrasound = Logger("Usnd");
 
@@ -136,7 +136,6 @@ aJsonObject * status(){
     aJson.addItemToObject(msg, "uptime", aJson.createItem(buffer));
     aJson.addItemToObject(msg, "tz", aJson.createItem(config.time_zone));
     aJson.addItemToObject(msg, "daymin", aJson.createItem(daymin()));
-    aJson.addItemToObject(msg, "ups_level", aJson.createItem(ups_level));
     digitalClockDisplay(buffer);
     aJson.addItemToObject(msg, "time", aJson.createItem(buffer));
 
@@ -252,6 +251,8 @@ void setup(void) {
     wdt_enable(WDTO_8S);
     #endif
 
+    ups_init();
+
     pFreeRam();
     lcd_flush();
     lcd_print_immediate(F("Setup done"));
@@ -300,6 +301,8 @@ void worker(){
     ph.timed_log(PH_read());
     co2.timed_log(CO2_read());
 
+    battery.timed_log(ups_read());
+
     onewire_temp1.timed_log(ds_read(ds1));
     onewire_temp2.timed_log(ds_read(ds2));
 
@@ -320,7 +323,6 @@ void worker(){
         Serial.println();
     }
 #endif
-    ups_level = analogReadAvg(LIGHT_SENSOR_PIN_UPS);
 
 #ifdef DEBUG_OUTPUT
     pFreeRam();
@@ -374,6 +376,7 @@ void worker(){
     lcd_publish("EC", "%s %d.%.2d", ec.peek(), 100);
     int uptime = millis() / 60000;
     lcd_publish("Uptime", "%s %d", uptime);
+    lcd_publish("Battery", "%s %d%%", battery.peek());
 
     lcd_tick();
 
