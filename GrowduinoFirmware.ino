@@ -56,6 +56,7 @@ Logger light_sensor = Logger("Light1");
 Logger light_sensor2 = Logger("Light2");
 
 Logger battery = Logger("Battery");
+int ups_level;
 
 Logger ultrasound = Logger("Usnd");
 
@@ -137,6 +138,7 @@ aJsonObject * status(){
     aJson.addItemToObject(msg, "uptime", aJson.createItem(buffer));
     aJson.addItemToObject(msg, "tz", aJson.createItem(config.time_zone));
     aJson.addItemToObject(msg, "daymin", aJson.createItem(daymin()));
+    aJson.addItemToObject(msg, "ups_level", aJson.createItem(ups_level));
     digitalClockDisplay(buffer);
     aJson.addItemToObject(msg, "time", aJson.createItem(buffer));
 

@@ -1,4 +1,5 @@
 #include "GrowduinoFirmware.h"
+extern int ups_level;
 
 
 int ups_init(){
@@ -29,6 +30,8 @@ int ups_read_inner(){
     if (energy < 0 || energy > 100) {
         energy = MINVALUE;
     }
+    ups_level = state;
+
     return energy;
 }
 
