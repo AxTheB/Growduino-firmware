@@ -83,7 +83,8 @@ Logger * loggers[LOGGERS+1] = {
     &onewire_temp2,
     &ec,
     &ph,
-    &co2
+    &co2,
+    &battery
     };
 
 Trigger triggers[TRIGGERS];
