@@ -19,7 +19,7 @@ int trigger_tick(int idx){
 #endif
 
     int time_ok = 0;
-    int active = triggers[idx].active;
+    byte active = triggers[idx].active;
 
     if (active == STATE_ON) {
 

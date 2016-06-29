@@ -4,14 +4,14 @@
 #include <aJSON.h>
 
 struct Trigger {
-        int active;
+        byte active;
         int t_since;
         int t_until;
         int on_value;
         int off_value;
         char on_cmp;
         char off_cmp;
-        int important;
+        bool important;
         int sensor;
         int output;
         int state;
