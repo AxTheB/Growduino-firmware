@@ -89,7 +89,7 @@
 
 #define OUTPUTS 12
 
-#define LOGGERS 10
+#define LOGGERS 11
 
 #define DEBUG 1
 
