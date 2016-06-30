@@ -26,6 +26,9 @@
 #define GET 1
 #define POST 2
 
+// when reading from ADC, values read higher than this are considered as error
+#define ADC_CUTOFF 1020
+
 // light sensor on analog A8
 #define LIGHT_SENSOR_PIN_1 8
 #define LIGHT_SENSOR_PIN_2 9
