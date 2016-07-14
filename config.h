@@ -11,6 +11,8 @@ class Config
         Config();
         void load(aJsonObject * json);
         int save();
+        void loadcal(aJsonObject * json);
+        int savecal();
         int inet_aton(const char* aIPAddrString, IPAddress& aResult);
         char * inet_ntoa(IPAddress addr, char * dest);
         int mac_aton(const char * MacAddr, byte (&macResult)[6]);

@@ -153,6 +153,14 @@ void Config::load(aJsonObject * json){
         ups_trigger_level = 255;
     }
 
+}
+
+void Config::loadcal(aJsonObject * json){
+    //loads values from json. Values not in json are not touched
+    char debug_out[32];
+    int json_strlen;
+
+    aJsonObject* cnfobj;
 #ifdef USE_CO2_SENSOR
     cnfobj = aJson.getObjectItem(json, "co2_400");
     if (cnfobj) {
@@ -267,7 +275,19 @@ int Config::save(){
 
     sd_file.print(F("\"ups_trigger_level\":\""));
     sd_file.print(ups_trigger_level);
-    sd_file.print(F("\","));
+    sd_file.print(F("\""));
+
+
+    sd_file.print(F("}"));
+    sd_file.close();
+    return 1;
+}
+
+int Config::savecal(){
+    char buffer[20];
+    file_for_write("", "calib.jso", &sd_file);
+
+    sd_file.print(F("{"));
 
 #ifdef USE_CO2_SENSOR
     sd_file.print(F("\"co2_400\":\""));

@@ -252,8 +252,16 @@ void setup(void) {
     } else {
         lcd_print_immediate(F("E:Default cfg"));
     }
+    cfile = file_read("", "calib.jso");
+    if (cfile != NULL) {
+        config.loadcal(cfile);
+        aJson.deleteItem(cfile);
+    } else {
+        lcd_print_immediate(F("E:Default cfg"));
+    }
     pFreeRam();
     config.save();
+    config.savecal();
     pFreeRam();
     lcd_print_immediate(F("Starting eth..."));
     if (config.use_dhcp == 1) {
@@ -718,6 +726,12 @@ void pageServe(EthernetClient client){
             aJsonObject * data = aJson.parse(&eth_stream);
             config.load(data);
             config.save();
+            aJson.deleteItem(data);
+        } else if (strcasecmp(request, "calib.jso") == 0) {
+            aJsonStream eth_stream(&client);
+            aJsonObject * data = aJson.parse(&eth_stream);
+            config.loadcal(data);
+            config.savecal();
             aJson.deleteItem(data);
         } else if (trg_no > -1) {
             aJsonStream eth_stream(&client);
