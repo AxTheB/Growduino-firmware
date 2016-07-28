@@ -157,6 +157,7 @@ int perThousand(int pin) {
     }
 #endif
     retval = map(retval, 0, 1024, 0, 1000);
+    return retval;
 }
 
 
