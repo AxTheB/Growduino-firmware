@@ -95,7 +95,9 @@ int prepareAnalogPin(int pin) {
 
     //pull the pin high
     pinMode(pin, INPUT);
+#ifdef ANALOG_DETECT
     digitalWrite(pin, HIGH);
+#endif
 }
 
 
@@ -150,10 +152,13 @@ int analogReadAvg(int pin) {
 int perThousand(int pin) {
     int retval;
     retval = analogReadAvg(pin);
+#ifdef ANALOG_DETECT
     if (retval > ADC_CUTOFF) {
         return MINVALUE;
     }
+#endif
     retval = map(retval, 0, 1024, 0, 1000);
+    return retval;
 }
 
 
