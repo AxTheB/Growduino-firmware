@@ -16,8 +16,9 @@ time_t time_now;
 EthernetUDP Udp;
 
 
-
 void daytime_init(){
+    tmElements_t tm;
+    RTC.read(tm);
     if (RTC.chipPresent() && RTC.get() > 1400000000) {
         Serial.println(F("RTC: Ok."));
         setSyncProvider(RTC.get);   // the function to get the time from the RTC
