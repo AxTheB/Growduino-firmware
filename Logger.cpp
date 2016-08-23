@@ -19,7 +19,7 @@ void Logger::setup(){
 }
 
 void Logger::load() {
-    Serial.println(F("Loading buffer data"));
+    SERIAL.println(F("Loading buffer data"));
     char dirname[64];
     char filename[13];
     aJsonObject * data;
@@ -32,7 +32,7 @@ void Logger::load() {
         idx_min = buffer_load(buf_min, "min", data);
         aJson.deleteItem(data);
     } else {
-        Serial.println(F("Minute data load failure"));
+        SERIAL.println(F("Minute data load failure"));
     }
 }
 
@@ -43,7 +43,7 @@ void Logger::load_all(){
 
     buffer_cleanup(buf_h, 24, 0, -1);
     buffer_cleanup(buf_day, 31, 0, -1);
-    Serial.println(F("Loading day/month data"));
+    SERIAL.println(F("Loading day/month data"));
 
     dirname_l2(dirname);
     sprintf(filename, "%02d.jso", day());
@@ -52,7 +52,7 @@ void Logger::load_all(){
         buffer_load(buf_h, "h", data);
         aJson.deleteItem(data);
     } else {
-        Serial.println(F("Hourly data load failure"));
+        SERIAL.println(F("Hourly data load failure"));
     }
 
     dirname_l3(dirname);
@@ -62,7 +62,7 @@ void Logger::load_all(){
         buffer_load(buf_day, "day", data);
         aJson.deleteItem(data);
     } else {
-        Serial.println(F("Daily data load failure"));
+        SERIAL.println(F("Daily data load failure"));
     }
 }
 

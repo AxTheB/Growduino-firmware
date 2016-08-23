@@ -54,9 +54,9 @@ void Config::load(aJsonObject * json){
     cnfobj = aJson.getObjectItem(json, "mac");
     if (cnfobj && cnfobj->type == aJson_String && mac_aton(cnfobj->valuestring, tmpmac) == 1) {
         mac_aton(cnfobj->valuestring, mac);
-        Serial.print(F("mac "));
+        SERIAL.print(F("mac "));
         mac_ntoa(mac, debug_out);
-        Serial.println(debug_out);
+        SERIAL.println(debug_out);
 
     }
 
@@ -64,34 +64,34 @@ void Config::load(aJsonObject * json){
         cnfobj = aJson.getObjectItem(json, "ip");
         if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
             inet_aton(cnfobj->valuestring, ip);
-            Serial.print(F("ip "));
+            SERIAL.print(F("ip "));
             inet_ntoa(ip, debug_out);
-            Serial.println(debug_out);
+            SERIAL.println(debug_out);
         }
 
         cnfobj = aJson.getObjectItem(json, "netmask");
         if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
             inet_aton(cnfobj->valuestring, netmask);
-            Serial.print(F("netmask "));
+            SERIAL.print(F("netmask "));
             inet_ntoa(netmask, debug_out);
-            Serial.println(debug_out);
+            SERIAL.println(debug_out);
         }
 
         cnfobj = aJson.getObjectItem(json, "gateway");
         if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
             inet_aton(cnfobj->valuestring, gateway);
-            Serial.print(F("gateway "));
+            SERIAL.print(F("gateway "));
             inet_ntoa(gateway, debug_out);
-            Serial.println(debug_out);
+            SERIAL.println(debug_out);
         }
     }
 
     cnfobj = aJson.getObjectItem(json, "smtp");
     if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
         inet_aton(cnfobj->valuestring, smtp);
-        Serial.print(F("smtp "));
+        SERIAL.print(F("smtp "));
         inet_ntoa(smtp, debug_out);
-        Serial.println(debug_out);
+        SERIAL.println(debug_out);
     }
 
     cnfobj = aJson.getObjectItem(json, "smtp_port");
@@ -110,7 +110,7 @@ void Config::load(aJsonObject * json){
         json_strlen = strnlen(cnfobj->valuestring, 31);
         mail_from = (char *) malloc(json_strlen + 1);
         if (mail_from == NULL) {
-            Serial.println(F("OOM on config load (mail_from)"));
+            SERIAL.println(F("OOM on config load (mail_from)"));
         } else {
             strlcpy(mail_from, cnfobj->valuestring, json_strlen + 1);
         }
@@ -121,9 +121,9 @@ void Config::load(aJsonObject * json){
     cnfobj = aJson.getObjectItem(json, "ntp");
     if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
         inet_aton(cnfobj->valuestring, ntp);
-        Serial.print(F("ntp "));
+        SERIAL.print(F("ntp "));
         inet_ntoa(ntp, debug_out);
-        Serial.println(debug_out);
+        SERIAL.println(debug_out);
     }
 
     cnfobj = aJson.getObjectItem(json, "sys_name");
@@ -135,7 +135,7 @@ void Config::load(aJsonObject * json){
         json_strlen = strnlen(cnfobj->valuestring, 31);
         sys_name = (char *) malloc(json_strlen + 1);
         if (sys_name == NULL) {
-            Serial.println(F("OOM on config load (sys_name)"));
+            SERIAL.println(F("OOM on config load (sys_name)"));
         } else {
             strlcpy(sys_name, cnfobj->valuestring, json_strlen + 1);
         }

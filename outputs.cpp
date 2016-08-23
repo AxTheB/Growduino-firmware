@@ -41,22 +41,22 @@ int Output::set(int slot, int val, int trigger){
     // update valute of %slot% 
     if (slot == -1 || slot >= OUTPUTS) {
 #ifdef DEBUG_OUTPUT
-        Serial.println(F("set: nop"));
+        SERIAL.println(F("set: nop"));
 #endif
         return 0;
     }
     if (val == 0) {
         state[slot] = bitclr(state[slot], trigger);
 #ifdef DEBUG_OUTPUT
-        Serial.print(F("set: clr "));
+        SERIAL.print(F("set: clr "));
 #endif
-        Serial.print(slot);
+        SERIAL.print(slot);
     } else {
         state[slot] = bitset(state[slot], trigger);
 #ifdef DEBUG_OUTPUT
-        Serial.print(F("set: set "));
+        SERIAL.print(F("set: set "));
 #endif
-        Serial.print(slot);
+        SERIAL.print(slot);
     }
     return (state[slot] != 0);
 }
@@ -65,14 +65,14 @@ int Output::breakme(int slot, int val, int trigger){
     // update valute of %slot% 
 
     if (slot < 0 || slot >= OUTPUTS || trigger < 0 || trigger > TRIGGERS ) {
-        Serial.println(F("breakme: nop"));
+        SERIAL.println(F("breakme: nop"));
         return NONE;
     }
     if (val == 0) {
-        Serial.println(F("breakme: clr"));
+        SERIAL.println(F("breakme: clr"));
         broken[slot] = bitclr(broken[slot], trigger);
     } else {
-        Serial.println(F("breakme: set"));
+        SERIAL.println(F("breakme: set"));
         broken[slot] = bitset(broken[slot], trigger);
     }
     return (state[slot] != 0);
@@ -80,15 +80,15 @@ int Output::breakme(int slot, int val, int trigger){
 
 void Output::kill(int slot, int trigger){
     if (slot == -1 || slot >= OUTPUTS) return;
-    Serial.print(F("Killing output #"));
-    Serial.println(slot, DEC);
+    SERIAL.print(F("Killing output #"));
+    SERIAL.println(slot, DEC);
     breakme(slot, 1, trigger);
 }
 
 void Output::revive(int slot, int trigger){
     if (slot == -1 || slot >= OUTPUTS) return;
-    Serial.print(F("Reviving output #"));
-    Serial.println(slot, DEC);
+    SERIAL.print(F("Reviving output #"));
+    SERIAL.println(slot, DEC);
     breakme(slot, 0, trigger);
 }
 
@@ -110,15 +110,15 @@ int Output::bitget(int value, int bit){
     // set bit %bit% in %value% and return new value
     if (bit > 31) return 0;
 #ifdef DEBUG_OUTPUT
-    Serial.print(F("Setting "));
-    Serial.print(value, DEC);
-    Serial.print(F(" bit "));
-    Serial.print(bit);
+    SERIAL.print(F("Setting "));
+    SERIAL.print(value, DEC);
+    SERIAL.print(F(" bit "));
+    SERIAL.print(bit);
 #endif
     value |= 1 << bit;
 #ifdef DEBUG_OUTPUT
-    Serial.print(F(" result "));
-    Serial.println(value);
+    SERIAL.print(F(" result "));
+    SERIAL.println(value);
 #endif
     return value;
 }
@@ -127,15 +127,15 @@ long Output::bitclr(int value, int bit){
     // clear %bit% in %value% and return new value
     if (bit > 31) return 0;
 #ifdef DEBUG_OUTPUT
-    Serial.print(F("Clearing "));
-    Serial.print(value, DEC);
-    Serial.print(F(" bit "));
-    Serial.print(bit);
+    SERIAL.print(F("Clearing "));
+    SERIAL.print(value, DEC);
+    SERIAL.print(F(" bit "));
+    SERIAL.print(bit);
 #endif
     value &= ~(1 << bit);
 #ifdef DEBUG_OUTPUT
-    Serial.print(F(" result "));
-    Serial.println(value);
+    SERIAL.print(F(" result "));
+    SERIAL.println(value);
 #endif
     return value;
 }
@@ -144,18 +144,18 @@ int Output::pack_states(){
     int packed;
     packed = 0;
 #ifdef DEBUG_OUTPUT
-    Serial.print(F("Packing: "));
+    SERIAL.print(F("Packing: "));
 #endif
     for (int i=0; i < OUTPUTS; i++){
 #ifdef DEBUG_OUTPUT
-        Serial.print(state[i]);
-        Serial.print(F(" "));
+        SERIAL.print(state[i]);
+        SERIAL.print(F(" "));
 #endif
         packed += get(i) << i;
     }
 #ifdef DEBUG_OUTPUT
-    Serial.print(F(": "));
-    Serial.println(packed, BIN);
+    SERIAL.print(F(": "));
+    SERIAL.println(packed, BIN);
 #endif
     return packed;
 }
@@ -164,26 +164,26 @@ int Output::hw_update(int slot){
     // Update output %slot%, checking broken state
     // this is only place where we touch hardware
 #ifdef DEBUG_OUTPUT
-        Serial.print(F("Output "));
-        Serial.print(slot, DEC);
+        SERIAL.print(F("Output "));
+        SERIAL.print(slot, DEC);
 
 #endif
     int wanted;
     if (broken[slot] != 0) {
 #ifdef DEBUG_OUTPUT
-        Serial.println(F(" is broken"));
+        SERIAL.println(F(" is broken"));
 #endif
         wanted = 0;
     } else {
         wanted = get(slot);
 #ifdef DEBUG_OUTPUT
-        Serial.print(F(" desired state "));
-        Serial.println(wanted, DEC);
+        SERIAL.print(F(" desired state "));
+        SERIAL.println(wanted, DEC);
 #endif
     }
     if (wanted != hw_state[slot]) {
 #ifdef DEBUG_OUTPUT
-        Serial.println(F("Changing output"));
+        SERIAL.println(F("Changing output"));
 #endif
         time_t t_now = utc_now();
         digitalWrite(RELAY_START + slot, wanted);
@@ -193,7 +193,7 @@ int Output::hw_update(int slot){
         ctimes[slot] = t_now;
     } else {
 #ifdef DEBUG_OUTPUT
-        Serial.println(F("Not changing output"));
+        SERIAL.println(F("Not changing output"));
 #endif
     }
 
@@ -232,16 +232,16 @@ void Output::log(){
                 last_save_daymin = daymin();
             }
 #ifdef DEBUG_OUTPUT
-            Serial.println(F("Output log noop"));
+            SERIAL.println(F("Output log noop"));
 #endif
             return;
         }
     }
 #ifdef DEBUG_OUTPUT
-    Serial.print(F("Output logging. Index:"));
-    Serial.println(log_index);
-    Serial.print(F("packed states: "));
-    Serial.println(packed_states);
+    SERIAL.print(F("Output logging. Index:"));
+    SERIAL.println(log_index);
+    SERIAL.print(F("packed states: "));
+    SERIAL.println(packed_states);
 #endif
     log_states[log_index] = packed_states;
     log_times[log_index] = utc_now();
@@ -273,7 +273,7 @@ char * Output::dir_name(char * dirname){
 
 void Output::load(){
     //recover last state of output history
-    Serial.println(F("Loading relay history"));
+    SERIAL.println(F("Loading relay history"));
     char filename[12];
     char dirname[50];
     aJsonObject * buff;
@@ -287,8 +287,8 @@ void Output::load(){
         log_file_index++;
         file_name(filename);
     }
-    Serial.print(F("last used file: "));
-    Serial.print(log_file_index);
+    SERIAL.print(F("last used file: "));
+    SERIAL.print(log_file_index);
     if (log_file_index > 0) log_file_index--; //back off to last used filename
     file_name(filename);
 
@@ -306,7 +306,7 @@ void Output::load(){
 
         if (!buff) {
 #ifdef DEBUG_OUTPUT
-            Serial.println(F("json contains no related data"));
+            SERIAL.println(F("json contains no related data"));
 #endif
         } else {
 
@@ -317,20 +317,20 @@ void Output::load(){
 
             while (data_item != NULL) {
 #ifdef DEBUG_OUTPUT
-                Serial.println(F("Loading data item"));
-                Serial.print(F("Name: "));
-                Serial.println(data_item->name);
+                SERIAL.println(F("Loading data item"));
+                SERIAL.print(F("Name: "));
+                SERIAL.println(data_item->name);
 #endif
                 sscanf(data_item->name, "%lu", &tstamp);
 #ifdef DEBUG_OUTPUT
-                Serial.print(F("iName: "));
-                Serial.println(tstamp);
+                SERIAL.print(F("iName: "));
+                SERIAL.println(tstamp);
 #endif
                 value = data_item->valueint;
 #ifdef DEBUG_OUTPUT
-                Serial.print(F("Value: "));
-                Serial.println(value);
-                Serial.println(F("----"));
+                SERIAL.print(F("Value: "));
+                SERIAL.println(value);
+                SERIAL.println(F("----"));
 #endif
                 log_times[idx] = tstamp;
                 log_states[idx] = value;

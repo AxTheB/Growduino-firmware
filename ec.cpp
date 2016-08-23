@@ -60,8 +60,8 @@ int ec_read(){
 
 #ifdef DEBUG_CALIB
     if (ec != MINVALUE) {
-        Serial.print(F("EC pulse time: "));
-        Serial.println(pulseTime);
+        SERIAL.print(F("EC pulse time: "));
+        SERIAL.println(pulseTime);
     }
 #endif
     return ec;

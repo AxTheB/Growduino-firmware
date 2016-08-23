@@ -70,7 +70,7 @@ Logger co2 = Logger("CO2");
 Config config;
 Output outputs;
 
-aJsonStream serial_stream(&Serial);
+aJsonStream serial_stream(&SERIAL);
 
 EthernetServer server(80);
 
@@ -113,8 +113,8 @@ int analogReadAvg(int pin) {
     int minval, maxval;
     minval = MINVALUE;
     maxval = MINVALUE;
-    Serial.print("Analog read ");
-    Serial.println(pin);
+    SERIAL.print("Analog read ");
+    SERIAL.println(pin);
 #endif
     long dataSum = 0L;
     int data;
@@ -122,7 +122,7 @@ int analogReadAvg(int pin) {
         data = analogRead(pin);
         dataSum += data;
 #ifdef DEBUG_CALIB
-        Serial.println(data);
+        SERIAL.println(data);
         if (minval == MINVALUE || minval > data) {
             minval = data;
         }
@@ -137,13 +137,13 @@ int analogReadAvg(int pin) {
     int retval = (int) (dataSum / ANALOG_READ_AVG_TIMES);
 
 #ifdef DEBUG_CALIB
-    Serial.println("");
-    Serial.print("min: ");
-    Serial.print(minval);
-    Serial.print(" max: ");
-    Serial.print(maxval);
-    Serial.print(" avg: ");
-    Serial.println(retval);
+    SERIAL.println("");
+    SERIAL.print("min: ");
+    SERIAL.print(minval);
+    SERIAL.print(" max: ");
+    SERIAL.print(maxval);
+    SERIAL.print(" avg: ");
+    SERIAL.println(retval);
 #endif
 
     return retval;
@@ -169,8 +169,8 @@ int freeRam () {
 }
 
 void pFreeRam() {
-    Serial.print(F("Free ram: "));
-    Serial.println(freeRam());
+    SERIAL.print(F("Free ram: "));
+    SERIAL.println(freeRam());
 }
 
 aJsonObject * status(){
@@ -208,8 +208,8 @@ void setup(void) {
     wdt_disable();
     pinMode(13, OUTPUT);
     // start serial port
-    Serial.begin(115200);
-    Serial.println(F("Grow!"));
+    SERIAL.begin(115200);
+    SERIAL.println(F("Grow!"));
     lcd_setup();
     pFreeRam();
 
@@ -219,7 +219,7 @@ void setup(void) {
 
     delay(1000);
 
-    //Serial.println(F("SD Card init"));
+    //SERIAL.println(F("SD Card init"));
     lcd_print_immediate(F("SD Card init"));
     // disable ethernet before card init
     pinMode(10,OUTPUT);
@@ -245,7 +245,7 @@ void setup(void) {
         }
     }
     digitalWrite(13, LOW);
-    // Serial.println(F("Inititalising Ethernet"));
+    // SERIAL.println(F("Inititalising Ethernet"));
     lcd_print_immediate(F("Loading config..."));
 
     // load config from sdcard
@@ -278,22 +278,22 @@ void setup(void) {
     }
     server.begin();
     pFreeRam();
-    Serial.print(F("server is at "));
-    Serial.println(Ethernet.localIP());
+    SERIAL.print(F("server is at "));
+    SERIAL.println(Ethernet.localIP());
 
     // load triggers if available
-    Serial.println(freeRam());
+    SERIAL.println(freeRam());
     triggers_load(triggers, loggers);
-    Serial.println(freeRam());
+    SERIAL.println(freeRam());
 
     // load alerts
     pFreeRam();
-    Serial.println(F("Loading alerts"));
+    SERIAL.println(F("Loading alerts"));
     alerts_load();
 
     // start real time clock
     pFreeRam();
-    //Serial.println(F("Initialising clock"));
+    //SERIAL.println(F("Initialising clock"));
     lcd_print_immediate(F("Starting clock"));
     daytime_init();
 
@@ -307,10 +307,10 @@ void setup(void) {
     //initialise outputs
     outputs.common_init();
     pFreeRam();
-    Serial.println(F("Loading output history"));
+    SERIAL.println(F("Loading output history"));
     outputs.load();
     pFreeRam();
-    Serial.println(F("Relay setup"));
+    SERIAL.println(F("Relay setup"));
     for(i=0; i < OUTPUTS; i++) {
         pinMode(RELAY_START + i, OUTPUT);
         // outputs.set(i, 0);
@@ -333,8 +333,8 @@ void setup(void) {
 void worker(){
     // Here the sensors are read, files written and so on. Once per minute
 #ifdef DEBUG
-    Serial.print(F("Uptime: "));
-    Serial.println(millis() / 1000);
+    SERIAL.print(F("Uptime: "));
+    SERIAL.println(millis() / 1000);
 #endif
     digitalWrite(13, HIGH);
     //read sensors and store data
@@ -344,13 +344,13 @@ void worker(){
         case DHTLIB_OK:
             break;
         case DHTLIB_ERROR_CHECKSUM:
-            Serial.println(F("DHT Checksum error"));
+            SERIAL.println(F("DHT Checksum error"));
             break;
         case DHTLIB_ERROR_TIMEOUT:
-            Serial.println(F("DHT Time out error"));
+            SERIAL.println(F("DHT Time out error"));
             break;
         default:
-            Serial.println(F("Unknown error"));
+            SERIAL.println(F("Unknown error"));
             break;
     }
     int temp = (int) lround(10 * DHT.temperature);
@@ -379,26 +379,26 @@ void worker(){
 
 #ifdef DEBUG_LOGGERS
     //  int numLogers = sizeof(loggers) / sizeof(Logger *);
-    // Serial.print(F("# of loggers: "));
-    // Serial.println(numLogers, DEC);
+    // SERIAL.print(F("# of loggers: "));
+    // SERIAL.println(numLogers, DEC);
 
     for(int i=0; i < LOGGERS; i++) {
 #ifdef WATCHDOG
         wdt_reset();
 #endif
-        Serial.print(loggers[i]->name);
-        Serial.print(F(": "));
+        SERIAL.print(loggers[i]->name);
+        SERIAL.print(F(": "));
         aJsonObject *msg = loggers[i]->json();
         aJson.print(msg, &serial_stream);
         aJson.deleteItem(msg);
-        Serial.println();
+        SERIAL.println();
     }
 #endif
 
 #ifdef DEBUG_OUTPUT
     pFreeRam();
-    outputs.json(&Serial);
-    Serial.println();
+    outputs.json(&SERIAL);
+    SERIAL.println();
     pFreeRam();
 #endif
 
@@ -406,10 +406,10 @@ void worker(){
     // tick triggers
     for(int i=0; i < TRIGGERS; i++) {
 #ifdef DEBUG_TRIGGERS
-        Serial.print(F("Trigger "));
-        Serial.println(i);
+        SERIAL.print(F("Trigger "));
+        SERIAL.println(i);
         trigger_json(i, &sd_file);
-        Serial.println("");
+        SERIAL.println("");
 #endif
 
         trigger_tick(i);
@@ -417,11 +417,11 @@ void worker(){
     // tick alerts
     for(int i=0; i < ALERTS; i++) {
 #ifdef DEBUG_ALERTS
-        Serial.print(F("Alert "));
-        Serial.print(i);
-        Serial.print(F(" last state "));
-        Serial.print(alerts[i].last_state);
-        Serial.println("");
+        SERIAL.print(F("Alert "));
+        SERIAL.print(i);
+        SERIAL.print(F(" last state "));
+        SERIAL.print(alerts[i].last_state);
+        SERIAL.println("");
 #endif
 
         alert_tick(i);
@@ -489,14 +489,14 @@ const char * getContentType(char * filename) {
 }
 
 void responseNum(EthernetClient client, int code){
-    Serial.print(F("Returning "));
+    SERIAL.print(F("Returning "));
     switch (code){
         case 200:
             client.println("HTTP/1.1 200 OK");
-            Serial.println(200);
+            SERIAL.println(200);
             break;
         case 404:
-            Serial.println(404);
+            SERIAL.println(404);
             client.println("HTTP/1.1 404 Not Found");
             client.println("Content-Type: text/html");
             client.println();
@@ -583,18 +583,18 @@ int fn_extract_raw(char * request){
 int senddata(EthernetClient client, char * request, char * clientline){
     // Send response
     bool found = false;
-    Serial.print(F("Request: "));
-    Serial.println(request);
+    SERIAL.print(F("Request: "));
+    SERIAL.println(request);
     int raw_no = fn_extract_raw(request);
     if (strncasecmp(request, "sensors", 7) == 0) {
-        Serial.println(F("Sensor area"));
+        SERIAL.println(F("Sensor area"));
         if (raw_no > -1) {
-            Serial.println("raw?");
+            SERIAL.println("raw?");
             get_raw_data(raw_no, &client);
             return 1;
         } else {
-            Serial.print(F("raw missed "));
-            Serial.println(fn_extract_raw(request));
+            SERIAL.print(F("raw missed "));
+            SERIAL.println(fn_extract_raw(request));
         }
 
         if (outputs.match(request)) {  // outputs
@@ -625,7 +625,7 @@ int senddata(EthernetClient client, char * request, char * clientline){
             responseNum(client, 404);
         return 0;
     }
-    Serial.println(F("File area"));
+    SERIAL.println(F("File area"));
     // Find the file
     if (!SD.exists(request)) {
         responseNum(client, 404);
@@ -682,7 +682,7 @@ void pageServe(EthernetClient client){
             linesize = client.readBytesUntil('\n', clientline, BUFSIZE-1);
             clientline[linesize] = '\0';
             #ifdef DEBUG_HTTP
-            Serial.println(clientline);
+            SERIAL.println(clientline);
             #endif
 
             // the line is blank, the http request has ended,
@@ -703,13 +703,13 @@ void pageServe(EthernetClient client){
                 is_url = true;
             } else if (strstr(clientline, "POST /") != 0) {
                 post = 1;
-                Serial.println(F("Processing post request"));
+                SERIAL.println(F("Processing post request"));
                 is_url = true;
             };
             if (is_url) {
                 if (strlcpy(request, extract_filename(clientline), 32) >= 32){
-                    Serial.print(F("Filename too long: "));
-                    Serial.println(clientline);
+                    SERIAL.print(F("Filename too long: "));
+                    SERIAL.println(clientline);
                     request[32]='\0';
                 }
             }
@@ -753,7 +753,7 @@ void pageServe(EthernetClient client){
             //aJson.deleteItem(data);
         }
 #ifdef DEBUG_HTTP
-    Serial.println(F("POST request dealt with"));
+    SERIAL.println(F("POST request dealt with"));
 #endif
     }
     // give the web browser time to receive the data
@@ -761,7 +761,7 @@ void pageServe(EthernetClient client){
     // close the connection:
     client.stop();
 #ifdef DEBUG_HTTP
-    Serial.println(F("eth client stopped"));
+    SERIAL.println(F("eth client stopped"));
 #endif
 }
 
@@ -778,11 +778,11 @@ void loop(void){
     EthernetClient client = server.available();
     if (client) {
         pageServe(client);
-        Serial.println(F("times:"));
-        Serial.println(t_1 - t_loop_start);
-        Serial.println(t_2 - t_loop_start);
-        Serial.println(t_3 - t_loop_start);
-        Serial.println(millis() - t_loop_start);
+        SERIAL.println(F("times:"));
+        SERIAL.println(t_1 - t_loop_start);
+        SERIAL.println(t_2 - t_loop_start);
+        SERIAL.println(t_3 - t_loop_start);
+        SERIAL.println(millis() - t_loop_start);
         pFreeRam();
     }
     delay(50);

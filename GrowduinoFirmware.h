@@ -23,6 +23,16 @@
 
 #define MINVALUE -999
 
+// 
+// #define ALT_SERIAL
+#ifdef ALT_SERIAL
+#define SERIAL Serial1
+#define SER_SPEED 19200
+#else
+#define SERIAL Serial
+#define SER_SPEED 115200
+#endif
+
 #define GET 1
 #define POST 2
 
@@ -98,7 +108,7 @@
 
 #define LCD_BUFFER_LINES 10
 
-//#define DISPLAY_2004 1
+#define DISPLAY_2004 1
 
 #ifdef DISPLAY_2004
 #define LCD_DISPLAY_LINES 4

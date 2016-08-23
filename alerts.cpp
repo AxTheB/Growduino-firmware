@@ -46,10 +46,10 @@ int process_alert(int idx, int trigger_state){
     //pokud se zmenil prislusny trigger, posli alert
     if (alerts[idx].last_state != trigger_state) {
     #ifdef DEBUG_ALERTS
-        Serial.print(F("Alarm ("));
-        Serial.print(idx);
-        Serial.print(F(") changed state to: "));
-        Serial.println(trigger_state);
+        SERIAL.print(F("Alarm ("));
+        SERIAL.print(idx);
+        SERIAL.print(F(") changed state to: "));
+        SERIAL.println(trigger_state);
     #endif
         alerts[idx].last_state = trigger_state;
         alert_send_message(idx);
@@ -70,36 +70,36 @@ int alert_send_message(int idx) {
     alert_load(cfile, on_message, off_message, target);
 
     aJson.deleteItem(cfile);
-    Serial.println(alerts[idx].last_state);
+    SERIAL.println(alerts[idx].last_state);
 
     #ifdef DEBUG_ALERTS
-    Serial.print(F("Alarm target "));
-    Serial.println(target);
+    SERIAL.print(F("Alarm target "));
+    SERIAL.println(target);
     #endif
 
     if (strchr(target, '@') != NULL) {
     #ifdef DEBUG_ALERTS
-        Serial.print(F("Sending mail"));
+        SERIAL.print(F("Sending mail"));
     #endif
         //send mail
         int size;
         char subject[32];
         char * body;
         char * line_end;
-        Serial.print(F("Last state: "));
-        Serial.println(alerts[idx].last_state);
+        SERIAL.print(F("Last state: "));
+        SERIAL.println(alerts[idx].last_state);
         if (alerts[idx].last_state == STATE_OFF) {
             body = off_message;
             #ifdef DEBUG_ALERTS
-            Serial.println(F("Sending off message"));
+            SERIAL.println(F("Sending off message"));
             #endif
         } else {
             body = on_message;
             #ifdef DEBUG_ALERTS
-            Serial.println(F("Sending on message"));
+            SERIAL.println(F("Sending on message"));
             #endif
         }
-        Serial.println(body);
+        SERIAL.println(body);
         size = 32;
         line_end = strchrnul(body, '\r');
         if ((line_end - body) <  size) size = line_end - body;
@@ -120,31 +120,31 @@ int alert_tick(int idx) {
     if (alerts[idx].trigger != NONE) {
         if (alerts[idx].last_state == NONE) {
 #ifdef DEBUG_ALERTS
-            Serial.print(F("Unknown last state - "));
+            SERIAL.print(F("Unknown last state - "));
 #endif
 /*
             if (alerts[idx].trigger == -2) {
 #ifdef DEBUG_ALERTS
-                Serial.print(F("storing state: ups check"));
+                SERIAL.print(F("storing state: ups check"));
 #endif
                 alerts[idx].last_state = (ups_level < config.ups_trigger_level);
             } else {
         */
 #ifdef DEBUG_ALERTS
-            Serial.print(F("storing state: sensor "));
-            Serial.print(idx);
+            SERIAL.print(F("storing state: sensor "));
+            SERIAL.print(idx);
 #endif
             alerts[idx].last_state = triggers[alerts[idx].trigger].state;
             // }
 #ifdef DEBUG_ALERTS
-            Serial.println(F(" (no operation)"));
+            SERIAL.println(F(" (no operation)"));
 #endif
             return NONE;
         }
         /*
         if (alerts[idx].trigger == -2) {
 #ifdef DEBUG_ALERTS
-            Serial.print(F("Processing alert"));
+            SERIAL.print(F("Processing alert"));
 #endif
             alerts[idx].last_state = process_alert(idx, ups_level < config.ups_trigger_level);
         } else {
@@ -152,14 +152,14 @@ int alert_tick(int idx) {
         alerts[idx].last_state = process_alert(idx, triggers[alerts[idx].trigger].state);
         //}
 #ifdef DEBUG_ALERTS
-        Serial.println(F("State is now "));
-        Serial.println(alerts[idx].last_state);
+        SERIAL.println(F("State is now "));
+        SERIAL.println(alerts[idx].last_state);
 #endif
 
         return alerts[idx].last_state;
     }
 #ifdef DEBUG_ALERTS
-    Serial.println(F("Alert has no trigger"));
+    SERIAL.println(F("Alert has no trigger"));
 #endif
 
     return NONE;

@@ -15,13 +15,13 @@ int send_mail(char * dest, char * subject, char * body){
     byte smtp[4] = { config.smtp[0], config.smtp[1], config.smtp[2], config.smtp[3] };
     if(eth_client.connect(smtp, 25)) {
 #ifdef DEBUG_SMTP
-        Serial.println(F("SMTP connect"));
-        Serial.println(config.smtp);
+        SERIAL.println(F("SMTP connect"));
+        SERIAL.println(config.smtp);
 #endif
         lcd_publish(F("SMTP connect"));
     } else {
 #ifdef DEBUG_SMTP
-        Serial.println(F("connection failed"));
+        SERIAL.println(F("connection failed"));
 #endif
         lcd_publish(F("SMTP fail"));
         return 0;
@@ -29,7 +29,7 @@ int send_mail(char * dest, char * subject, char * body){
 
     if(!eRcv()) return 0;
 #ifdef DEBUG_SMTP
-    Serial.println(F("Sending helo"));
+    SERIAL.println(F("Sending helo"));
 #endif
 
     eth_client.print(F("helo "));
@@ -37,7 +37,7 @@ int send_mail(char * dest, char * subject, char * body){
 
     if(!eRcv()) return 0;
 #ifdef DEBUG_SMTP
-    Serial.println(F("Sending From"));
+    SERIAL.println(F("Sending From"));
 #endif
 
     // change to your email address (sender)
@@ -49,7 +49,7 @@ int send_mail(char * dest, char * subject, char * body){
 
     // change to recipient address
 #ifdef DEBUG_SMTP
-    Serial.println(F("Sending To"));
+    SERIAL.println(F("Sending To"));
 #endif
     eth_client.print(F("RCPT To: <"));
     eth_client.print(dest);
@@ -58,14 +58,14 @@ int send_mail(char * dest, char * subject, char * body){
     if(!eRcv()) return 0;
 
 #ifdef DEBUG_SMTP
-    Serial.println(F("Sending DATA"));
+    SERIAL.println(F("Sending DATA"));
 #endif
     eth_client.println(F("DATA"));
 
     if(!eRcv()) return 0;
 
 #ifdef DEBUG_SMTP
-    Serial.println(F("Sending email"));
+    SERIAL.println(F("Sending email"));
 #endif
 
     // change to recipient address
@@ -88,7 +88,7 @@ int send_mail(char * dest, char * subject, char * body){
     eth_client.println(body);
 
 #ifdef DEBUG_SMTP
-    Serial.println(body);
+    SERIAL.println(body);
 #endif
 
     eth_client.println(F("."));
@@ -96,7 +96,7 @@ int send_mail(char * dest, char * subject, char * body){
     if(!eRcv()) return 0;
 
 #ifdef DEBUG_SMTP
-    Serial.println(F("Sending QUIT"));
+    SERIAL.println(F("Sending QUIT"));
 #endif
     eth_client.println(F("QUIT"));
 
@@ -104,7 +104,7 @@ int send_mail(char * dest, char * subject, char * body){
 
     eth_client.stop();
 
-    Serial.println(F("disconnected"));
+    SERIAL.println(F("disconnected"));
 
     return 1;
 }
@@ -124,7 +124,7 @@ byte eRcv(){
     // if nothing received for 10 seconds, timeout
     if(loopCount > 10000) {
       eth_client.stop();
-      Serial.println(F("\r\nTimeout"));
+      SERIAL.println(F("\r\nTimeout"));
       return 0;
     }
   }
@@ -134,7 +134,7 @@ byte eRcv(){
   while(eth_client.available())
   {
     thisByte = eth_client.read();
-    Serial.write(thisByte);
+    SERIAL.write(thisByte);
   }
 
   if(respCode >= '4')
@@ -163,7 +163,7 @@ void efail()
     // if nothing received for 10 seconds, timeout
     if(loopCount > 10000) {
       eth_client.stop();
-      Serial.println(F("\r\nTimeout"));
+      SERIAL.println(F("\r\nTimeout"));
       return;
     }
   }
@@ -171,11 +171,11 @@ void efail()
   while(eth_client.available())
   {
     thisByte = eth_client.read();
-    Serial.write(thisByte);
+    SERIAL.write(thisByte);
   }
 
   eth_client.stop();
 
-  Serial.println(F("disconnected"));
+  SERIAL.println(F("disconnected"));
 }
 

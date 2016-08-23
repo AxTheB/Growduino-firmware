@@ -24,7 +24,7 @@ int ups_read_inner(){
 
     line[counter]='\0';
 #ifdef DEBUG_UPS
-    Serial.println(line);
+    SERIAL.println(line);
 #endif
     sscanf(line, "s:%i e:%i", &state, &energy);
     if (energy < 0 || energy > 100) {
