@@ -208,7 +208,7 @@ void setup(void) {
     wdt_disable();
     pinMode(13, OUTPUT);
     // start serial port
-    SERIAL.begin(115200);
+    SERIAL.begin(SER_SPEED);
     SERIAL.println(F("Grow!"));
     lcd_setup();
     pFreeRam();

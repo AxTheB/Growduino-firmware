@@ -24,7 +24,7 @@
 #define MINVALUE -999
 
 // 
-// #define ALT_SERIAL
+// #define ALT_SERIAL 1
 #ifdef ALT_SERIAL
 #define SERIAL Serial1
 #define SER_SPEED 19200
