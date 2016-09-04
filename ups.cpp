@@ -19,14 +19,14 @@ int ups_read_inner(){
 
         counter = Serial3.readBytesUntil('\n', line, 64);
 #ifdef DEBUG_UPS
-        SERIAL.print("Reading UPS: ");
+        SERIAL.print(F("Reading UPS: "));
         SERIAL.println(line);
 #endif
 
         if (line[0] != 's') { // UPS stats start with 's'
             // UPS error handling may come here
 #ifdef DEBUG_UPS
-            SERIAL.println("Wrong line start");
+            SERIAL.println(F("Wrong line start"));
 #endif
             return MINVALUE;
         }
@@ -35,17 +35,17 @@ int ups_read_inner(){
         sscanf(line, "s:%i e:%i", &state, &energy);
         if (energy < 0 || energy > 100) {
 #ifdef DEBUG_UPS
-            SERIAL.println("Value out of bounds");
+            SERIAL.println(F("Value out of bounds"));
 #endif
             energy = MINVALUE;
         }
 #ifdef DEBUG_UPS
-        SERIAL.println("Value OK");
+        SERIAL.println(F("Value OK"));
 #endif
         ups_level = state;
     } else {
 #ifdef DEBUG_UPS
-        SERIAL.println("Serial buffer empty");
+        SERIAL.println(F("Serial buffer empty"));
         delay(1000);
         energy = MINVALUE;
     }
@@ -59,7 +59,7 @@ int ups_read(){
     int retval;
     for (int i = 0; i < 10; i++) {
 #ifdef DEBUG_UPS
-        SERIAL.print("UPS reading try #");
+        SERIAL.print(F("UPS reading try #"));
         SERIAL.println(i+1);
 #endif
         retval = ups_read_inner();

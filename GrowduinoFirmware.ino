@@ -113,7 +113,7 @@ int analogReadAvg(int pin) {
     int minval, maxval;
     minval = MINVALUE;
     maxval = MINVALUE;
-    SERIAL.print("Analog read ");
+    SERIAL.print(F("Analog read "));
     SERIAL.println(pin);
 #endif
     long dataSum = 0L;
@@ -138,11 +138,11 @@ int analogReadAvg(int pin) {
 
 #ifdef DEBUG_CALIB
     SERIAL.println("");
-    SERIAL.print("min: ");
+    SERIAL.print(F("min: "));
     SERIAL.print(minval);
-    SERIAL.print(" max: ");
+    SERIAL.print(F(" max: "));
     SERIAL.print(maxval);
-    SERIAL.print(" avg: ");
+    SERIAL.print(F(" avg: "));
     SERIAL.println(retval);
 #endif
 

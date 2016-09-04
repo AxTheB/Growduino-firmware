@@ -21,7 +21,7 @@ int PH_read(){
     float slope = (float) (ph_7 - ph_4) / (ph_7_val - ph_4_val);
     float pH = ph_4_val + ((raw_data - ph_4)/slope);
 #ifdef DEBUG_CALIB
-    SERIAL.print("pH sensor raw: ");
+    SERIAL.print(F("pH sensor raw: "));
     SERIAL.println(raw_data);
 #endif
 

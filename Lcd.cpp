@@ -36,7 +36,7 @@ void lcd_setup(){
 }
 void lcd_publish(char * msg) {
     // Inserts msg into buffer
-    SERIAL.print("lcd_publish: ");
+    SERIAL.print(F("lcd_publish: "));
     SERIAL.println(msg);
     if (inserted_lines < LCD_BUFFER_LINES) {
         strlcpy((char * ) lcd_lines[inserted_lines], msg, 17);
@@ -49,7 +49,7 @@ void lcd_publish(char * msg) {
 
 void lcd_publish(const __FlashStringHelper * msg) {
     // inserts msg into buffer from flash
-    SERIAL.print("lcd_publish: ");
+    SERIAL.print(F("lcd_publish: "));
     SERIAL.println(msg);
     if (inserted_lines < LCD_BUFFER_LINES) {
         strlcpy_P((char * ) lcd_lines[inserted_lines], (char *) msg, 17);

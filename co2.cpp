@@ -34,7 +34,7 @@ int CO2_read(){
 
 #ifdef DEBUG_CALIB
     if (co2 != MINVALUE){
-        SERIAL.print("CO2 raw: ");
+        SERIAL.print(F("CO2 raw: "));
         SERIAL.println(raw_data);
     }
 #endif
