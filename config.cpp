@@ -19,7 +19,7 @@ Config::Config(){
     strlcpy(sys_name, "growduino", 10);
     smtp_port = 25;
     time_zone = 2;
-    ups_trigger_level = 255;
+    //ups_trigger_level = 255;
 #ifdef USE_CO2_SENSOR
     co2_400 = CO2_400;
     co2_40k = CO2_40k;
@@ -146,12 +146,14 @@ void Config::load(aJsonObject * json){
     } else {
         time_zone = 2;
     }
+    /*
     cnfobj = aJson.getObjectItem(json, "ups_trigger_level");
     if (cnfobj) {
         sscanf(cnfobj->valuestring, "%d", &ups_trigger_level);
     } else {
         ups_trigger_level = 255;
     }
+    */
 
 }
 
@@ -271,10 +273,10 @@ int Config::save(){
 
     sd_file.print(F("\"time_zone\":\""));
     sd_file.print(time_zone);
-    sd_file.print(F("\","));
+    /*sd_file.print(F("\","));
 
     sd_file.print(F("\"ups_trigger_level\":\""));
-    sd_file.print(ups_trigger_level);
+    sd_file.print(ups_trigger_level);*/
     sd_file.print(F("\""));
 
 
