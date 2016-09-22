@@ -15,6 +15,7 @@ void Output::common_init(){
     log_file_index = 0;
     for (int slot = 0; slot < OUTPUTS; slot++){
         broken[slot] = 0;
+        broken2[slot] = 0;
         ctimes[slot] = t_now;
         state[slot] = 0;
         hw_state[slot] = 0;
@@ -70,10 +71,19 @@ int Output::breakme(int slot, int val, int trigger){
     }
     if (val == 0) {
         SERIAL.println(F("breakme: clr"));
-        broken[slot] = bitclr(broken[slot], trigger);
+        if (slot < 32) {
+            broken[slot] = bitclr(broken[slot], trigger);
+        } else {
+            broken2[slot] = bitclr(broken2[slot-32], trigger);
+        }
     } else {
         SERIAL.println(F("breakme: set"));
-        broken[slot] = bitset(broken[slot], trigger);
+        if (slot < 32) {
+            broken[slot] = bitset(broken[slot], trigger);
+        } else {
+            broken2[slot] = bitset(broken2[slot-32], trigger);
+        }
+
     }
     return (state[slot] != 0);
 }
@@ -160,6 +170,10 @@ int Output::pack_states(){
     return packed;
 }
 
+int Output::is_broken(int slot) {
+    return ((broken[slot] != 0) || (broken2[slot] != 0));
+}
+
 int Output::hw_update(int slot){
     // Update output %slot%, checking broken state
     // this is only place where we touch hardware
@@ -169,7 +183,7 @@ int Output::hw_update(int slot){
 
 #endif
     int wanted;
-    if (broken[slot] != 0) {
+    if (is_broken(slot)) {
 #ifdef DEBUG_OUTPUT
         SERIAL.println(F(" is broken"));
 #endif
