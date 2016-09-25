@@ -158,10 +158,10 @@ int Output::pack_states(){
 #endif
     for (int i=0; i < OUTPUTS; i++){
 #ifdef DEBUG_OUTPUT
-        SERIAL.print(state[i]);
+        SERIAL.print(hw_state[i]);
         SERIAL.print(F(" "));
 #endif
-        packed += get(i) << i;
+        packed += hw_get(i) << i;
     }
 #ifdef DEBUG_OUTPUT
     SERIAL.print(F(": "));
@@ -171,7 +171,23 @@ int Output::pack_states(){
 }
 
 int Output::is_broken(int slot) {
-    return ((broken[slot] != 0) || (broken2[slot] != 0));
+#ifdef DEBUG_OUTPUT
+    SERIAL.print(F(" (Checking slot "));
+    SERIAL.print(slot);
+    SERIAL.print(F(":"));
+#endif
+    if (slot < 32) {
+#ifdef DEBUG_OUTPUT
+    SERIAL.print(broken[slot]);
+    SERIAL.print(F(") "));
+#endif
+        return (broken[slot] != 0);
+    }
+#ifdef DEBUG_OUTPUT
+    SERIAL.print(broken2[slot-32]);
+    SERIAL.print(F(") "));
+#endif
+    return (broken2[slot-32] != 0);
 }
 
 int Output::hw_update(int slot){
