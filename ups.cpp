@@ -46,10 +46,10 @@ int ups_read_inner(){
     } else {
 #ifdef DEBUG_UPS
         SERIAL.println(F("Serial buffer empty"));
+#endif
         delay(1000);
         energy = MINVALUE;
     }
-#endif
 
 
     return energy;
