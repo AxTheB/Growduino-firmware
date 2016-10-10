@@ -190,7 +190,7 @@ aJsonObject * status(){
     aJson.addItemToObject(msg, "triggers", aJson.createItem(TRIGGERS));
     aJson.addItemToObject(msg, "alerts", aJson.createItem(ALERTS));
     aJson.addItemToObject(msg, "triggers_log_size", aJson.createItem(LOGSIZE));
-    sprintf(buffer, "%ld", millis() / 1000);
+    sprintf(buffer, "%lu", millis() / 1000);
     aJson.addItemToObject(msg, "uptime", aJson.createItem(buffer));
     aJson.addItemToObject(msg, "tz", aJson.createItem(config.time_zone));
     aJson.addItemToObject(msg, "daymin", aJson.createItem(daymin()));
@@ -445,7 +445,7 @@ void worker(){
     lcd_publish("pH", "%s %d.%.2d", ph.peek(), 100);
     lcd_publish("CO2", "%s %d", co2.peek(), 0.1);
     lcd_publish("EC", "%s %d.%.2d", ec.peek(), 100);
-    int uptime = millis() / 60000;
+    unsigned long uptime = millis() / 60000;
     lcd_publish("Uptime", "%s %d", uptime);
     lcd_publish("Battery", "%s %d%%", battery.peek());
 
