@@ -447,7 +447,9 @@ void worker(){
     lcd_publish("EC", "%s %d.%.2d", ec.peek(), 100);
     unsigned long uptime = millis() / 60000;
     lcd_publish("Uptime", "%s %d", uptime);
+#ifdef HAVE_UPS
     lcd_publish("Battery", "%s %d%%", battery.peek());
+#endif
 
     lcd_tick();
 
