@@ -3,7 +3,9 @@ extern int ups_level;
 
 
 int ups_init(){
+#ifdef HAVE_UPS
     Serial3.begin(19200);
+#endif
 }
 
 int ups_read_inner(){
@@ -56,6 +58,7 @@ int ups_read_inner(){
 }
 
 int ups_read(){
+#ifdef HAVE_UPS
     int retval;
     for (int i = 0; i < 10; i++) {
 #ifdef DEBUG_UPS
@@ -67,5 +70,6 @@ int ups_read(){
             return retval;
         }
     }
+#endif
     return MINVALUE;
 }

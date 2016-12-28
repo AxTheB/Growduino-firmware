@@ -122,6 +122,8 @@
 
 #define MEGA 1
 
+#define HAVE_UPS 1
+
 #ifdef DEBUG
 //#define DEBUG_OUTPUT 1
 //#define DEBUG_SDCARD 1
