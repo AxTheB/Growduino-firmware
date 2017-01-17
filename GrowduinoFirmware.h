@@ -63,6 +63,7 @@
 #define EC_ENABLE 27
 #define EC_DATA 28
 #define EC_SAMPLE_TIMES 100
+#define EC_CUTOFF 1500
 
 
 #define USE_CO2_SENSOR 1

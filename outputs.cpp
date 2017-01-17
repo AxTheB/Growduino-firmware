@@ -219,7 +219,7 @@ int Output::hw_update(int slot){
         digitalWrite(RELAY_START + slot, wanted);
         delay(100);
         hw_state[slot] = wanted;
-        log();
+        //log();
         ctimes[slot] = t_now;
     } else {
 #ifdef DEBUG_OUTPUT

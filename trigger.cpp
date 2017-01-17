@@ -11,6 +11,8 @@ int trigger_tick(int idx){
     //int l_daymin = minute() + 60 * hour();
     int l_daymin = daymin();
     int sensor_val;
+    bool sensor_fail;
+
 #ifdef DEBUG_TRIGGERS
     SERIAL.print(F("Ticking "));
     SERIAL.print(idx);
@@ -19,6 +21,7 @@ int trigger_tick(int idx){
 #endif
 
     int time_ok = 0;
+    sensor_fail = false;
     byte active = triggers[idx].active;
 
     if (active == STATE_ON) {
@@ -62,6 +65,7 @@ int trigger_tick(int idx){
             sensor_val = MINVALUE;
         } else {    // the logger is defined
             sensor_val = triggers[idx]._logger->peek();
+            if (sensor_val == MINVALUE) sensor_fail = true;
         }
         //outputs.set(output, 0, idx);
 #ifdef DEBUG_TRIGGERS
@@ -73,7 +77,7 @@ int trigger_tick(int idx){
 #endif
         switch (triggers[idx].on_cmp) {
             case '<':
-                if (sensor_val < triggers[idx].on_value || triggers[idx].sensor == NONE) {
+                if (!sensor_fail && (sensor_val < triggers[idx].on_value || triggers[idx].sensor == NONE)) {
                     if (triggers[idx].important) {
                         outputs.revive(triggers[idx].output, idx);
                     } else {
@@ -90,7 +94,7 @@ int trigger_tick(int idx){
                 }
                 break;
             case '>':
-                if (sensor_val > triggers[idx].on_value || triggers[idx].sensor == NONE) {
+                if (!sensor_fail && (sensor_val > triggers[idx].on_value || triggers[idx].sensor == NONE)) {
                     if (triggers[idx].important) {
                         outputs.revive(triggers[idx].output, idx);
                     } else {
@@ -141,7 +145,7 @@ int trigger_tick(int idx){
 #endif
         switch (triggers[idx].off_cmp) {
             case '<':
-                if (sensor_val <= triggers[idx].off_value && triggers[idx].sensor != NONE) {
+                if (sensor_fail || (sensor_val <= triggers[idx].off_value && triggers[idx].sensor != NONE)) {
                     if (triggers[idx].important) {
                         outputs.kill(triggers[idx].output, idx);
                     } else {
@@ -158,7 +162,7 @@ int trigger_tick(int idx){
                 }
                 break;
             case '>':
-                if (sensor_val >= triggers[idx].off_value && triggers[idx].sensor != NONE) {
+                if (sensor_fail || (sensor_val >= triggers[idx].off_value && triggers[idx].sensor != NONE)) {
                     if (triggers[idx].important) {
                         outputs.kill(triggers[idx].output, idx);
                     } else {

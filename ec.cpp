@@ -56,6 +56,10 @@ int ec_read(){
         ec = MINVALUE;
     }
 
+    if (ec > EC_CUTOFF) {
+        ec = MINVALUE;
+    }
+
 #endif
 
 #ifdef DEBUG_CALIB
