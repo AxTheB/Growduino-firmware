@@ -31,6 +31,11 @@ long ec_read_raw(){
 
     digitalWrite(EC_ENABLE, LOW); // power down the sensor
 
+    if (pulseTime >= EC_CUTOFF) {
+        return MINVALUE;
+    }
+
+
     return pulseTime;
 }
 
@@ -53,10 +58,6 @@ int ec_read(){
 
     ec = (int) 100 * (ec_a / (pulseTime + config.ec_offset) + ec_b);
     if (pulseTime == MINVALUE) {
-        ec = MINVALUE;
-    }
-
-    if (ec > EC_CUTOFF) {
         ec = MINVALUE;
     }
 
