@@ -31,6 +31,7 @@ public:
     char * file_name(char * filename);
     int set(int slot, int val, int trigger);
     int breakme(int slot, int val, int trigger);
+    int is_broken(int slot);
     void kill(int slot, int trigger);
     void revive(int slot, int trigger);
     void common_init();
@@ -39,6 +40,7 @@ private:
     unsigned char sensor_state;
     long state[OUTPUTS];
     long broken[OUTPUTS];
+    long broken2[OUTPUTS];
     int hw_state[OUTPUTS];
     time_t ctimes[OUTPUTS];
     int log_states[LOGSIZE];

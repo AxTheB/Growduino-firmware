@@ -1,4 +1,3 @@
-
 #include "GrowduinoFirmware.h"
 
 #include <dht.h>
@@ -56,6 +55,7 @@ File sd_file;
 Logger light_sensor = Logger("Light1");
 Logger light_sensor2 = Logger("Light2");
 
+Logger battery = Logger("Battery");
 int ups_level;
 
 Logger ultrasound = Logger("Usnd");
@@ -70,7 +70,7 @@ Logger co2 = Logger("CO2");
 Config config;
 Output outputs;
 
-aJsonStream serial_stream(&Serial);
+aJsonStream serial_stream(&SERIAL);
 
 EthernetServer server(80);
 
@@ -84,26 +84,83 @@ Logger * loggers[LOGGERS+1] = {
     &onewire_temp2,
     &ec,
     &ph,
-    &co2
+    &co2,
+    &battery
     };
 
 Trigger triggers[TRIGGERS];
 Alert alerts[ALERTS];
 
+int prepareAnalogPin(int pin) {
+
+    //pull the pin high
+    pinMode(pin, INPUT);
+#ifdef ANALOG_DETECT
+    digitalWrite(pin, HIGH);
+#endif
+}
+
+
 int analogReadAvg(int pin) {
+
 
     // introduce delay between mux switch and actual reading
     analogRead(pin);
     delay(ANALOG_READ_AVG_DELAY);
     analogRead(pin);
 
-    long data = 0L;
+#ifdef DEBUG_CALIB
+    int minval, maxval;
+    minval = MINVALUE;
+    maxval = MINVALUE;
+    SERIAL.print(F("Analog read "));
+    SERIAL.println(pin);
+#endif
+    long dataSum = 0L;
+    int data;
     for (int i=0; i < ANALOG_READ_AVG_TIMES; i++) {
-        data += analogRead(pin);
+        data = analogRead(pin);
+        dataSum += data;
+#ifdef DEBUG_CALIB
+        SERIAL.println(data);
+        if (minval == MINVALUE || minval > data) {
+            minval = data;
+        }
+        if (maxval == MINVALUE || maxval < data) {
+            maxval = data;
+        }
+#endif
+
         delay(ANALOG_READ_AVG_DELAY);
     }
-    return (int) data / ANALOG_READ_AVG_TIMES;
+
+    int retval = (int) (dataSum / ANALOG_READ_AVG_TIMES);
+
+#ifdef DEBUG_CALIB
+    SERIAL.println("");
+    SERIAL.print(F("min: "));
+    SERIAL.print(minval);
+    SERIAL.print(F(" max: "));
+    SERIAL.print(maxval);
+    SERIAL.print(F(" avg: "));
+    SERIAL.println(retval);
+#endif
+
+    return retval;
 }
+
+int perThousand(int pin) {
+    int retval;
+    retval = analogReadAvg(pin);
+#ifdef ANALOG_DETECT
+    if (retval > ADC_CUTOFF) {
+        return MINVALUE;
+    }
+#endif
+    retval = map(retval, 0, 1024, 0, 1000);
+    return retval;
+}
+
 
 int freeRam () {
   extern int __heap_start, *__brkval;
@@ -112,8 +169,8 @@ int freeRam () {
 }
 
 void pFreeRam() {
-    Serial.print(F("Free ram: "));
-    Serial.println(freeRam());
+    SERIAL.print(F("Free ram: "));
+    SERIAL.println(freeRam());
 }
 
 aJsonObject * status(){
@@ -133,7 +190,7 @@ aJsonObject * status(){
     aJson.addItemToObject(msg, "triggers", aJson.createItem(TRIGGERS));
     aJson.addItemToObject(msg, "alerts", aJson.createItem(ALERTS));
     aJson.addItemToObject(msg, "triggers_log_size", aJson.createItem(LOGSIZE));
-    sprintf(buffer, "%ld", millis() / 1000);
+    sprintf(buffer, "%lu", millis() / 1000);
     aJson.addItemToObject(msg, "uptime", aJson.createItem(buffer));
     aJson.addItemToObject(msg, "tz", aJson.createItem(config.time_zone));
     aJson.addItemToObject(msg, "daymin", aJson.createItem(daymin()));
@@ -151,14 +208,18 @@ void setup(void) {
     wdt_disable();
     pinMode(13, OUTPUT);
     // start serial port
-    Serial.begin(115200);
-    Serial.println(F("Grow!"));
+    SERIAL.begin(SER_SPEED);
+    SERIAL.println(F("Grow!"));
     lcd_setup();
     pFreeRam();
 
+    for (int i = 0; i < 16; i++) {
+        prepareAnalogPin(A0 + i);
+    }
+
     delay(1000);
 
-    //Serial.println(F("SD Card init"));
+    //SERIAL.println(F("SD Card init"));
     lcd_print_immediate(F("SD Card init"));
     // disable ethernet before card init
     pinMode(10,OUTPUT);
@@ -184,7 +245,7 @@ void setup(void) {
         }
     }
     digitalWrite(13, LOW);
-    // Serial.println(F("Inititalising Ethernet"));
+    // SERIAL.println(F("Inititalising Ethernet"));
     lcd_print_immediate(F("Loading config..."));
 
     // load config from sdcard
@@ -196,8 +257,16 @@ void setup(void) {
     } else {
         lcd_print_immediate(F("E:Default cfg"));
     }
+    cfile = file_read("", "calib.jso");
+    if (cfile != NULL) {
+        config.loadcal(cfile);
+        aJson.deleteItem(cfile);
+    } else {
+        lcd_print_immediate(F("E:Default cfg"));
+    }
     pFreeRam();
     config.save();
+    config.savecal();
     pFreeRam();
     lcd_print_immediate(F("Starting eth..."));
     if (config.use_dhcp == 1) {
@@ -209,22 +278,22 @@ void setup(void) {
     }
     server.begin();
     pFreeRam();
-    Serial.print(F("server is at "));
-    Serial.println(Ethernet.localIP());
+    SERIAL.print(F("server is at "));
+    SERIAL.println(Ethernet.localIP());
 
     // load triggers if available
-    Serial.println(freeRam());
+    SERIAL.println(freeRam());
     triggers_load(triggers, loggers);
-    Serial.println(freeRam());
+    SERIAL.println(freeRam());
 
     // load alerts
     pFreeRam();
-    Serial.println(F("Loading alerts"));
+    SERIAL.println(F("Loading alerts"));
     alerts_load();
 
     // start real time clock
     pFreeRam();
-    //Serial.println(F("Initialising clock"));
+    //SERIAL.println(F("Initialising clock"));
     lcd_print_immediate(F("Starting clock"));
     daytime_init();
 
@@ -238,10 +307,10 @@ void setup(void) {
     //initialise outputs
     outputs.common_init();
     pFreeRam();
-    Serial.println(F("Loading output history"));
+    SERIAL.println(F("Loading output history"));
     outputs.load();
     pFreeRam();
-    Serial.println(F("Relay setup"));
+    SERIAL.println(F("Relay setup"));
     for(i=0; i < OUTPUTS; i++) {
         pinMode(RELAY_START + i, OUTPUT);
         // outputs.set(i, 0);
@@ -253,16 +322,19 @@ void setup(void) {
     wdt_enable(WDTO_8S);
     #endif
 
+    ups_init();
+
     pFreeRam();
     lcd_flush();
     lcd_print_immediate(F("Setup done"));
+    worker();
 }
 
 void worker(){
     // Here the sensors are read, files written and so on. Once per minute
 #ifdef DEBUG
-    Serial.print(F("Uptime: "));
-    Serial.println(millis() / 1000);
+    SERIAL.print(F("Uptime: "));
+    SERIAL.println(millis() / 1000);
 #endif
     digitalWrite(13, HIGH);
     //read sensors and store data
@@ -272,13 +344,13 @@ void worker(){
         case DHTLIB_OK:
             break;
         case DHTLIB_ERROR_CHECKSUM:
-            Serial.println(F("DHT Checksum error"));
+            SERIAL.println(F("DHT Checksum error"));
             break;
         case DHTLIB_ERROR_TIMEOUT:
-            Serial.println(F("DHT Time out error"));
+            SERIAL.println(F("DHT Time out error"));
             break;
         default:
-            Serial.println(F("Unknown error"));
+            SERIAL.println(F("Unknown error"));
             break;
     }
     int temp = (int) lround(10 * DHT.temperature);
@@ -293,39 +365,40 @@ void worker(){
     }
     dht22_humidity.timed_log(hum);
 
-    light_sensor.timed_log(map(analogReadAvg(LIGHT_SENSOR_PIN_1), 0, 1024, 0, 1000));
-    light_sensor2.timed_log(map(analogReadAvg(LIGHT_SENSOR_PIN_2), 0, 1024, 0, 1000));
+    light_sensor.timed_log(perThousand(LIGHT_SENSOR_PIN_1));
+    light_sensor2.timed_log(perThousand(LIGHT_SENSOR_PIN_2));
     ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
     ec.timed_log(ec_read());
     ph.timed_log(PH_read());
     co2.timed_log(CO2_read());
+
+    battery.timed_log(ups_read());
 
     onewire_temp1.timed_log(ds_read(ds1));
     onewire_temp2.timed_log(ds_read(ds2));
 
 #ifdef DEBUG_LOGGERS
     //  int numLogers = sizeof(loggers) / sizeof(Logger *);
-    // Serial.print(F("# of loggers: "));
-    // Serial.println(numLogers, DEC);
+    // SERIAL.print(F("# of loggers: "));
+    // SERIAL.println(numLogers, DEC);
 
     for(int i=0; i < LOGGERS; i++) {
 #ifdef WATCHDOG
         wdt_reset();
 #endif
-        Serial.print(loggers[i]->name);
-        Serial.print(F(": "));
+        SERIAL.print(loggers[i]->name);
+        SERIAL.print(F(": "));
         aJsonObject *msg = loggers[i]->json();
         aJson.print(msg, &serial_stream);
         aJson.deleteItem(msg);
-        Serial.println();
+        SERIAL.println();
     }
 #endif
-    ups_level = analogReadAvg(LIGHT_SENSOR_PIN_UPS);
 
 #ifdef DEBUG_OUTPUT
     pFreeRam();
-    outputs.json(&Serial);
-    Serial.println();
+    outputs.json(&SERIAL);
+    SERIAL.println();
     pFreeRam();
 #endif
 
@@ -333,10 +406,10 @@ void worker(){
     // tick triggers
     for(int i=0; i < TRIGGERS; i++) {
 #ifdef DEBUG_TRIGGERS
-        Serial.print(F("Trigger "));
-        Serial.println(i);
+        SERIAL.print(F("Trigger "));
+        SERIAL.println(i);
         trigger_json(i, &sd_file);
-        Serial.println("");
+        SERIAL.println("");
 #endif
 
         trigger_tick(i);
@@ -344,11 +417,11 @@ void worker(){
     // tick alerts
     for(int i=0; i < ALERTS; i++) {
 #ifdef DEBUG_ALERTS
-        Serial.print(F("Alert "));
-        Serial.print(i);
-        Serial.print(F(" last state "));
-        Serial.print(alerts[i].last_state);
-        Serial.println("");
+        SERIAL.print(F("Alert "));
+        SERIAL.print(i);
+        SERIAL.print(F(" last state "));
+        SERIAL.print(alerts[i].last_state);
+        SERIAL.println("");
 #endif
 
         alert_tick(i);
@@ -365,15 +438,18 @@ void worker(){
     lcd_flush();
 
     lcd_publish("Air Temp", "%s %d.%dC", dht22_temp.peek(), 10);
-    lcd_publish("Humidity", "%s %d.%d%%%", dht22_humidity.peek(), 10);
+    lcd_publish("Humidity", "%s %d.%d%%", dht22_humidity.peek(), 10);
     lcd_publish("Water Temp", "%s %d.%dC", onewire_temp1.peek(), 10);
     lcd_publish("Water Lvl", "%s %dcm", ultrasound.peek());
     lcd_publish("Bulb Temp", "%s %d.%dC", onewire_temp1.peek(), 10);
     lcd_publish("pH", "%s %d.%.2d", ph.peek(), 100);
-    lcd_publish("CO2", "%s %d", co2.peek());
+    lcd_publish("CO2", "%s %d", co2.peek(), 0.1);
     lcd_publish("EC", "%s %d.%.2d", ec.peek(), 100);
-    int uptime = millis() / 60000;
+    unsigned long uptime = millis() / 60000;
     lcd_publish("Uptime", "%s %d", uptime);
+#ifdef HAVE_UPS
+    lcd_publish("Battery", "%s %d%%", battery.peek());
+#endif
 
     lcd_tick();
 
@@ -415,14 +491,14 @@ const char * getContentType(char * filename) {
 }
 
 void responseNum(EthernetClient client, int code){
-    Serial.print(F("Returning "));
+    SERIAL.print(F("Returning "));
     switch (code){
         case 200:
             client.println("HTTP/1.1 200 OK");
-            Serial.println(200);
+            SERIAL.println(200);
             break;
         case 404:
-            Serial.println(404);
+            SERIAL.println(404);
             client.println("HTTP/1.1 404 Not Found");
             client.println("Content-Type: text/html");
             client.println();
@@ -465,14 +541,64 @@ void send_headers(EthernetClient client, char * request, int age) {
     client.println();
 }
 
+int get_raw_data(int idx, Stream * output) {
+    output->print("{\"raw_value\":\"");
+/*
+    "0":"Humidity"
+    "1":"Temp1"
+    "2":"Light1"
+    "3":"Usnd"
+    "4":"Temp2"
+    "5":"Light2"
+    "6":"Temp3"
+    "7":"EC"
+    "8":"pH"
+    "9":"CO2"
+    */
+    switch (idx) {
+        case 3:  // usnd
+            output->print(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
+            break;
+        case 7:  // ec
+            output->print(ec_calib_raw());
+            break;
+        case 8: //pH
+            output->print(PH_read_raw());
+            break;
+        case 9:  //CO2
+            output->print(CO2_read_raw());
+            break;
+        default:
+            output->print("-1");
+    }
+    output->print("\"}");
+}
+
+int fn_extract_raw(char * request){
+    int sen = -1;
+    sscanf(request, "sensors/rawdata/%d.jso", &sen);
+    if (sen > LOGGERS) sen = -1;
+    return sen;
+}
+
 
 int senddata(EthernetClient client, char * request, char * clientline){
     // Send response
     bool found = false;
-    Serial.print(F("Request: "));
-    Serial.println(request);
+    SERIAL.print(F("Request: "));
+    SERIAL.println(request);
+    int raw_no = fn_extract_raw(request);
     if (strncasecmp(request, "sensors", 7) == 0) {
-        Serial.println(F("Sensor area"));
+        SERIAL.println(F("Sensor area"));
+        if (raw_no > -1) {
+            SERIAL.println("raw?");
+            get_raw_data(raw_no, &client);
+            return 1;
+        } else {
+            SERIAL.print(F("raw missed "));
+            SERIAL.println(fn_extract_raw(request));
+        }
+
         if (outputs.match(request)) {  // outputs
             found = true;
             send_headers(client, request, 30);
@@ -501,7 +627,7 @@ int senddata(EthernetClient client, char * request, char * clientline){
             responseNum(client, 404);
         return 0;
     }
-    Serial.println(F("File area"));
+    SERIAL.println(F("File area"));
     // Find the file
     if (!SD.exists(request)) {
         responseNum(client, 404);
@@ -558,7 +684,7 @@ void pageServe(EthernetClient client){
             linesize = client.readBytesUntil('\n', clientline, BUFSIZE-1);
             clientline[linesize] = '\0';
             #ifdef DEBUG_HTTP
-            Serial.println(clientline);
+            SERIAL.println(clientline);
             #endif
 
             // the line is blank, the http request has ended,
@@ -579,13 +705,13 @@ void pageServe(EthernetClient client){
                 is_url = true;
             } else if (strstr(clientline, "POST /") != 0) {
                 post = 1;
-                Serial.println(F("Processing post request"));
+                SERIAL.println(F("Processing post request"));
                 is_url = true;
             };
             if (is_url) {
                 if (strlcpy(request, extract_filename(clientline), 32) >= 32){
-                    Serial.print(F("Filename too long: "));
-                    Serial.println(clientline);
+                    SERIAL.print(F("Filename too long: "));
+                    SERIAL.println(clientline);
                     request[32]='\0';
                 }
             }
@@ -608,6 +734,12 @@ void pageServe(EthernetClient client){
             config.load(data);
             config.save();
             aJson.deleteItem(data);
+        } else if (strcasecmp(request, "calib.jso") == 0) {
+            aJsonStream eth_stream(&client);
+            aJsonObject * data = aJson.parse(&eth_stream);
+            config.loadcal(data);
+            config.savecal();
+            aJson.deleteItem(data);
         } else if (trg_no > -1) {
             aJsonStream eth_stream(&client);
             aJsonObject * data = aJson.parse(&eth_stream);
@@ -623,18 +755,15 @@ void pageServe(EthernetClient client){
             //aJson.deleteItem(data);
         }
 #ifdef DEBUG_HTTP
-    Serial.println(F("POST request dealt with"));
+    SERIAL.println(F("POST request dealt with"));
 #endif
     }
-
-
-
     // give the web browser time to receive the data
     delay(5);
     // close the connection:
     client.stop();
 #ifdef DEBUG_HTTP
-    Serial.println(F("eth client stopped"));
+    SERIAL.println(F("eth client stopped"));
 #endif
 }
 
@@ -651,11 +780,11 @@ void loop(void){
     EthernetClient client = server.available();
     if (client) {
         pageServe(client);
-        Serial.println(F("times:"));
-        Serial.println(t_1 - t_loop_start);
-        Serial.println(t_2 - t_loop_start);
-        Serial.println(t_3 - t_loop_start);
-        Serial.println(millis() - t_loop_start);
+        SERIAL.println(F("times:"));
+        SERIAL.println(t_1 - t_loop_start);
+        SERIAL.println(t_2 - t_loop_start);
+        SERIAL.println(t_3 - t_loop_start);
+        SERIAL.println(millis() - t_loop_start);
         pFreeRam();
     }
     delay(50);

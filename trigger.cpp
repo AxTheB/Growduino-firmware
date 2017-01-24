@@ -11,33 +11,36 @@ int trigger_tick(int idx){
     //int l_daymin = minute() + 60 * hour();
     int l_daymin = daymin();
     int sensor_val;
+    bool sensor_fail;
+
 #ifdef DEBUG_TRIGGERS
-    Serial.print(F("Ticking "));
-    Serial.print(idx);
-    Serial.print(F(" at time "));
-    Serial.println(l_daymin);
+    SERIAL.print(F("Ticking "));
+    SERIAL.print(idx);
+    SERIAL.print(F(" at time "));
+    SERIAL.println(l_daymin);
 #endif
 
     int time_ok = 0;
+    sensor_fail = false;
     byte active = triggers[idx].active;
 
     if (active == STATE_ON) {
 
         if (triggers[idx].t_since == -1) {
 #ifdef DEBUG_TRIGGERS
-            Serial.println(F("All day trigger"));
+            SERIAL.println(F("All day trigger"));
 #endif
             time_ok = 1;
         }
         if (triggers[idx].t_since <= l_daymin && triggers[idx].t_until > l_daymin) {
 #ifdef DEBUG_TRIGGERS
-            Serial.println(F("Hit normal trigger"));
+            SERIAL.println(F("Hit normal trigger"));
 #endif
             time_ok = 1;
         }
         if ((triggers[idx].t_since > triggers[idx].t_until) && (triggers[idx].t_since <= l_daymin || triggers[idx].t_until > l_daymin)) {
 #ifdef DEBUG_TRIGGERS
-            Serial.println(F("Hit overnight trigger"));
+            SERIAL.println(F("Hit overnight trigger"));
 #endif
             time_ok = 1;
         }
@@ -51,29 +54,30 @@ int trigger_tick(int idx){
             outputs.set(triggers[idx].output, 1, idx);
         }
 #ifdef DEBUG_TRIGGERS
-        Serial.println(F("Forced on"));
+        SERIAL.println(F("Forced on"));
 #endif
     } else if (time_ok == 1) {
 #ifdef DEBUG_TRIGGERS
-        Serial.print(F("time ok: "));
-        Serial.println(l_daymin);
+        SERIAL.print(F("time ok: "));
+        SERIAL.println(l_daymin);
 #endif
         if (triggers[idx]._logger == NULL || triggers[idx].sensor == NONE) {  // if there is no logger defined use minvalue (for unconditional time triggers)
             sensor_val = MINVALUE;
         } else {    // the logger is defined
             sensor_val = triggers[idx]._logger->peek();
+            if (sensor_val == MINVALUE) sensor_fail = true;
         }
         //outputs.set(output, 0, idx);
 #ifdef DEBUG_TRIGGERS
-        Serial.print(F("Evaluating ON condition ("));
-        Serial.print(sensor_val);
-        Serial.print(triggers[idx].on_cmp);
-        Serial.print(triggers[idx].on_value);
-        Serial.print(F("):"));
+        SERIAL.print(F("Evaluating ON condition ("));
+        SERIAL.print(sensor_val);
+        SERIAL.print(triggers[idx].on_cmp);
+        SERIAL.print(triggers[idx].on_value);
+        SERIAL.print(F("):"));
 #endif
         switch (triggers[idx].on_cmp) {
             case '<':
-                if (sensor_val < triggers[idx].on_value || triggers[idx].sensor == NONE) {
+                if (!sensor_fail && (sensor_val < triggers[idx].on_value || triggers[idx].sensor == NONE)) {
                     if (triggers[idx].important) {
                         outputs.revive(triggers[idx].output, idx);
                     } else {
@@ -81,16 +85,16 @@ int trigger_tick(int idx){
                         outputs.set(triggers[idx].output, 1, idx);
                     }
 #ifdef DEBUG_TRIGGERS
-                    Serial.println(F("Hit on <"));
+                    SERIAL.println(F("Hit on <"));
 #endif
                 } else {
 #ifdef DEBUG_TRIGGERS
-                    Serial.println(F("Miss on <"));
+                    SERIAL.println(F("Miss on <"));
 #endif
                 }
                 break;
             case '>':
-                if (sensor_val > triggers[idx].on_value || triggers[idx].sensor == NONE) {
+                if (!sensor_fail && (sensor_val > triggers[idx].on_value || triggers[idx].sensor == NONE)) {
                     if (triggers[idx].important) {
                         outputs.revive(triggers[idx].output, idx);
                     } else {
@@ -98,21 +102,21 @@ int trigger_tick(int idx){
                         triggers[idx].state = STATE_ON;
                     }
 #ifdef DEBUG_TRIGGERS
-                    Serial.println(F("Hit on >"));
+                    SERIAL.println(F("Hit on >"));
 #endif
                 } else {
 #ifdef DEBUG_TRIGGERS
-                    Serial.println(F("Miss on >"));
+                    SERIAL.println(F("Miss on >"));
 #endif
                 }
                 break;
             case 'T':
             case 't':
 #ifdef DEBUG_TRIGGERS
-                Serial.print(F("output uptime "));
-                Serial.println(outputs.uptime(triggers[idx].output));
-                Serial.print(F("output state "));
-                Serial.println(outputs.hw_get(triggers[idx].output));
+                SERIAL.print(F("output uptime "));
+                SERIAL.println(outputs.uptime(triggers[idx].output));
+                SERIAL.print(F("output state "));
+                SERIAL.println(outputs.hw_get(triggers[idx].output));
 #endif
                 if ((outputs.hw_get(triggers[idx].output) == 0) && (outputs.uptime(triggers[idx].output) >= (time_t) (triggers[idx].on_value * 60) - 1)) {
                     if (triggers[idx].important) {
@@ -122,26 +126,26 @@ int trigger_tick(int idx){
                         triggers[idx].state = STATE_ON;
                     }
 #ifdef DEBUG_TRIGGERS
-                    Serial.println(F("Hit on T"));
+                    SERIAL.println(F("Hit on T"));
 #endif
                 } else {
 #ifdef DEBUG_TRIGGERS
-                    Serial.println(F("Miss on T"));
+                    SERIAL.println(F("Miss on T"));
 #endif
                 }
 
                 break;
         }
 #ifdef DEBUG_TRIGGERS
-        Serial.print(F("Evaluating OFF condition ("));
-        Serial.print(sensor_val);
-        Serial.print(triggers[idx].off_cmp);
-        Serial.print(triggers[idx].off_value);
-        Serial.print(F("):"));
+        SERIAL.print(F("Evaluating OFF condition ("));
+        SERIAL.print(sensor_val);
+        SERIAL.print(triggers[idx].off_cmp);
+        SERIAL.print(triggers[idx].off_value);
+        SERIAL.print(F("):"));
 #endif
         switch (triggers[idx].off_cmp) {
             case '<':
-                if (sensor_val <= triggers[idx].off_value && triggers[idx].sensor != NONE) {
+                if (sensor_fail || (sensor_val <= triggers[idx].off_value && triggers[idx].sensor != NONE)) {
                     if (triggers[idx].important) {
                         outputs.kill(triggers[idx].output, idx);
                     } else {
@@ -149,16 +153,16 @@ int trigger_tick(int idx){
                         triggers[idx].state = STATE_OFF;
                     }
 #ifdef DEBUG_TRIGGERS
-                    Serial.println(F("Hit on <"));
+                    SERIAL.println(F("Hit on <"));
 #endif
                 } else {
 #ifdef DEBUG_TRIGGERS
-                    Serial.println(F("Miss on <"));
+                    SERIAL.println(F("Miss on <"));
 #endif
                 }
                 break;
             case '>':
-                if (sensor_val >= triggers[idx].off_value && triggers[idx].sensor != NONE) {
+                if (sensor_fail || (sensor_val >= triggers[idx].off_value && triggers[idx].sensor != NONE)) {
                     if (triggers[idx].important) {
                         outputs.kill(triggers[idx].output, idx);
                     } else {
@@ -166,21 +170,21 @@ int trigger_tick(int idx){
                         triggers[idx].state = STATE_OFF;
                     }
 #ifdef DEBUG_TRIGGERS
-                    Serial.println(F("Hit on >"));
+                    SERIAL.println(F("Hit on >"));
 #endif
                 } else {
 #ifdef DEBUG_TRIGGERS
-                    Serial.println(F("Miss on >"));
+                    SERIAL.println(F("Miss on >"));
 #endif
                 }
                 break;
             case 'T':
             case 't':
 #ifdef DEBUG_TRIGGERS
-                Serial.print(F("output uptime "));
-                Serial.println(outputs.uptime(triggers[idx].output));
-                Serial.print(F(" output state "));
-                Serial.println(outputs.get(triggers[idx].output));
+                SERIAL.print(F("output uptime "));
+                SERIAL.println(outputs.uptime(triggers[idx].output));
+                SERIAL.print(F(" output state "));
+                SERIAL.println(outputs.get(triggers[idx].output));
 #endif
 
                 if ((outputs.hw_get(triggers[idx].output) == 1) && (outputs.uptime(triggers[idx].output) >= (time_t) (triggers[idx].off_value * 60) - 1)) {
@@ -191,21 +195,21 @@ int trigger_tick(int idx){
                         triggers[idx].state = STATE_OFF;
                     }
 #ifdef DEBUG_TRIGGERS
-                    Serial.print(F("Hit on T: state: "));
-                    Serial.print(outputs.hw_get(triggers[idx].output));
-                    Serial.print(F(" uptime: "));
-                    Serial.print(outputs.uptime(triggers[idx].output));
-                    Serial.print(F(" off value:"));
-                    Serial.println(triggers[idx].off_value * 60);
+                    SERIAL.print(F("Hit on T: state: "));
+                    SERIAL.print(outputs.hw_get(triggers[idx].output));
+                    SERIAL.print(F(" uptime: "));
+                    SERIAL.print(outputs.uptime(triggers[idx].output));
+                    SERIAL.print(F(" off value:"));
+                    SERIAL.println(triggers[idx].off_value * 60);
 #endif
                 } else {
 #ifdef DEBUG_TRIGGERS
-                    Serial.print(F("Miss on T: state: "));
-                    Serial.print(outputs.hw_get(triggers[idx].output));
-                    Serial.print(F(" uptime: "));
-                    Serial.print(outputs.uptime(triggers[idx].output));
-                    Serial.print(F(" off value:"));
-                    Serial.println(triggers[idx].off_value * 60);
+                    SERIAL.print(F("Miss on T: state: "));
+                    SERIAL.print(outputs.hw_get(triggers[idx].output));
+                    SERIAL.print(F(" uptime: "));
+                    SERIAL.print(outputs.uptime(triggers[idx].output));
+                    SERIAL.print(F(" off value:"));
+                    SERIAL.println(triggers[idx].off_value * 60);
 
 #endif
                 }
@@ -215,8 +219,8 @@ int trigger_tick(int idx){
     } else {
         trigger_set_default_state(idx);
 #ifdef DEBUG_TRIGGERS
-        Serial.print(F("Disabled or wrong time: "));
-        Serial.println(l_daymin);
+        SERIAL.print(F("Disabled or wrong time: "));
+        SERIAL.println(l_daymin);
 #endif
         return false;
     }
@@ -242,8 +246,8 @@ void trigger_load(int idx, aJsonObject *msg, Logger * loggers[]){
     //extract the ajson from ajson using
     //aJsonObject* msg = aJson.getObjectItem(root, "trigger");
     if (idx != NONE && triggers[idx].output != NONE) {
-        Serial.print(F("Clean up trigger "));
-        Serial.println(idx, DEC);
+        SERIAL.print(F("Clean up trigger "));
+        SERIAL.println(idx, DEC);
         trigger_set_default_state(idx);
     }
     trigger_init(idx);
@@ -348,12 +352,12 @@ int triggers_load(Trigger triggers[], Logger * loggers[]){
 }
 
 void triggers_save(Trigger triggers[]){
-    Serial.println(F("Save trigers"));
+    SERIAL.println(F("Save trigers"));
     for (int i=0; i < TRIGGERS; i++) {
         trigger_save(triggers, i);
     }
 #ifdef DEBUG_TRIGGERS
-    Serial.println(F("Saved."));
+    SERIAL.println(F("Saved."));
 #endif
 }
 
@@ -363,12 +367,12 @@ void trigger_save(Trigger triggers[], int idx){
     sprintf(fname, "%i.jso", idx);
     file_for_write("/triggers", fname, &sd_file);
 #ifdef DEBUG_TRIGGERS
-    Serial.print(F("Preparing json "));
-    Serial.println(idx, DEC);
+    SERIAL.print(F("Preparing json "));
+    SERIAL.println(idx, DEC);
 #endif
     trigger_json(idx, &sd_file);
 #ifdef DEBUG_TRIGGERS
-    Serial.println(F("saving"));
+    SERIAL.println(F("saving"));
 #endif
     sd_file.close();
 }

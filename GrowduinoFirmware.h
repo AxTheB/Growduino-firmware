@@ -23,8 +23,21 @@
 
 #define MINVALUE -999
 
+// 
+// #define ALT_SERIAL 1
+#ifdef ALT_SERIAL
+#define SERIAL Serial1
+#define SER_SPEED 19200
+#else
+#define SERIAL Serial
+#define SER_SPEED 115200
+#endif
+
 #define GET 1
 #define POST 2
+
+// when reading from ADC, values read higher than this are considered as error
+#define ADC_CUTOFF 1020
 
 // light sensor on analog A8
 #define LIGHT_SENSOR_PIN_1 8
@@ -45,10 +58,12 @@
 // calibrate this. Will be saved to config file, so it can be adjusted
 #define EC_LOW_ION 242
 #define EC_HIGH_ION 125
+#define EC_OFFSET 0
 #endif
 #define EC_ENABLE 27
 #define EC_DATA 28
 #define EC_SAMPLE_TIMES 100
+#define EC_CUTOFF 1500
 
 
 #define USE_CO2_SENSOR 1
@@ -88,13 +103,13 @@
 
 #define OUTPUTS 12
 
-#define LOGGERS 10
+#define LOGGERS 11
 
 #define DEBUG 1
 
-#define LCD_BUFFER_LINES 9
+#define LCD_BUFFER_LINES 10
 
-//#define DISPLAY_2004 1
+#define DISPLAY_2004 1
 
 #ifdef DISPLAY_2004
 #define LCD_DISPLAY_LINES 4
@@ -108,16 +123,19 @@
 
 #define MEGA 1
 
+#define HAVE_UPS 1
+
 #ifdef DEBUG
-#define DEBUG_OUTPUT 1
-#define DEBUG_SDCARD 1
-#define DEBUG_RB_DATA 1
-#define DEBUG_TRIGGERS 1
-#define DEBUG_ALERTS 1
-#define DEBUG_HTTP 1
-#define DEBUG_SMTP 1
+//#define DEBUG_OUTPUT 1
+//#define DEBUG_SDCARD 1
+//#define DEBUG_RB_DATA 1
+//#define DEBUG_TRIGGERS 1
+//#define DEBUG_ALERTS 1
+//#define DEBUG_HTTP 1
+//#define DEBUG_SMTP 1
 //#define DEBUG_LCD 1
-#define DEBUG_CALIB 1
+//#define DEBUG_CALIB 1
+#define DEBUG_UPS 1
 #endif
 
 // How many output chages do we keep in memory
@@ -136,6 +154,7 @@
 #include "Lcd.h"
 #include "alerts.h"
 #include "smtp.h"
+#include "ups.h"
 
 #ifdef USE_PH_SENSOR
 #include "phmeter.h"
@@ -153,6 +172,7 @@ extern int ether;
 void pFreeRam();
 extern File sd_file;
 int analogReadAvg(int pin);
+void worker();
 
 #define NONE -1
 #define STATE_ON 1

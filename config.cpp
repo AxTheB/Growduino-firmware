@@ -19,7 +19,7 @@ Config::Config(){
     strlcpy(sys_name, "growduino", 10);
     smtp_port = 25;
     time_zone = 2;
-    ups_trigger_level = 255;
+    //ups_trigger_level = 255;
 #ifdef USE_CO2_SENSOR
     co2_400 = CO2_400;
     co2_40k = CO2_40k;
@@ -31,6 +31,7 @@ Config::Config(){
 #ifdef USE_EC_SENSOR
     ec_low_ion = EC_LOW_ION;
     ec_high_ion = EC_HIGH_ION;
+    ec_offset = EC_OFFSET;
 #endif
 }
 
@@ -53,9 +54,9 @@ void Config::load(aJsonObject * json){
     cnfobj = aJson.getObjectItem(json, "mac");
     if (cnfobj && cnfobj->type == aJson_String && mac_aton(cnfobj->valuestring, tmpmac) == 1) {
         mac_aton(cnfobj->valuestring, mac);
-        Serial.print(F("mac "));
+        SERIAL.print(F("mac "));
         mac_ntoa(mac, debug_out);
-        Serial.println(debug_out);
+        SERIAL.println(debug_out);
 
     }
 
@@ -63,34 +64,34 @@ void Config::load(aJsonObject * json){
         cnfobj = aJson.getObjectItem(json, "ip");
         if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
             inet_aton(cnfobj->valuestring, ip);
-            Serial.print(F("ip "));
+            SERIAL.print(F("ip "));
             inet_ntoa(ip, debug_out);
-            Serial.println(debug_out);
+            SERIAL.println(debug_out);
         }
 
         cnfobj = aJson.getObjectItem(json, "netmask");
         if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
             inet_aton(cnfobj->valuestring, netmask);
-            Serial.print(F("netmask "));
+            SERIAL.print(F("netmask "));
             inet_ntoa(netmask, debug_out);
-            Serial.println(debug_out);
+            SERIAL.println(debug_out);
         }
 
         cnfobj = aJson.getObjectItem(json, "gateway");
         if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
             inet_aton(cnfobj->valuestring, gateway);
-            Serial.print(F("gateway "));
+            SERIAL.print(F("gateway "));
             inet_ntoa(gateway, debug_out);
-            Serial.println(debug_out);
+            SERIAL.println(debug_out);
         }
     }
 
     cnfobj = aJson.getObjectItem(json, "smtp");
     if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
         inet_aton(cnfobj->valuestring, smtp);
-        Serial.print(F("smtp "));
+        SERIAL.print(F("smtp "));
         inet_ntoa(smtp, debug_out);
-        Serial.println(debug_out);
+        SERIAL.println(debug_out);
     }
 
     cnfobj = aJson.getObjectItem(json, "smtp_port");
@@ -109,7 +110,7 @@ void Config::load(aJsonObject * json){
         json_strlen = strnlen(cnfobj->valuestring, 31);
         mail_from = (char *) malloc(json_strlen + 1);
         if (mail_from == NULL) {
-            Serial.println(F("OOM on config load (mail_from)"));
+            SERIAL.println(F("OOM on config load (mail_from)"));
         } else {
             strlcpy(mail_from, cnfobj->valuestring, json_strlen + 1);
         }
@@ -120,9 +121,9 @@ void Config::load(aJsonObject * json){
     cnfobj = aJson.getObjectItem(json, "ntp");
     if (cnfobj && cnfobj->type == aJson_String && inet_aton(cnfobj->valuestring, tmpip) == 1) {
         inet_aton(cnfobj->valuestring, ntp);
-        Serial.print(F("ntp "));
+        SERIAL.print(F("ntp "));
         inet_ntoa(ntp, debug_out);
-        Serial.println(debug_out);
+        SERIAL.println(debug_out);
     }
 
     cnfobj = aJson.getObjectItem(json, "sys_name");
@@ -134,7 +135,7 @@ void Config::load(aJsonObject * json){
         json_strlen = strnlen(cnfobj->valuestring, 31);
         sys_name = (char *) malloc(json_strlen + 1);
         if (sys_name == NULL) {
-            Serial.println(F("OOM on config load (sys_name)"));
+            SERIAL.println(F("OOM on config load (sys_name)"));
         } else {
             strlcpy(sys_name, cnfobj->valuestring, json_strlen + 1);
         }
@@ -145,13 +146,23 @@ void Config::load(aJsonObject * json){
     } else {
         time_zone = 2;
     }
+    /*
     cnfobj = aJson.getObjectItem(json, "ups_trigger_level");
     if (cnfobj) {
         sscanf(cnfobj->valuestring, "%d", &ups_trigger_level);
     } else {
         ups_trigger_level = 255;
     }
+    */
 
+}
+
+void Config::loadcal(aJsonObject * json){
+    //loads values from json. Values not in json are not touched
+    char debug_out[32];
+    int json_strlen;
+
+    aJsonObject* cnfobj;
 #ifdef USE_CO2_SENSOR
     cnfobj = aJson.getObjectItem(json, "co2_400");
     if (cnfobj) {
@@ -197,6 +208,13 @@ void Config::load(aJsonObject * json){
         sscanf(cnfobj->valuestring, "%d", &ec_high_ion);
     } else {
         ec_high_ion = EC_HIGH_ION;
+    }
+
+    cnfobj = aJson.getObjectItem(json, "ec_offset");
+    if (cnfobj) {
+        sscanf(cnfobj->valuestring, "%d", &ec_offset);
+    } else {
+        ec_offset = EC_OFFSET;
     }
 #endif
 }
@@ -255,11 +273,23 @@ int Config::save(){
 
     sd_file.print(F("\"time_zone\":\""));
     sd_file.print(time_zone);
-    sd_file.print(F("\","));
+    /*sd_file.print(F("\","));
 
     sd_file.print(F("\"ups_trigger_level\":\""));
-    sd_file.print(ups_trigger_level);
-    sd_file.print(F("\","));
+    sd_file.print(ups_trigger_level);*/
+    sd_file.print(F("\""));
+
+
+    sd_file.print(F("}"));
+    sd_file.close();
+    return 1;
+}
+
+int Config::savecal(){
+    char buffer[20];
+    file_for_write("", "calib.jso", &sd_file);
+
+    sd_file.print(F("{"));
 
 #ifdef USE_CO2_SENSOR
     sd_file.print(F("\"co2_400\":\""));
@@ -288,6 +318,10 @@ int Config::save(){
 
     sd_file.print(F("\"ec_high_ion\":\""));
     sd_file.print(ec_high_ion);
+    sd_file.print(F("\","));
+
+    sd_file.print(F("\"ec_offset\":\""));
+    sd_file.print(ec_offset);
     sd_file.print(F("\""));
 #endif
 

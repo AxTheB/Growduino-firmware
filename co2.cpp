@@ -2,6 +2,12 @@
 #include "co2.h"
 extern Config config;
 
+int CO2_read_raw(){
+    int raw_data;
+    raw_data = analogReadAvg(CO2_DATA);
+    return raw_data;
+}
+
 int CO2_read(){
     int raw_data;
     float voltage;
@@ -14,18 +20,22 @@ int CO2_read(){
     float A = deltavs/(log10(400) - log10(40000));
     float B = log10(400);
 
-    raw_data = analogReadAvg(CO2_DATA);
+    raw_data = CO2_read_raw();
+
+    if (raw_data > ADC_CUTOFF) {
+        return MINVALUE;
+    }
     voltage = raw_data / 204.6;
 
     float power = ((voltage - v400ppm)/A) + B;
-    float co2ppm = pow(10,power);
+    float co2ppm = pow(10,power) / 10;
     co2 = (int) co2ppm;
 #endif
 
 #ifdef DEBUG_CALIB
     if (co2 != MINVALUE){
-        Serial.print("CO2 raw: ");
-        Serial.print(raw_data);
+        SERIAL.print(F("CO2 raw: "));
+        SERIAL.println(raw_data);
     }
 #endif
 

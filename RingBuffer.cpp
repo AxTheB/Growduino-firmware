@@ -6,14 +6,14 @@ void buffer_cleanup(int * buffer, int buf_len, int start, int end) {
     
     //int buf_len = sizeof(&buffer)/sizeof(int);
 
-    if (start !=0 || end != -1) {  //Do not write to Serial on initial cleanup, as its not initialised yet
+    if (start !=0 || end != -1) {  //Do not write to SERIAL on initial cleanup, as its not initialised yet
 #ifdef DEBUG_RB_DATA
-        Serial.print(F("Cleanup:"));
-        Serial.print(start);
-        Serial.print(F(" - "));
-        Serial.print(end);
-        Serial.print(F(", size:"));
-        Serial.println(buf_len);
+        SERIAL.print(F("Cleanup:"));
+        SERIAL.print(start);
+        SERIAL.print(F(" - "));
+        SERIAL.print(end);
+        SERIAL.print(F(", size:"));
+        SERIAL.println(buf_len);
 #endif
     }
 
@@ -41,20 +41,20 @@ int buffer_load(int * buffer, char * buf_name, aJsonObject * data){
     char * dValue;
 
 #ifdef DEBUG_RB_DATA
-    Serial.print(F("Loading buffer "));
-    Serial.println(buf_name);
+    SERIAL.print(F("Loading buffer "));
+    SERIAL.println(buf_name);
 #endif
     buff = aJson.getObjectItem(data, buf_name);
     if (!buff) {
 #ifdef DEBUG_RB_DATA
-        Serial.println(F("json contains no related data"));
+        SERIAL.println(F("json contains no related data"));
 #endif
         i_end = -1;
     } else {
         i_end = aJson.getArraySize(buff);
 #ifdef DEBUG_RB_DATA
-        Serial.print(F("Array size: "));
-        Serial.println(i_end);
+        SERIAL.print(F("Array size: "));
+        SERIAL.println(i_end);
 #endif
         for(i=0; i<i_end; i++){
             data_item = aJson.getArrayItem(buff, i);
@@ -67,11 +67,11 @@ int buffer_load(int * buffer, char * buf_name, aJsonObject * data){
         i_end--;
     }
 #ifdef DEBUG_RB_DATA
-    Serial.print(F("Loaded buffer "));
-    Serial.print(buf_name);
-    Serial.print(F(". Stored "));
-    Serial.print(i_end);
-    Serial.println(F(" values."));
+    SERIAL.print(F("Loaded buffer "));
+    SERIAL.print(buf_name);
+    SERIAL.print(F(". Stored "));
+    SERIAL.print(i_end);
+    SERIAL.println(F(" values."));
 #endif
     return i_end;
 }
@@ -96,7 +96,7 @@ void buffer_printjson(int * buffer, int buf_len, char * buf_name, int index, boo
     //int buf_len = sizeof(&buffer)/sizeof(int);
 
 #ifdef DEBUG_RB_DATA
-    Serial.println(F("Debug: printjson"));
+    SERIAL.println(F("Debug: printjson"));
 #endif
     output->print("\"");
     output->print(buf_name);
@@ -113,13 +113,13 @@ void buffer_printjson(int * buffer, int buf_len, char * buf_name, int index, boo
                 output->print(buffer[buf_idx], DEC);
             } else {
 #ifdef DEBUG_RB_DATA
-                Serial.print(F("Err: read outside ringbuffer j:"));
-                Serial.print(j, DEC);
-                Serial.print(F(" index:"));
-                Serial.print(index, DEC);
-                Serial.print(F(" buf_len:"));
-                Serial.print(buf_len, DEC);
-                Serial.println();
+                SERIAL.print(F("Err: read outside ringbuffer j:"));
+                SERIAL.print(j, DEC);
+                SERIAL.print(F(" index:"));
+                SERIAL.print(index, DEC);
+                SERIAL.print(F(" buf_len:"));
+                SERIAL.print(buf_len, DEC);
+                SERIAL.println();
 #endif
             }
         }
@@ -131,19 +131,19 @@ void buffer_printjson(int * buffer, int buf_len, char * buf_name, int index, boo
     }
     output->print("]");
 #ifdef DEBUG_RB_DATA
-    Serial.println(F("Debug: printjson done"));
+    SERIAL.println(F("Debug: printjson done"));
 #endif
 }
 
 bool buffer_store(int * buffer, int buf_len, int value, int new_position, int old_position){
     // store 'value' into 'buffer' at 'old_position' position. Clean values between 'old_position' and last stored postition ('new_position')
 #ifdef DEBUG_RB_DATA
-    Serial.print(F("Storing "));
-    Serial.print(value);
-    Serial.print(F(", new_position "));
-    Serial.print(new_position);
-    Serial.print(F(" with old_position "));
-    Serial.println(old_position);
+    SERIAL.print(F("Storing "));
+    SERIAL.print(value);
+    SERIAL.print(F(", new_position "));
+    SERIAL.print(new_position);
+    SERIAL.print(F(" with old_position "));
+    SERIAL.println(old_position);
 #endif
     //int buf_len = sizeof(&buffer)/sizeof(int);
     //stay inside buffer

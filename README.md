@@ -1,6 +1,6 @@
 Growduino-firmware api spec 0.1
 ==================
-All URLs that correspond to files are in 8.3 form. Use only lowercase in urls.
+All URLs that correspond to files are in 8.3 form. Use only lowercase in URLs.
 
 */sensors/* is 'live' area, URLs here do not correspond to file on card. 
 
@@ -45,7 +45,7 @@ Firmware configuration
  - Configuration data for firmware
  - supports GET, POST
  - If use_dhcp == 1 then get IP config from dhcp, if not then use values from json
- - TODO: use config values when dhcp fails
+ - uses config values when dhcp fails
  - changes take effect on reboot
 
 ```json
@@ -113,15 +113,10 @@ Trigger configuration
     - "<": Lesser than. "on_value":"<100" on temp readings will resolve as true when temperature falls bellow 10C. Parameter is raw sensor reading
     - ">": Greater than. Opposite to "<".
     - "T": resolves true when the output was off for more than parameter minutes, switches off after off_value minutes has passed. See example 2.
- - Importance is noted by "!" at end, and means that this condition is critical, if off condition is true it disables that output until on condition is met
- - sensors are (indexed from zero):
-    - humidity
-    - temperature
-    - light
-    - ultrasound
-    - Dallas one wire devices
+ - Importance is noted by "!" at end, and means that this condition is critical, if off condition is true it disables that output until on condition is met or timer expires
+ - sensors are indexed from zero and listed in status.jso
  - outputs are indexed from zero too
- - "active" is three state variable, where 0 = off, 1 = on (check trigger conditions), 2 = aways on.
+ - "active" is three state variable, where 0 = off, 1 = on (check trigger conditions), 2 = always on.
 
 Ex. 1: Switch on output 7 when temperature falls to 25 degrees C, switch it back off when it climbs over 30C
 
@@ -206,7 +201,7 @@ Historical data
 
 Alerts
 ------
-Sends message to remote person when trigger chages state
+Sends message to remote person when trigger changes state
 /alerts/X.jso
  - supports GET, POST
 

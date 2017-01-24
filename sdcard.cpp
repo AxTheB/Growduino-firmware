@@ -46,7 +46,7 @@ int file_for_write(const char * dirname, const char * filename, File * dataFile)
     strlcpy(filepath, dirname, 55);
     if (!file_exists(filepath) && dirname[0] == '/') {
 #ifdef DEBUG_SDCARD
-        Serial.print(F("Creating directory: "));
+        SERIAL.print(F("Creating directory: "));
 #endif
         SD.mkdir(filepath);
     }
@@ -54,8 +54,8 @@ int file_for_write(const char * dirname, const char * filename, File * dataFile)
     strlcat(filepath, filename, 60);
 
 #ifdef DEBUG_SDCARD
-    Serial.print(F("Writing file "));
-    Serial.println(filepath);
+    SERIAL.print(F("Writing file "));
+    SERIAL.println(filepath);
 #endif
 
     if (file_exists(filepath)) {
@@ -65,7 +65,7 @@ int file_for_write(const char * dirname, const char * filename, File * dataFile)
     digitalWrite(13, 1);
 
 #ifdef DEBUG_SDCARD
-    Serial.print(F("."));
+    SERIAL.print(F("."));
 #endif
 
     *dataFile = SD.open(filepath, FILE_WRITE);
@@ -81,11 +81,11 @@ void file_passthru(const char * dirname, const char * filename, Stream * input) 
     wdt_reset();
     #endif
 #ifdef DEBUG_SDCARD
-    Serial.println(F("file_passthru"));
+    SERIAL.println(F("file_passthru"));
 #endif
     digitalWrite(13, 1);
     if (res != -1) {
-        Serial.print(F("saving data to disk"));
+        SERIAL.print(F("saving data to disk"));
         int remain = 0;
         while ((remain = input->available())) {
             remain = min(remain, 127);
@@ -94,16 +94,16 @@ void file_passthru(const char * dirname, const char * filename, Stream * input) 
             }
             buf[remain] = 0;
             dataFile.write(buf);
-            Serial.print(F("."));
+            SERIAL.print(F("."));
         };
         dataFile.close();
 
     } else {
-        Serial.print(F("Failed to open "));
-        Serial.println(filename);
+        SERIAL.print(F("Failed to open "));
+        SERIAL.println(filename);
     }
 #ifdef DEBUG_SDCARD
-    Serial.println(F(";"));
+    SERIAL.println(F(";"));
 #endif
     digitalWrite(13, 0);
 }
@@ -113,24 +113,24 @@ void file_write(const char * dirname, const char * filename, aJsonObject * data)
     File dataFile;
     int res = file_for_write(dirname, filename, &dataFile);
 #ifdef DEBUG_SDCARD
-    Serial.println(F("file_write"));
+    SERIAL.println(F("file_write"));
 #endif
     if (res != -1) {
         aJsonStream sd_stream(&dataFile);
         aJson.print(data, &sd_stream);
 #ifdef DEBUG_SDCARD
-        Serial.print(F("."));
+        SERIAL.print(F("."));
 #endif
         dataFile.close();
 #ifdef DEBUG_SDCARD
-        Serial.print(F("."));
+        SERIAL.print(F("."));
 #endif
     } else {
-        Serial.print(F("Failed to open "));
-        Serial.println(filename);
+        SERIAL.print(F("Failed to open "));
+        SERIAL.println(filename);
     }
 #ifdef DEBUG_SDCARD
-    Serial.println(F(";"));
+    SERIAL.println(F(";"));
 #endif
     digitalWrite(13, 0);
 }
@@ -149,11 +149,11 @@ aJsonObject * file_read(const char * dirname, const char * filename){
     //strcat(filepath, "/");
     //strcat(filepath, filename);
 
-    Serial.print(F("opening file "));
-    Serial.println(filepath);
+    SERIAL.print(F("opening file "));
+    SERIAL.println(filepath);
 
     if (!SD.exists(filepath)) {
-        Serial.println(F("File does not exist"));
+        SERIAL.println(F("File does not exist"));
         return NULL;
     }
     File dataFile = SD.open(filepath, FILE_READ);
@@ -163,7 +163,7 @@ aJsonObject * file_read(const char * dirname, const char * filename){
         dataFile.close();
         return data;
     } else {
-        Serial.println(F("File read failure"));
+        SERIAL.println(F("File read failure"));
         return NULL;
     }
 
