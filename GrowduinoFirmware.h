@@ -45,21 +45,17 @@
 #define LIGHT_SENSOR_PIN_UPS 10
 
 #define USE_PH_SENSOR 1
-#ifdef USE_PH_SENSOR
 // calibrate this. Will be saved to config file, so it can be adjusted
 #define PH_4 40
 #define PH_7 200
-#endif
 #define PH_DATA 11
 
 
 #define USE_EC_SENSOR 1
-#ifdef USE_EC_SENSOR
 // calibrate this. Will be saved to config file, so it can be adjusted
 #define EC_LOW_ION 242
 #define EC_HIGH_ION 125
 #define EC_OFFSET 0
-#endif
 #define EC_ENABLE 27
 #define EC_DATA 28
 #define EC_SAMPLE_TIMES 100
@@ -68,11 +64,9 @@
 
 #define USE_CO2_SENSOR 1
 
-#ifdef USE_CO2_SENSOR
 // calibrate this. Will be saved to config file, so it can be adjusted. 
 #define CO2_400 927
 #define CO2_40k 655
-#endif
 #define CO2_DATA 12
 
 #define DHT22_PIN 22

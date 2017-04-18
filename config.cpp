@@ -20,19 +20,13 @@ Config::Config(){
     smtp_port = 25;
     time_zone = 2;
     //ups_trigger_level = 255;
-#ifdef USE_CO2_SENSOR
     co2_400 = CO2_400;
     co2_40k = CO2_40k;
-#endif
-#ifdef USE_PH_SENSOR
     ph_4 = PH_4;
     ph_7 = PH_7;
-#endif
-#ifdef USE_EC_SENSOR
     ec_low_ion = EC_LOW_ION;
     ec_high_ion = EC_HIGH_ION;
     ec_offset = EC_OFFSET;
-#endif
 }
 
 void Config::load(aJsonObject * json){

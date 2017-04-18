@@ -19,19 +19,13 @@ class Config
         char * mac_ntoa(byte addr[], char * dest);
         int time_zone;
         int ups_trigger_level;
-#ifdef USE_CO2_SENSOR
         int co2_400;
         int co2_40k;
-#endif
-#ifdef USE_PH_SENSOR
         int ph_4;
         int ph_7;
-#endif
-#ifdef USE_EC_SENSOR
         int ec_low_ion;
         int ec_high_ion;
         int ec_offset;
-#endif
         int use_dhcp;
         byte mac[6];
         IPAddress ip;

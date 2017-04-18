@@ -301,8 +301,9 @@ void setup(void) {
     for(i=0; i <LOGGERS; i++){
         loggers[i]->load();
     }
-
+#ifdef USE_EC_SENSOR
     ec_enable();
+#endif
 
     //initialise outputs
     outputs.common_init();
@@ -368,10 +369,15 @@ void worker(){
     light_sensor.timed_log(perThousand(LIGHT_SENSOR_PIN_1));
     light_sensor2.timed_log(perThousand(LIGHT_SENSOR_PIN_2));
     ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
+    #ifdef USE_EC_SENSOR
     ec.timed_log(ec_read());
+    #endif
+    #ifdef USE_PH_SENSOR
     ph.timed_log(PH_read());
+    #endif
+    #ifdef USE_CO2_SENSOR
     co2.timed_log(CO2_read());
-
+    #endif
     battery.timed_log(ups_read());
 
     onewire_temp1.timed_log(ds_read(ds1));
@@ -442,9 +448,15 @@ void worker(){
     lcd_publish("Water Temp", "%s %d.%dC", onewire_temp1.peek(), 10);
     lcd_publish("Water Lvl", "%s %dcm", ultrasound.peek());
     lcd_publish("Bulb Temp", "%s %d.%dC", onewire_temp2.peek(), 10);
+    #ifdef USE_PH_SENSOR
     lcd_publish("pH", "%s %d.%.2d", ph.peek(), 100);
+    #endif
+    #ifdef USE_CO2_SENSOR
     lcd_publish("CO2", "%s %d", co2.peek(), 0.1);
+    #endif
+    #ifdef USE_EC_SENSOR
     lcd_publish("EC", "%s %d.%.2d", ec.peek(), 100);
+    #endif
     unsigned long uptime = millis() / 60000;
     lcd_publish("Uptime", "%s %d", uptime);
 #ifdef HAVE_UPS
@@ -560,13 +572,25 @@ int get_raw_data(int idx, Stream * output) {
             output->print(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
             break;
         case 7:  // ec
+            #ifdef USE_EC_SENSOR
             output->print(ec_calib_raw());
+            #else
+            output->print("disabled");
+            #endif
             break;
         case 8: //pH
+            #ifdef USE_PH_SENSOR
             output->print(PH_read_raw());
+            #else
+            output->print("disabled");
+            #endif
             break;
         case 9:  //CO2
+            #ifdef USE_CO2_SENSOR
             output->print(CO2_read_raw());
+            #else
+            output->print("disabled");
+            #endif
             break;
         default:
             output->print("-1");
