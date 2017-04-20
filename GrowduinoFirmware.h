@@ -23,7 +23,7 @@
 
 #define MINVALUE -999
 
-// 
+//
 // #define ALT_SERIAL 1
 #ifdef ALT_SERIAL
 #define SERIAL Serial1
@@ -44,15 +44,14 @@
 #define LIGHT_SENSOR_PIN_2 9
 #define LIGHT_SENSOR_PIN_UPS 10
 
-#define USE_PH_SENSOR 1
+#define USE_PH_SENSOR 1 //can be disabled by comment
 // calibrate this. Will be saved to config file, so it can be adjusted
 #define PH_4 40
 #define PH_7 200
 #define PH_DATA 11
 
 
-#define USE_EC_SENSOR 1
-// calibrate this. Will be saved to config file, so it can be adjusted
+#define USE_EC_SENSOR 1 //can be disabled by comment
 #define EC_LOW_ION 242
 #define EC_HIGH_ION 125
 #define EC_OFFSET 0
@@ -62,9 +61,9 @@
 #define EC_CUTOFF 1500
 
 
-#define USE_CO2_SENSOR 1
+#define USE_CO2_SENSOR 1 //can be disabled by comment
 
-// calibrate this. Will be saved to config file, so it can be adjusted. 
+// calibrate this. Will be saved to config file, so it can be adjusted.
 #define CO2_400 927
 #define CO2_40k 655
 #define CO2_DATA 12
@@ -101,7 +100,7 @@
 
 #define DEBUG 1
 
-#define LCD_BUFFER_LINES 10
+#define LCD_BUFFER_LINES 12
 
 #define DISPLAY_2004 1
 
@@ -117,7 +116,7 @@
 
 #define MEGA 1
 
-#define HAVE_UPS 1
+#define HAVE_UPS 1 //can be disabled by comment
 
 #ifdef DEBUG
 //#define DEBUG_OUTPUT 1
@@ -172,3 +171,4 @@ void worker();
 #define STATE_ON 1
 #define STATE_OFF 0
 #define STATE_ON_ALWAYS 2
+

@@ -23,7 +23,7 @@
 #ifdef DISPLAY_2004
 
 #include <LiquidCrystal_I2C.h>
-LiquidCrystal_I2C lcd(0x27,20,4);
+LiquidCrystal_I2C lcd(0x3f,20,4); //address could be 0x27 or 0x3f
 #else
 
 #include <Adafruit_MCP23017.h>
@@ -442,7 +442,8 @@ void worker(){
 
     // Send things to lcd
     lcd_flush();
-
+    lcd_publish("Hi R-Man");
+    lcd_publish("Growduino.cz");
     lcd_publish("Air Temp", "%s %d.%dC", dht22_temp.peek(), 10);
     lcd_publish("Humidity", "%s %d.%d%%", dht22_humidity.peek(), 10);
     lcd_publish("Water Temp", "%s %d.%dC", onewire_temp1.peek(), 10);
@@ -814,3 +815,4 @@ void loop(void){
     delay(50);
     lcd_tick();
 }
+
