@@ -320,7 +320,10 @@ void setup(void) {
   //outputs.load();
 
 #ifdef WATCHDOG
+  SERIAL.println(F("Watchdog start"));
   wdt_enable(WDTO_8S);
+  SERIAL.println(F("Watchdog reset"));
+  wdt_reset();
 #endif
 
   ups_init();
@@ -390,6 +393,7 @@ void worker() {
 
   for (int i = 0; i < LOGGERS; i++) {
 #ifdef WATCHDOG
+    SERIAL.println(F("Watchdog reset"));
     wdt_reset();
 #endif
     SERIAL.print(loggers[i]->name);
@@ -704,6 +708,7 @@ void pageServe(EthernetClient client) {
   while (client.connected()) {
     if (client.available()) {
 #ifdef WATCHDOG
+      SERIAL.println(F("Watchdog reset"));
       wdt_reset();
 #endif
       linesize = client.readBytesUntil('\n', clientline, BUFSIZE - 1);
@@ -794,6 +799,7 @@ void pageServe(EthernetClient client) {
 
 void loop(void) {
 #ifdef WATCHDOG
+  SERIAL.println(F("Watchdog reset"));
   wdt_reset();
 #endif
 
