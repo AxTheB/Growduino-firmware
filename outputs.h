@@ -8,7 +8,7 @@
 
 class Output
 {
-public:
+  public:
     Output();
     Output(aJsonObject * json);
 
@@ -36,7 +36,7 @@ public:
     void revive(int slot, int trigger);
     void common_init();
 
-private:
+  private:
     unsigned char sensor_state;
     long state[OUTPUTS];
     long broken[OUTPUTS];

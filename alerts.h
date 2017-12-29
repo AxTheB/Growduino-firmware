@@ -2,8 +2,8 @@
 #include <aJSON.h>
 
 struct Alert {
-        int trigger;
-        int last_state;
+  int trigger;
+  int last_state;
 };
 
 void alert_load_trigger(int idx, aJsonObject *msg);
