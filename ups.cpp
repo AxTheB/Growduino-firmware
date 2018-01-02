@@ -65,6 +65,10 @@ int ups_read() {
     SERIAL.print(F("UPS reading try #"));
     SERIAL.println(i + 1);
 #endif
+#ifdef WATCHDOG
+    SERIAL.println(F("Watchdog reset UPS"));
+    wdt_reset();
+#endif
     retval = ups_read_inner();
     if (retval != MINVALUE) {
       return retval;

@@ -9,7 +9,7 @@
 #include <avr/pgmspace.h>
 #include <avr/wdt.h>
 
-//#define WATCHDOG 1
+#define WATCHDOG 1
 
 #include <string.h>
 #include <stdio.h>

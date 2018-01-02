@@ -324,14 +324,17 @@ void setup(void) {
   wdt_enable(WDTO_8S);
   SERIAL.println(F("Watchdog reset"));
   wdt_reset();
+  SERIAL.println(F("Watchdog reset second time"));
+  wdt_reset();
 #endif
 
   ups_init();
 
   pFreeRam();
   lcd_flush();
-  lcd_print_immediate(F("Setup done"));
+  lcd_print_immediate(F("Setup nearly done"));
   worker();
+  lcd_print_immediate(F("Setup done"));
 }
 
 void worker() {
@@ -340,6 +343,11 @@ void worker() {
   SERIAL.print(F("Uptime: "));
   SERIAL.println(millis() / 1000);
 #endif
+#ifdef WATCHDOG
+  SERIAL.println(F("Watchdog reset worker 1"));
+  wdt_reset();
+#endif
+
   digitalWrite(13, HIGH);
   //read sensors and store data
   //myDHT22.readData();
@@ -367,21 +375,53 @@ void worker() {
   if (hum == (10 * MINVALUE)) {
     hum = MINVALUE;
   }
+#ifdef WATCHDOG
+  SERIAL.println(F("Watchdog reset worker 2"));
+  wdt_reset();
+#endif
+
   dht22_humidity.timed_log(hum);
 
   light_sensor.timed_log(perThousand(LIGHT_SENSOR_PIN_1));
   light_sensor2.timed_log(perThousand(LIGHT_SENSOR_PIN_2));
+#ifdef WATCHDOG
+  SERIAL.println(F("Watchdog reset worker 3"));
+  wdt_reset();
+#endif
+
   ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
+#ifdef WATCHDOG
+  SERIAL.println(F("Watchdog reset worker 4"));
+  wdt_reset();
+#endif
+
 #ifdef USE_EC_SENSOR
   ec.timed_log(ec_read());
+#ifdef WATCHDOG
+  SERIAL.println(F("Watchdog reset worker 5"));
+  wdt_reset();
 #endif
+#endif
+
 #ifdef USE_PH_SENSOR
   ph.timed_log(PH_read());
+#ifdef WATCHDOG
+  SERIAL.println(F("Watchdog reset worker 6"));
+  wdt_reset();
 #endif
+#endif
+
 #ifdef USE_CO2_SENSOR
   co2.timed_log(CO2_read());
 #endif
+
   battery.timed_log(ups_read());
+
+#ifdef WATCHDOG
+  SERIAL.println(F("Watchdog reset worker 7"));
+  wdt_reset();
+#endif
+
 
   onewire_temp1.timed_log(ds_read(ds1));
   onewire_temp2.timed_log(ds_read(ds2));
@@ -393,7 +433,7 @@ void worker() {
 
   for (int i = 0; i < LOGGERS; i++) {
 #ifdef WATCHDOG
-    SERIAL.println(F("Watchdog reset"));
+    SERIAL.println(F("Watchdog reset logger loop"));
     wdt_reset();
 #endif
     SERIAL.print(loggers[i]->name);
@@ -612,6 +652,10 @@ int fn_extract_raw(char * request) {
 
 
 int senddata(EthernetClient client, char * request, char * clientline) {
+#ifdef WATCHDOG
+  SERIAL.println(F("Watchdog reset: send data"));
+  wdt_reset();
+#endif
   // Send response
   bool found = false;
   SERIAL.print(F("Request: "));
@@ -708,7 +752,7 @@ void pageServe(EthernetClient client) {
   while (client.connected()) {
     if (client.available()) {
 #ifdef WATCHDOG
-      SERIAL.println(F("Watchdog reset"));
+      SERIAL.println(F("Watchdog reset pageServe"));
       wdt_reset();
 #endif
       linesize = client.readBytesUntil('\n', clientline, BUFSIZE - 1);
@@ -749,6 +793,10 @@ void pageServe(EthernetClient client) {
   }
   // Headers ale all here, if its post we now should read the body.
   if (post) {
+#ifdef WATCHDOG
+    SERIAL.println(F("Watchdog reset pageServe post"));
+    wdt_reset();
+#endif
     int trg_no = fn_extract_trg(request);
     int alert_no = fn_extract_alert(request);
 
@@ -799,17 +847,25 @@ void pageServe(EthernetClient client) {
 
 void loop(void) {
 #ifdef WATCHDOG
-  SERIAL.println(F("Watchdog reset"));
+  // SERIAL.println(F("Watchdog reset")); too much serial output
   wdt_reset();
 #endif
 
   t_loop_start = millis();
   if (dht22_temp.available()) {
+#ifdef WATCHDOG
+    SERIAL.println(F("Watchdog reset before sensors"));
+    wdt_reset();
+#endif
     worker();
     pFreeRam();
   }
   EthernetClient client = server.available();
   if (client) {
+#ifdef WATCHDOG
+    SERIAL.println(F("Watchdog reset before pageServe"));
+    wdt_reset();
+#endif
     pageServe(client);
     SERIAL.println(F("times:"));
     SERIAL.println(t_1 - t_loop_start);
