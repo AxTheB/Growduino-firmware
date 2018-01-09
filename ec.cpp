@@ -11,32 +11,63 @@ void ec_enable() {
 }
 
 long ec_read_raw() {
+
+  long lowPulseTime_t = 0;
+  long highPulseTime_t = 0;
   long lowPulseTime = 0;
   long highPulseTime = 0;
   long pulseTime;
 
+  bool pulseError = false;
+
   digitalWrite(EC_ENABLE, HIGH); // power up the sensor
   delay(100);
 #ifdef WATCHDOG
-  SERIAL.println(F("Watchdog reset: ec read"));
+  SERIAL.print(F("Watchdog reset: ec read"));
   wdt_reset();
 #endif
   for (unsigned int j = 0; j < EC_SAMPLE_TIMES; j++) {
-    highPulseTime += pulseIn(EC_DATA, HIGH);
-    if (j == 0 and highPulseTime == 0)
-      return MINVALUE;
-    lowPulseTime += pulseIn(EC_DATA, LOW);
+    highPulseTime_t = pulseIn(EC_DATA, HIGH, EC_TIMEOUT);
+    if (j == 0 and highPulseTime_t == 0)  {//abort on timeout on first read
 #ifdef WATCHDOG
-    SERIAL.print(".");
+      SERIAL.println(F(" - abort "));
+      wdt_reset();
+#endif
+      return MINVALUE;
+    }
+
+    highPulseTime += highPulseTime_t;
+    if (highPulseTime_t == 0) {
+      pulseError = true;
+    }
+
+    lowPulseTime_t = pulseIn(EC_DATA, LOW, EC_TIMEOUT);
+    lowPulseTime += lowPulseTime_t;
+
+    if (lowPulseTime_t == 0) {
+      pulseError = true;
+    }
+
+#ifdef WATCHDOG
+    SERIAL.print(F("."));
     wdt_reset();
 #endif
   }
+
   lowPulseTime = lowPulseTime / EC_SAMPLE_TIMES;
   highPulseTime = highPulseTime / EC_SAMPLE_TIMES;
 
   pulseTime = (lowPulseTime + highPulseTime) / 2;
 
   digitalWrite(EC_ENABLE, LOW); // power down the sensor
+
+#ifdef WATCHDOG
+  if (pulseError) {
+    SERIAL.println(F(" with errors"));
+  } else {
+    SERIAL.println(F(" OK"));
+  }
+#endif
 
   if (pulseTime >= EC_CUTOFF) {
     return MINVALUE;
@@ -84,7 +115,7 @@ int compare(const void *p, const void *q) {
   long y = *(const int *)q;
 
   /* Avoid return x - y, which can cause undefined behaviour
-            because of signed integer overflow. */
+    because of signed integer overflow. */
   if (x < y)
     return -1;  // Return -1 if you want ascending, 1 if you want descending order.
   else if (x > y)
