@@ -8,7 +8,25 @@ byte data[12];
 byte type_s;
 int celsius;
 
+
 int ds_read(OneWire ds) {
+  int result = MINVALUE;
+  for (int i = 0; i < 10; i++) {
+#ifdef WATCHDOG
+    SERIAL.println(F("Watchdog reset DS read"));
+    wdt_reset();
+#endif
+    result = ds_read(ds);
+    if (result != MINVALUE ) {
+      return result;
+    }
+    delay(10);
+  }
+  return result;
+}
+
+
+int ds_read_inner(OneWire ds) {
 
   byte addr[8];
   ds.reset_search();
