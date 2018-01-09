@@ -18,7 +18,7 @@ int ds_read(OneWire ds) {
 
   for (int i = 0; i < 10; i++) {
 
-    result = ds_read(ds);
+    result = ds_read_inner(ds);
 #ifdef WATCHDOG
     SERIAL.print(F("."));
     wdt_reset();
