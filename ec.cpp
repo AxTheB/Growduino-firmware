@@ -17,12 +17,19 @@ long ec_read_raw() {
 
   digitalWrite(EC_ENABLE, HIGH); // power up the sensor
   delay(100);
-
+#ifdef WATCHDOG
+  SERIAL.println(F("Watchdog reset: ec read"));
+  wdt_reset();
+#endif
   for (unsigned int j = 0; j < EC_SAMPLE_TIMES; j++) {
     highPulseTime += pulseIn(EC_DATA, HIGH);
     if (j == 0 and highPulseTime == 0)
       return MINVALUE;
     lowPulseTime += pulseIn(EC_DATA, LOW);
+#ifdef WATCHDOG
+    SERIAL.print(".");
+    wdt_reset();
+#endif
   }
   lowPulseTime = lowPulseTime / EC_SAMPLE_TIMES;
   highPulseTime = highPulseTime / EC_SAMPLE_TIMES;
