@@ -118,9 +118,19 @@ int analogReadAvg(int pin) {
 #endif
   long dataSum = 0L;
   int data;
+#ifdef WATCHDOG
+  SERIAL.print("Analog read avg timer reset");
+  wdt_reset();
+#endif
+
   for (int i = 0; i < ANALOG_READ_AVG_TIMES; i++) {
     data = analogRead(pin);
     dataSum += data;
+#ifdef WATCHDOG
+    SERIAL.print(".");
+    wdt_reset();
+#endif
+
 #ifdef DEBUG_CALIB
     SERIAL.println(data);
     if (minval == MINVALUE || minval > data) {
@@ -133,6 +143,11 @@ int analogReadAvg(int pin) {
 
     delay(ANALOG_READ_AVG_DELAY);
   }
+
+#ifdef WATCHDOG
+  SERIAL.println(" done");
+  wdt_reset();
+#endif
 
   int retval = (int) (dataSum / ANALOG_READ_AVG_TIMES);
 
