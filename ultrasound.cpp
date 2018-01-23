@@ -47,10 +47,16 @@ long ultrasound_ping_inner(int trigger, int echo) {
   return timetocm(timeOut - timeIn);
 }
 
+int ultrasound_ping() {
+    long r = ultrasound_ping(USOUND_TRG, USOUND_ECHO);
+    if (r > 30000) return 30000;
+    return (int) r;
+}
+
 long ultrasound_ping(int trigger, int echo) {
   long distance;
   distance = MINVALUE;
-  for (int i = 0; (i < 5 && distance == MINVALUE) ; i++) {
+  for (int i = 0; (i < 3 && distance == MINVALUE) ; i++) {
     delay(10);
     distance = ultrasound_ping_inner(trigger, echo);
   }

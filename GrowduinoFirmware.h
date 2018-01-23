@@ -58,7 +58,7 @@
 #define EC_ENABLE 27
 #define EC_DATA 28
 #define EC_SAMPLE_TIMES 100
-#define EC_CUTOFF 1500
+#define EC_CUTOFF 1100
 #define EC_TIMEOUT 10000
 
 
@@ -88,7 +88,7 @@
 #define ALERTS 18
 
 
-#define ANALOG_READ_AVG_TIMES 30
+#define ANALOG_READ_AVG_TIMES 10
 #define ANALOG_READ_AVG_DELAY 10
 
 

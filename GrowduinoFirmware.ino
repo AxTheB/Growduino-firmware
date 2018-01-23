@@ -164,6 +164,41 @@ int analogReadAvg(int pin) {
   return retval;
 }
 
+int comp (const void * elem1, const void * elem2) {
+    int f = *((int*)elem1);
+    int s = *((int*)elem2);
+    if (f > s) return  1;  
+    if (f < s) return -1; 
+    return 0;
+}
+
+int triple_read(int (* funct)()){ 
+    return return_middle((*funct)(), (*funct)(), (*funct)());
+}
+
+int triple_read(int (* funct)(int), int param1){ 
+    return return_middle((*funct)(param1), (*funct)(param1), (*funct)(param1));
+}
+
+int return_middle(int first_value, int second_value, int third_value){
+#ifdef WATCHDOG
+  wdt_reset();
+#endif
+    int values[] = {first_value, second_value, third_value};
+    qsort (values, sizeof(values)/sizeof(*values), sizeof(*values), comp);
+
+    if (values[0] != MINVALUE) {
+        return values[1];  // middle value if there are not any MINVALUEs
+    }
+
+    if (values[1] == MINVALUE){
+        return values[2];
+    } else {
+        return (values[1] + values[2]) /2; 
+    }   
+}
+
+
 int perThousand(int pin) {
   int retval;
   retval = analogReadAvg(pin);
@@ -397,21 +432,21 @@ void worker() {
 
   dht22_humidity.timed_log(hum);
 
-  light_sensor.timed_log(perThousand(LIGHT_SENSOR_PIN_1));
-  light_sensor2.timed_log(perThousand(LIGHT_SENSOR_PIN_2));
+  light_sensor.timed_log(triple_read(&perThousand, LIGHT_SENSOR_PIN_1));
+  light_sensor2.timed_log(triple_read(&perThousand, LIGHT_SENSOR_PIN_2));
 #ifdef WATCHDOG
   SERIAL.println(F("Watchdog reset worker 3"));
   wdt_reset();
 #endif
 
-  ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
+  ultrasound.timed_log(triple_read(&ultrasound_ping));
 #ifdef WATCHDOG
   SERIAL.println(F("Watchdog reset worker 4"));
   wdt_reset();
 #endif
 
 #ifdef USE_EC_SENSOR
-  ec.timed_log(ec_read());
+  ec.timed_log(triple_read(&ec_read));
 #ifdef WATCHDOG
   SERIAL.println(F("Watchdog reset worker 5"));
   wdt_reset();
@@ -419,7 +454,7 @@ void worker() {
 #endif
 
 #ifdef USE_PH_SENSOR
-  ph.timed_log(PH_read());
+  ph.timed_log(triple_read(&PH_read));
 #ifdef WATCHDOG
   SERIAL.println(F("Watchdog reset worker 6"));
   wdt_reset();
@@ -427,7 +462,7 @@ void worker() {
 #endif
 
 #ifdef USE_CO2_SENSOR
-  co2.timed_log(CO2_read());
+  co2.timed_log(triple_read(&CO2_read));
 #endif
 
   battery.timed_log(ups_read());
