@@ -177,7 +177,7 @@ int return_middle(int first_value, int second_value, int third_value){
   wdt_reset();
 #endif
     int values[] = {first_value, second_value, third_value};
-    int * tmpval;
+    int tmpval;
     if (values[0] > values[1]){
         tmpval = values[1];
         values[1] = values[0];
