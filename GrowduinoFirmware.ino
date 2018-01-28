@@ -164,14 +164,6 @@ int analogReadAvg(int pin) {
   return retval;
 }
 
-int comp (const void * elem1, const void * elem2) {
-    int f = *((int*)elem1);
-    int s = *((int*)elem2);
-    if (f > s) return  1;  
-    if (f < s) return -1; 
-    return 0;
-}
-
 int triple_read(int (* funct)()){ 
     return return_middle((*funct)(), (*funct)(), (*funct)());
 }
@@ -185,7 +177,6 @@ int return_middle(int first_value, int second_value, int third_value){
   wdt_reset();
 #endif
     int values[] = {first_value, second_value, third_value};
-    //qsort (values, sizeof(values)/sizeof(*values), sizeof(*values), comp);
     int * tmpval;
     if (values[0] > values[1]){
         tmpval = values[1];
