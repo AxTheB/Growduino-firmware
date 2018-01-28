@@ -1,6 +1,6 @@
 #include "GrowduinoFirmware.h"
 #include "ec.h"
-#include <stdlib.h>
+// #include <stdlib.h>
 extern Config config;
 
 void ec_enable() {

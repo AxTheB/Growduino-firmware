@@ -119,7 +119,7 @@ int analogReadAvg(int pin) {
   long dataSum = 0L;
   int data;
 #ifdef WATCHDOG
-  SERIAL.print("Analog read avg timer reset");
+  SERIAL.print(F("Analog read avg timer reset"));
   wdt_reset();
 #endif
 
@@ -127,7 +127,7 @@ int analogReadAvg(int pin) {
     data = analogRead(pin);
     dataSum += data;
 #ifdef WATCHDOG
-    SERIAL.print(".");
+    SERIAL.print(F("."));
     wdt_reset();
 #endif
 
@@ -145,7 +145,7 @@ int analogReadAvg(int pin) {
   }
 
 #ifdef WATCHDOG
-  SERIAL.println(" done");
+  SERIAL.println(F(" done"));
   wdt_reset();
 #endif
 
@@ -185,7 +185,25 @@ int return_middle(int first_value, int second_value, int third_value){
   wdt_reset();
 #endif
     int values[] = {first_value, second_value, third_value};
-    qsort (values, sizeof(values)/sizeof(*values), sizeof(*values), comp);
+    //qsort (values, sizeof(values)/sizeof(*values), sizeof(*values), comp);
+    int * tmpval;
+    if (values[0] > values[1]){
+        tmpval = values[1];
+        values[1] = values[0];
+        values[0] = tmpval;
+        }
+
+    if (values[1] > values[2]){
+        tmpval = values[2];
+        values[2] = values[1];
+        values[1] = tmpval;
+        }
+
+    if (values[0] > values[1]){
+        tmpval = values[1];
+        values[1] = values[0];
+        values[0] = tmpval;
+        }
 
     if (values[0] != MINVALUE) {
         return values[1];  // middle value if there are not any MINVALUEs
