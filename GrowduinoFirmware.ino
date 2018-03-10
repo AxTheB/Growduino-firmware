@@ -774,6 +774,10 @@ int senddata(EthernetClient client, char * request, char * clientline) {
   // abuse clientline as sd buffer
   int remain = 0;
   while ((remain = sd_file.available())) {
+    #ifdef WATCHDOG
+          SERIAL.println(F("Watchdog reset sending file"));
+          wdt_reset();
+    #endif
     remain = min(remain, BUFSIZE - 1);
     sd_file.read(clientline, remain);
     clientline[remain] = 0;
