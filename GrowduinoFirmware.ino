@@ -261,9 +261,20 @@ aJsonObject * status() {
   return msg;
 }
 
+void startNet(){
+  int we_have_net = 0;
+  if (config.use_dhcp == 1) {
+    we_have_net = Ethernet.begin(config.mac);
+  }
+
+  if (we_have_net == 0) {
+    Ethernet.begin(config.mac, config.ip, config.gateway, config.gateway, config.netmask);
+  }
+  server.begin();
+}
+
 void setup(void) {
   int i;
-  int we_have_net = 0;
   wdt_disable();
   pinMode(13, OUTPUT);
   // start serial port
@@ -328,14 +339,9 @@ void setup(void) {
   config.savecal();
   pFreeRam();
   lcd_print_immediate(F("Starting eth..."));
-  if (config.use_dhcp == 1) {
-    we_have_net = Ethernet.begin(config.mac);
-  }
 
-  if (we_have_net == 0) {
-    Ethernet.begin(config.mac, config.ip, config.gateway, config.gateway, config.netmask);
-  }
-  server.begin();
+  startNet();
+
   pFreeRam();
   SERIAL.print(F("server is at "));
   SERIAL.println(Ethernet.localIP());
@@ -920,6 +926,7 @@ void loop(void) {
     SERIAL.println(F("Watchdog reset before sensors"));
     wdt_reset();
 #endif
+    startNet();    
     worker();
     pFreeRam();
   }
@@ -936,6 +943,7 @@ void loop(void) {
     SERIAL.println(t_3 - t_loop_start);
     SERIAL.println(millis() - t_loop_start);
     pFreeRam();
+    
   }
   delay(50);
   lcd_tick();
