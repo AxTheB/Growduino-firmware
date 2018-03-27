@@ -119,13 +119,9 @@ int analogReadAvg(int pin) {
   long dataSum = 0L;
   int data;
 #ifdef WATCHDOG
-<<<<<<< HEAD
-  SERIAL.print(F("Analog read avg timer reset"));
-=======
 #ifdef DEBUG_WATCHDOG
-  SERIAL.print("Analog read avg timer reset");
+  SERIAL.print(F("Analog read avg timer reset"));
 #endif
->>>>>>> watchdog-test
   wdt_reset();
 #endif
 
