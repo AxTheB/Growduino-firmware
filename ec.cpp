@@ -23,14 +23,18 @@ long ec_read_raw() {
   digitalWrite(EC_ENABLE, HIGH); // power up the sensor
   delay(100);
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   SERIAL.print(F("Watchdog reset: ec read"));
+#endif
   wdt_reset();
 #endif
   for (unsigned int j = 0; j < EC_SAMPLE_TIMES; j++) {
     highPulseTime_t = pulseIn(EC_DATA, HIGH, EC_TIMEOUT);
     if (j == 0 and highPulseTime_t == 0)  {//abort on timeout on first read
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
       SERIAL.println(F(" - abort "));
+#endif
       wdt_reset();
 #endif
       return MINVALUE;
@@ -49,7 +53,9 @@ long ec_read_raw() {
     }
 
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
     SERIAL.print(F("."));
+#endif
     wdt_reset();
 #endif
   }
@@ -62,11 +68,14 @@ long ec_read_raw() {
   digitalWrite(EC_ENABLE, LOW); // power down the sensor
 
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   if (pulseError) {
     SERIAL.println(F(" with errors"));
   } else {
     SERIAL.println(F(" OK"));
   }
+#endif
+    wdt_reset();
 #endif
 
   if (pulseTime >= EC_CUTOFF) {

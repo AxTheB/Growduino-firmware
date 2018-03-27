@@ -12,7 +12,9 @@ int celsius;
 int ds_read(OneWire ds) {
   int result = MINVALUE;
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   SERIAL.print(F("Watchdog reset DS read"));
+#endif
   wdt_reset();
 #endif
 
@@ -20,12 +22,16 @@ int ds_read(OneWire ds) {
 
     result = ds_read_inner(ds);
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
     SERIAL.print(F("."));
+#endif
     wdt_reset();
 #endif
     if (result != MINVALUE ) {
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
       SERIAL.println(F(" done"));
+#endif
       wdt_reset();
 #endif
       return result;
@@ -33,7 +39,9 @@ int ds_read(OneWire ds) {
     delay(10);
   }
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   SERIAL.println(F(" done"));
+#endif
   wdt_reset();
 #endif
   return result;
