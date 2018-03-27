@@ -129,13 +129,9 @@ int analogReadAvg(int pin) {
     data = analogRead(pin);
     dataSum += data;
 #ifdef WATCHDOG
-<<<<<<< HEAD
-    SERIAL.print(F("."));
-=======
 #ifdef DEBUG_WATCHDOG
-    SERIAL.print(".");
+    SERIAL.print(F("."));
 #endif
->>>>>>> watchdog-test
     wdt_reset();
 #endif
 
@@ -153,13 +149,9 @@ int analogReadAvg(int pin) {
   }
 
 #ifdef WATCHDOG
-<<<<<<< HEAD
-  SERIAL.println(F(" done"));
-=======
 #ifdef DEBUG_WATCHDOG
-  SERIAL.println(" done");
+  SERIAL.println(F(" done"));
 #endif
->>>>>>> watchdog-test
   wdt_reset();
 #endif
 
