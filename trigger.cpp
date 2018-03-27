@@ -118,7 +118,7 @@ int trigger_tick(int idx) {
         SERIAL.print(F("output state "));
         SERIAL.println(outputs.hw_get(triggers[idx].output));
 #endif
-        if ((outputs.hw_get(triggers[idx].output) == 0) && (outputs.uptime(triggers[idx].output) >= (time_t) (triggers[idx].on_value * 60) - 1)) {
+        if ((outputs.hw_get(triggers[idx].output) == 0) && (outputs.uptime(triggers[idx].output) >= (time_t) (triggers[idx].on_value * 60) - 30)) {
           if (triggers[idx].important) {
             outputs.revive(triggers[idx].output, idx);
           } else {
@@ -187,7 +187,7 @@ int trigger_tick(int idx) {
         SERIAL.println(outputs.get(triggers[idx].output));
 #endif
 
-        if ((outputs.hw_get(triggers[idx].output) == 1) && (outputs.uptime(triggers[idx].output) >= (time_t) (triggers[idx].off_value * 60) - 1)) {
+        if ((outputs.hw_get(triggers[idx].output) == 1) && (outputs.uptime(triggers[idx].output) >= (time_t) (triggers[idx].off_value * 60) - 30)) {
           if (triggers[idx].important) {
             outputs.kill(triggers[idx].output, idx);
           } else {
