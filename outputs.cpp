@@ -382,6 +382,16 @@ void Output::json(Stream * msg) {
   msg->print(initial);
   msg->print("\",");
 
+  msg->print("\"uptimes\":{");
+  for (int i = 0; i < OUTPUTS; i++) {
+    if (i > 0) msg->print(F(","));
+    msg->print(F("\""));
+    msg->print(i);
+    msg->print(F("\":"));
+    msg->print(uptime(i));
+  }
+  msg->print(F("},"));
+
   msg->print("\"state\":{");
   for (int i = 0; i < log_index; i++) {
     if (i > 0) msg->print(F(","));
