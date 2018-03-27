@@ -119,7 +119,9 @@ int analogReadAvg(int pin) {
   long dataSum = 0L;
   int data;
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   SERIAL.print("Analog read avg timer reset");
+#endif
   wdt_reset();
 #endif
 
@@ -127,7 +129,9 @@ int analogReadAvg(int pin) {
     data = analogRead(pin);
     dataSum += data;
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
     SERIAL.print(".");
+#endif
     wdt_reset();
 #endif
 
@@ -145,7 +149,9 @@ int analogReadAvg(int pin) {
   }
 
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   SERIAL.println(" done");
+#endif
   wdt_reset();
 #endif
 
@@ -359,7 +365,9 @@ void worker() {
   SERIAL.println(millis() / 1000);
 #endif
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   SERIAL.println(F("Watchdog reset worker 1"));
+#endif
   wdt_reset();
 #endif
 
@@ -391,7 +399,9 @@ void worker() {
     hum = MINVALUE;
   }
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   SERIAL.println(F("Watchdog reset worker 2"));
+#endif
   wdt_reset();
 #endif
 
@@ -400,20 +410,26 @@ void worker() {
   light_sensor.timed_log(perThousand(LIGHT_SENSOR_PIN_1));
   light_sensor2.timed_log(perThousand(LIGHT_SENSOR_PIN_2));
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   SERIAL.println(F("Watchdog reset worker 3"));
+#endif
   wdt_reset();
 #endif
 
   ultrasound.timed_log(ultrasound_ping(USOUND_TRG, USOUND_ECHO));
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   SERIAL.println(F("Watchdog reset worker 4"));
+#endif
   wdt_reset();
 #endif
 
 #ifdef USE_EC_SENSOR
   ec.timed_log(ec_read());
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   SERIAL.println(F("Watchdog reset worker 5"));
+#endif
   wdt_reset();
 #endif
 #endif
@@ -421,7 +437,9 @@ void worker() {
 #ifdef USE_PH_SENSOR
   ph.timed_log(PH_read());
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   SERIAL.println(F("Watchdog reset worker 6"));
+#endif
   wdt_reset();
 #endif
 #endif
@@ -433,7 +451,9 @@ void worker() {
   battery.timed_log(ups_read());
 
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   SERIAL.println(F("Watchdog reset worker 7"));
+#endif
   wdt_reset();
 #endif
 
@@ -448,7 +468,9 @@ void worker() {
 
   for (int i = 0; i < LOGGERS; i++) {
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
     SERIAL.println(F("Watchdog reset logger loop"));
+#endif
     wdt_reset();
 #endif
     SERIAL.print(loggers[i]->name);
@@ -668,7 +690,9 @@ int fn_extract_raw(char * request) {
 
 int senddata(EthernetClient client, char * request, char * clientline) {
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
   SERIAL.println(F("Watchdog reset: send data"));
+#endif
   wdt_reset();
 #endif
   // Send response
@@ -767,7 +791,9 @@ void pageServe(EthernetClient client) {
   while (client.connected()) {
     if (client.available()) {
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
       SERIAL.println(F("Watchdog reset pageServe"));
+#endif
       wdt_reset();
 #endif
       linesize = client.readBytesUntil('\n', clientline, BUFSIZE - 1);
@@ -809,7 +835,9 @@ void pageServe(EthernetClient client) {
   // Headers ale all here, if its post we now should read the body.
   if (post) {
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
     SERIAL.println(F("Watchdog reset pageServe post"));
+#endif
     wdt_reset();
 #endif
     int trg_no = fn_extract_trg(request);
@@ -869,7 +897,9 @@ void loop(void) {
   t_loop_start = millis();
   if (dht22_temp.available()) {
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
     SERIAL.println(F("Watchdog reset before sensors"));
+#endif
     wdt_reset();
 #endif
     worker();
@@ -878,7 +908,9 @@ void loop(void) {
   EthernetClient client = server.available();
   if (client) {
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
     SERIAL.println(F("Watchdog reset before pageServe"));
+#endif
     wdt_reset();
 #endif
     pageServe(client);

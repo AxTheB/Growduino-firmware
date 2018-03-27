@@ -130,6 +130,7 @@
 //#define DEBUG_LCD 1
 //#define DEBUG_CALIB 1
 #define DEBUG_UPS 1
+#define DEBUG_WARCHDOG 1
 #endif
 
 // How many output chages do we keep in memory

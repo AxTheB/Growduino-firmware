@@ -66,7 +66,9 @@ int ups_read() {
     SERIAL.println(i + 1);
 #endif
 #ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
     SERIAL.println(F("Watchdog reset UPS"));
+#endif
     wdt_reset();
 #endif
     retval = ups_read_inner();
