@@ -112,13 +112,16 @@ int trigger_tick(int idx) {
         break;
       case 'T':
       case 't':
+        long time_to_switch = (long) outputs.uptime(triggers[idx].output) - (long) (((long) triggers[idx].on_value * 60) - 30);
 #ifdef DEBUG_TRIGGERS
         SERIAL.print(F("output uptime "));
         SERIAL.println(outputs.uptime(triggers[idx].output));
+        SERIAL.print(F("time to switch: "));
+        SERIAL.println(time_to_switch);
         SERIAL.print(F("output state "));
         SERIAL.println(outputs.hw_get(triggers[idx].output));
 #endif
-        if ((outputs.hw_get(triggers[idx].output) == 0) && (outputs.uptime(triggers[idx].output) >= (time_t) (triggers[idx].on_value * 60) - 30)) {
+        if ((outputs.hw_get(triggers[idx].output) == 0) && (time_to_switch > 0)) {
           if (triggers[idx].important) {
             outputs.revive(triggers[idx].output, idx);
           } else {
@@ -180,14 +183,17 @@ int trigger_tick(int idx) {
         break;
       case 'T':
       case 't':
+        long time_to_switch = (long) outputs.uptime(triggers[idx].output) - (long) (((long) triggers[idx].on_value * 60) - 30);
 #ifdef DEBUG_TRIGGERS
         SERIAL.print(F("output uptime "));
         SERIAL.println(outputs.uptime(triggers[idx].output));
+        SERIAL.print(F("time to switch: "));
+        SERIAL.println(time_to_switch);
         SERIAL.print(F(" output state "));
         SERIAL.println(outputs.get(triggers[idx].output));
 #endif
 
-        if ((outputs.hw_get(triggers[idx].output) == 1) && (outputs.uptime(triggers[idx].output) >= (time_t) (triggers[idx].off_value * 60) - 30)) {
+        if ((outputs.hw_get(triggers[idx].output) == 1) && (time_to_switch > 0)) {
           if (triggers[idx].important) {
             outputs.kill(triggers[idx].output, idx);
           } else {
