@@ -116,7 +116,7 @@ int trigger_tick(int idx) {
 #ifdef DEBUG_TRIGGERS
         SERIAL.print(F("output uptime "));
         SERIAL.println(outputs.uptime(triggers[idx].output));
-        SERIAL.print(F("time to switch: "));
+        SERIAL.print(F("time to switch (positive means switch):"));
         SERIAL.println(time_to_switch);
         SERIAL.print(F("output state "));
         SERIAL.println(outputs.hw_get(triggers[idx].output));
