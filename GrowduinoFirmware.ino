@@ -574,26 +574,28 @@ void worker() {
   // Send things to lcd
   lcd_flush();
   lcd_publish("Hi R-Man");
-  lcd_publish("Growduino.cz");
+  //lcd_publish("Growduino.cz");
   lcd_publish("Air Temp", "%s %d.%dC", dht22_temp.peek(), 10);
   lcd_publish("Humidity", "%s %d.%d%%", dht22_humidity.peek(), 10);
   lcd_publish("Water Temp", "%s %d.%dC", onewire_temp1.peek(), 10);
   lcd_publish("Water Lvl", "%s %dcm", ultrasound.peek());
   lcd_publish("Bulb Temp", "%s %d.%dC", onewire_temp2.peek(), 10);
+#ifdef USE_EC_SENSOR
+  lcd_publish("EC", "%s %d.%.2d", ec.peek(), 100);
+#endif
 #ifdef USE_PH_SENSOR
   lcd_publish("pH", "%s %d.%.2d", ph.peek(), 100);
 #endif
 #ifdef USE_CO2_SENSOR
   lcd_publish("CO2", "%s %d", co2.peek(), 0.1);
 #endif
-#ifdef USE_EC_SENSOR
-  lcd_publish("EC", "%s %d.%.2d", ec.peek(), 100);
-#endif
-  unsigned long uptime = millis() / 60000;
-  lcd_publish("Uptime", "%s %d", uptime);
 #ifdef HAVE_UPS
   lcd_publish("Battery", "%s %d%%", battery.peek());
 #endif
+  lcd_publish("");
+  lcd_publish("");
+  unsigned long uptime = millis() / 60000;
+  lcd_publish("Uptime", "%s %d", uptime);
 
   lcd_tick();
 
