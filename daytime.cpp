@@ -48,7 +48,7 @@ void daytime_init() {
   if (ntptime > 1400000000) {
     // get time from internets
     SERIAL.println(F("NTP has set the system time"));
-    setSyncProvider(getNtpTime);
+    //setSyncProvider(getNtpTime);
     if (RTC.chipPresent()) {
       RTC.set(ntptime);
     }
