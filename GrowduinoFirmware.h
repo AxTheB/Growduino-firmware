@@ -42,7 +42,6 @@
 // light sensor on analog A8
 #define LIGHT_SENSOR_PIN_1 8
 #define LIGHT_SENSOR_PIN_2 9
-#define LIGHT_SENSOR_PIN_UPS 10
 
 #define USE_PH_SENSOR 1 //can be disabled by comment
 // calibrate this. Will be saved to config file, so it can be adjusted
@@ -119,6 +118,8 @@
 
 #define HAVE_UPS 1 //can be disabled by comment
 
+#define UPS_V2 1
+
 #ifdef DEBUG
 #define DEBUG_OUTPUT 1
 //#define DEBUG_SDCARD 1
@@ -174,3 +175,7 @@ void worker();
 #define STATE_OFF 0
 #define STATE_ON_ALWAYS 2
 
+
+#ifndef UPS_V2
+#define UPS_V2 0
+#endif

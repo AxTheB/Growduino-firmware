@@ -126,7 +126,7 @@ int alert_tick(int idx) {
 #ifdef DEBUG_ALERTS
         SERIAL.print(F("storing state: ups check"));
 #endif
-        alerts[idx].last_state = (int) ups_level == 2;
+        alerts[idx].last_state = (int) ups_level == (UPS_V2 + 2);
       } else {
 #ifdef DEBUG_ALERTS
         SERIAL.print(F("storing state: sensor "));
@@ -143,7 +143,7 @@ int alert_tick(int idx) {
 #ifdef DEBUG_ALERTS
       SERIAL.print(F("Processing alert"));
 #endif
-      alerts[idx].last_state = process_alert(idx, (int) ups_level == 2);
+      alerts[idx].last_state = process_alert(idx, (int) ups_level == (UPS_V2 + 2));
     } else {
       alerts[idx].last_state = process_alert(idx, triggers[alerts[idx].trigger].state);
     }
