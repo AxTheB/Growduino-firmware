@@ -183,7 +183,7 @@ int trigger_tick(int idx) {
         break;
       case 'T':
       case 't':
-        long time_to_switch = (long) outputs.uptime(triggers[idx].output) - (long) (((long) triggers[idx].on_value * 60) - 30);
+        long time_to_switch = (long) outputs.uptime(triggers[idx].output) - (long) (((long) triggers[idx].off_value * 60) - 30);
 #ifdef DEBUG_TRIGGERS
         SERIAL.print(F("output uptime "));
         SERIAL.println(outputs.uptime(triggers[idx].output));
