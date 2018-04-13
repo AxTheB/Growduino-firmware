@@ -2,80 +2,87 @@
 extern int ups_level;
 
 
-int ups_init() {
+void ups_init() {
 #ifdef HAVE_UPS
   Serial3.begin(19200);
 #endif
 }
 
-int ups_read_inner() {
+int ups_read_inner2() {
   char line[64];
   int state;
   int energy;
+  energy = MINVALUE;
   int counter;
-  // = Serial3.readBytesUntil('s', line, 64);
-  //counter = Serial3.readBytesUntil('\n', line, 64);  //throw away first line, as it may not be complete
 
   if (Serial3.available()) {
-    strcpy(line, "................................................................");
+    strcpy(line, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
 
     counter = Serial3.readBytesUntil('\n', line, 64);
+    line[counter] = '\0';
 #ifdef DEBUG_UPS
-    SERIAL.print(F("Reading UPS: "));
-    SERIAL.println(line);
+      SERIAL.print(F("D: UPS received: "));
+      SERIAL.println(line);
 #endif
 
     if (line[0] != 's') { // UPS stats start with 's'
-      // UPS error handling may come here
-#ifdef DEBUG_UPS
-      SERIAL.println(F("Wrong line start"));
-#endif
       return MINVALUE;
     }
 
-    line[counter] = '\0';
     sscanf(line, "s:%i e:%i", &state, &energy);
     if (energy < 0 || energy > 100) {
-#ifdef DEBUG_UPS
-      SERIAL.println(F("Value out of bounds"));
-#endif
       energy = MINVALUE;
     }
-#ifdef DEBUG_UPS
-    SERIAL.println(F("Value OK"));
-#endif
     ups_level = state;
-  } else {
-#ifdef DEBUG_UPS
-    SERIAL.println(F("Serial buffer empty"));
-#endif
-    delay(1000);
-    energy = MINVALUE;
   }
-
 
   return energy;
 }
 
-int ups_read() {
-#ifdef HAVE_UPS
-  int retval;
-  for (int i = 0; i < 10; i++) {
-#ifdef DEBUG_UPS
-    SERIAL.print(F("UPS reading try #"));
-    SERIAL.println(i + 1);
+int ups_read_inner(){
+    int retval;
+    for (int i = 0; i < 10; i++) {
+#ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
+        SERIAL.print(F("Watchdog reset UPS inner "));
+        SERIAL.println(i);
 #endif
+        wdt_reset();
+#endif
+        retval = ups_read_inner2();
+        if (retval != MINVALUE) {
+#ifdef DEBUG_UPS
+            SERIAL.print(F("D: UPS read returning "));
+            SERIAL.print(retval);
+            SERIAL.print(F(" on read #"));
+            SERIAL.println(i);
+#endif
+            return retval;
+        }
+        delay(400);
+    }
+}
+
+int ups_read() {
 #ifdef WATCHDOG
 #ifdef DEBUG_WATCHDOG
     SERIAL.println(F("Watchdog reset UPS"));
 #endif
     wdt_reset();
 #endif
-    retval = ups_read_inner();
-    if (retval != MINVALUE) {
-      return retval;
-    }
-  }
+  while (Serial3.available() >0 ) {
+#ifdef WATCHDOG
+    wdt_reset();
 #endif
-  return MINVALUE;
+    Serial3.read();
+  }
+  delay(1000);
+#ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
+    SERIAL.println(F("Watchdog reset after clear"));
+#endif
+    wdt_reset();
+#endif
+  int retval;
+  return triple_read(&ups_read_inner);
 }

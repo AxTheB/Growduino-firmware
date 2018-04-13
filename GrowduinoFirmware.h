@@ -130,7 +130,7 @@
 //#define DEBUG_SMTP 1
 //#define DEBUG_LCD 1
 //#define DEBUG_CALIB 1
-//#define DEBUG_UPS 1
+#define DEBUG_UPS 1
 #define DEBUG_WATCHDOG 1
 #endif
 
@@ -138,6 +138,7 @@
 #define LOGSIZE 25
 
 // #include "config.h"
+#include "util.h"
 #include "Logger.h"
 #include "RingBuffer.h"
 #include "daytime.h"

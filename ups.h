@@ -1,3 +1,3 @@
 int ups_read();
-int ups_init();
+void ups_init();
 
