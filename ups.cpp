@@ -8,6 +8,15 @@ void ups_init() {
 #endif
 }
 
+void flush_serial(){
+  while (Serial3.available() >0 ) {
+#ifdef WATCHDOG
+    wdt_reset();
+#endif
+    Serial3.read();
+  }
+}
+
 int ups_read_inner2() {
   char line[64];
   int state;
@@ -26,6 +35,7 @@ int ups_read_inner2() {
 #endif
 
     if (line[0] != 's') { // UPS stats start with 's'
+      flush_serial();
       return MINVALUE;
     }
 
@@ -66,22 +76,17 @@ int ups_read_inner(){
 int ups_read() {
 #ifdef WATCHDOG
 #ifdef DEBUG_WATCHDOG
-    SERIAL.println(F("Watchdog reset UPS"));
+  SERIAL.println(F("Watchdog reset UPS"));
 #endif
-    wdt_reset();
+  wdt_reset();
 #endif
-  while (Serial3.available() >0 ) {
-#ifdef WATCHDOG
-    wdt_reset();
-#endif
-    Serial3.read();
-  }
+  flush_serial();
   delay(1000);
 #ifdef WATCHDOG
 #ifdef DEBUG_WATCHDOG
-    SERIAL.println(F("Watchdog reset after clear"));
+  SERIAL.println(F("Watchdog reset after clear"));
 #endif
-    wdt_reset();
+  wdt_reset();
 #endif
   int retval;
   return triple_read(&ups_read_inner);
