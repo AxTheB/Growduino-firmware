@@ -1,8 +1,6 @@
 #include "GrowduinoFirmware.h"
 
 int analogReadAvg(int pin) {
-
-
   // introduce delay between mux switch and actual reading
   analogRead(pin);
   delay(ANALOG_READ_AVG_DELAY);
@@ -69,47 +67,47 @@ int analogReadAvg(int pin) {
   return retval;
 }
 
-int triple_read(int (* funct)()){ 
-    return return_middle((*funct)(), (*funct)(), (*funct)());
+int triple_read(int (* funct)()) {
+  return return_middle((*funct)(), (*funct)(), (*funct)());
 }
 
-int triple_read(int (* funct)(int), int param1){ 
-    return return_middle((*funct)(param1), (*funct)(param1), (*funct)(param1));
+int triple_read(int (* funct)(int), int param1) {
+  return return_middle((*funct)(param1), (*funct)(param1), (*funct)(param1));
 }
 
-int return_middle(int first_value, int second_value, int third_value){
+int return_middle(int first_value, int second_value, int third_value) {
 #ifdef WATCHDOG
   wdt_reset();
 #endif
-    int values[] = {first_value, second_value, third_value};
-    int tmpval;
-    if (values[0] > values[1]){
-        tmpval = values[1];
-        values[1] = values[0];
-        values[0] = tmpval;
-        }
+  int values[] = {first_value, second_value, third_value};
+  int tmpval;
+  if (values[0] > values[1]) {
+    tmpval = values[1];
+    values[1] = values[0];
+    values[0] = tmpval;
+  }
 
-    if (values[1] > values[2]){
-        tmpval = values[2];
-        values[2] = values[1];
-        values[1] = tmpval;
-        }
+  if (values[1] > values[2]) {
+    tmpval = values[2];
+    values[2] = values[1];
+    values[1] = tmpval;
+  }
 
-    if (values[0] > values[1]){
-        tmpval = values[1];
-        values[1] = values[0];
-        values[0] = tmpval;
-        }
+  if (values[0] > values[1]) {
+    tmpval = values[1];
+    values[1] = values[0];
+    values[0] = tmpval;
+  }
 
-    if (values[0] != MINVALUE) {
-        return values[1];  // middle value if there are not any MINVALUEs
-    }
+  if (values[0] != MINVALUE) {
+    return values[1];  // middle value if there are not any MINVALUEs
+  }
 
-    if (values[1] == MINVALUE){
-        return values[2];
-    } else {
-        return (values[1] + values[2]) /2; 
-    }   
+  if (values[1] == MINVALUE) {
+    return values[2];
+  } else {
+    return (values[1] + values[2]) / 2;
+  }
 }
 
 
