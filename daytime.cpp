@@ -10,6 +10,8 @@
 
 #include <DS1307RTC.h>
 
+#include "Lcd.h"
+
 extern Config config;
 
 time_t time_now;
@@ -27,6 +29,7 @@ void daytime_init() {
     else
       SERIAL.println(F("RTC has set the system time"));
   } else {
+    lcd_print_immediate(F("RTC read failure"));
     if (RTC.chipPresent()) {
       SERIAL.println(F("The DS1307 is stopped, set time from NTP"));
       SERIAL.println();

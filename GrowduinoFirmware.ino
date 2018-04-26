@@ -240,7 +240,17 @@ void setup(void) {
   //SERIAL.println(F("Initialising clock"));
   lcd_print_immediate(F("Starting clock"));
   daytime_init();
+#ifdef WATCHDOG
+  SERIAL.println(F("Watchdog start"));
+  wdt_enable(WDTO_8S);
+  SERIAL.println(F("Watchdog reset"));
+  wdt_reset();
+  SERIAL.println(F("Watchdog reset second time"));
+  wdt_reset();
+#endif
 
+
+  lcd_print_immediate(F("Loading history"));
   //load data from sd card
   for (i = 0; i < LOGGERS; i++) {
     loggers[i]->load();
@@ -250,8 +260,10 @@ void setup(void) {
 #endif
 
   //initialise outputs
+  lcd_print_immediate(F("Output init"));
   outputs.common_init();
   pFreeRam();
+  lcd_print_immediate(F("Loading output history"));
   SERIAL.println(F("Loading output history"));
   outputs.load();
   pFreeRam();
@@ -262,15 +274,6 @@ void setup(void) {
   }
   outputs.log();
   //outputs.load();
-
-#ifdef WATCHDOG
-  SERIAL.println(F("Watchdog start"));
-  wdt_enable(WDTO_8S);
-  SERIAL.println(F("Watchdog reset"));
-  wdt_reset();
-  SERIAL.println(F("Watchdog reset second time"));
-  wdt_reset();
-#endif
 
   ups_init();
 
