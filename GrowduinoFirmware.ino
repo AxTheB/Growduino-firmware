@@ -140,7 +140,7 @@ aJsonObject * status() {
   return msg;
 }
 
-void startNet(){
+void startNet() {
   int we_have_net = 0;
   if (config.use_dhcp == 1) {
     we_have_net = Ethernet.begin(config.mac);
@@ -235,6 +235,16 @@ void setup(void) {
   SERIAL.println(F("Loading alerts"));
   alerts_load();
 
+
+#ifdef WATCHDOG
+  SERIAL.println(F("Watchdog start"));
+  wdt_enable(WDTO_8S);
+  SERIAL.println(F("Watchdog reset"));
+  wdt_reset();
+  SERIAL.println(F("Watchdog reset second time"));
+  wdt_reset();
+#endif
+
   // start real time clock
   pFreeRam();
   //SERIAL.println(F("Initialising clock"));
@@ -243,6 +253,12 @@ void setup(void) {
 
   //load data from sd card
   for (i = 0; i < LOGGERS; i++) {
+#ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
+    SERIAL.println(F("Watchdog reset loggers"));
+#endif
+    wdt_reset();
+#endif
     loggers[i]->load();
   }
 #ifdef USE_EC_SENSOR
@@ -257,20 +273,17 @@ void setup(void) {
   pFreeRam();
   SERIAL.println(F("Relay setup"));
   for (i = 0; i < OUTPUTS; i++) {
+#ifdef WATCHDOG
+#ifdef DEBUG_WATCHDOG
+    SERIAL.println(F("Watchdog reset relays"));
+#endif
+    wdt_reset();
+#endif
     pinMode(RELAY_START + i, OUTPUT);
     // outputs.set(i, 0);
   }
   outputs.log();
   //outputs.load();
-
-#ifdef WATCHDOG
-  SERIAL.println(F("Watchdog start"));
-  wdt_enable(WDTO_8S);
-  SERIAL.println(F("Watchdog reset"));
-  wdt_reset();
-  SERIAL.println(F("Watchdog reset second time"));
-  wdt_reset();
-#endif
 
   ups_init();
 
@@ -679,10 +692,10 @@ int senddata(EthernetClient client, char * request, char * clientline) {
   // abuse clientline as sd buffer
   int remain = 0;
   while ((remain = sd_file.available())) {
-    #ifdef WATCHDOG
-          SERIAL.println(F("Watchdog reset sending file"));
-          wdt_reset();
-    #endif
+#ifdef WATCHDOG
+    SERIAL.println(F("Watchdog reset sending file"));
+    wdt_reset();
+#endif
     remain = min(remain, BUFSIZE - 1);
     sd_file.read(clientline, remain);
     clientline[remain] = 0;
@@ -831,7 +844,7 @@ void loop(void) {
 #endif
     wdt_reset();
 #endif
-    startNet();    
+    startNet();
     worker();
     pFreeRam();
   }
@@ -850,7 +863,7 @@ void loop(void) {
     SERIAL.println(t_3 - t_loop_start);
     SERIAL.println(millis() - t_loop_start);
     pFreeRam();
-    
+
   }
   delay(50);
   lcd_tick();
